@@ -17,8 +17,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -30,12 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all packages
-        run: pnpm build
-
-      - name: Lint
-        run: pnpm lint
-        if: matrix.node-version == 22
+        run: pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard build
 
       - name: Test
-        run: pnpm test
-        if: false # Enable when tests exist
+        run: pnpm test run

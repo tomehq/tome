@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="https://github.com/tome-docs.png" width="80" />
-  <h1 align="center"><em>Tome</em></h1>
-  <p align="center">Beautiful documentation that doesn't cost a fortune.</p>
+  <img src="https://tome.center/logo.svg" width="80" alt="Tome" />
 </p>
+<h1 align="center"><em>Tome.</em></h1>
+<p align="center">Beautiful documentation that doesn't cost a fortune.</p>
 
 <p align="center">
-  <a href="https://github.com/tome-docs/tome/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
-  <a href="https://www.npmjs.com/package/@tome/cli"><img src="https://img.shields.io/npm/v/@tome/cli.svg" alt="npm version" /></a>
+  <a href="https://github.com/vxcozy/tome/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <a href="https://github.com/vxcozy/tome/actions"><img src="https://github.com/vxcozy/tome/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 </p>
 
 ---
@@ -29,7 +29,7 @@ That's it. Open [localhost:3000](http://localhost:3000) to see your docs.
 |---|---|---|---|
 | **Self-host** | Free forever | No | Free |
 | **Managed hosting** | $19/mo | $300+/mo | No |
-| **Unlimited sites** | ✓ | $300 each | Manual |
+| **Unlimited sites** | Yes | $300 each | Manual |
 | **API ref (OpenAPI)** | Built-in | Built-in | Plugin |
 | **Search** | Pagefind + Algolia | Built-in | Algolia |
 | **Setup time** | ~2 min | ~5 min | ~30 min |
@@ -39,15 +39,20 @@ That's it. Open [localhost:3000](http://localhost:3000) to see your docs.
 
 - **Markdown & MDX** — Write docs in Markdown with React components
 - **Syntax highlighting** — Shiki with every language and theme
-- **Built-in search** — Pagefind (local) or Algolia
-- **API references** — Auto-generate from OpenAPI specs
-- **Theming** — Full CSS control, dark/light mode, WCAG AA compliant
+- **Built-in search** — Pagefind (local) or Algolia DocSearch
+- **API references** — Auto-generate from OpenAPI specs with interactive playground
+- **Theming** — Full CSS control, dark/light mode, 6 built-in presets
 - **Deploy anywhere** — Static output for Vercel, Netlify, S3, or self-host
-- **AI-ready** — MCP server output, embedded AI chat (BYOK)
+- **AI chat** — Embedded AI assistant with BYOK (OpenAI + Anthropic)
+- **MCP server** — Machine-readable output for AI tools
+- **i18n** — Multi-language support with locale directories
+- **Versioning** — Multi-version docs with version switcher
+- **Analytics** — Privacy-first, no cookies, <1KB script
+- **Custom domains** — Full DNS management with SSL
 
 ## Documentation
 
-Visit [docs.tome.dev](https://docs.tome.dev) for the full documentation.
+Visit [tome.center/docs](https://tome.center/docs) for the full documentation.
 
 ## Contributing
 
@@ -55,4 +60,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
-MIT © [Tome Contributors](https://github.com/tome-docs/tome/graphs/contributors)
+MIT © [Tome Contributors](https://github.com/vxcozy/tome/graphs/contributors)

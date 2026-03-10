@@ -87,7 +87,7 @@ function ParamInput({
         style={inputStyle}
         placeholder={param.description || param.name}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
       />
     </div>
   );
@@ -215,7 +215,7 @@ export function ApiPlayground({ endpoint, baseUrl, auth }: ApiPlaygroundProps) {
                 style={inputStyle}
                 placeholder={auth.type === "bearer" ? "Enter bearer token" : "Enter API key"}
                 value={authToken}
-                onChange={(e) => setAuthToken(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAuthToken(e.target.value)}
               />
             </div>
           )}
@@ -269,7 +269,7 @@ export function ApiPlayground({ endpoint, baseUrl, auth }: ApiPlaygroundProps) {
                   lineHeight: 1.5,
                 }}
                 value={bodyText}
-                onChange={(e) => setBodyText(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBodyText(e.target.value)}
               />
             </div>
           )}

@@ -12,21 +12,21 @@ export interface ApiParameter {
   description?: string;
   required: boolean;
   type: string;
-  schema?: unknown;
+  schema?: Record<string, unknown>;
 }
 
 export interface ApiRequestBody {
   description?: string;
   required: boolean;
   contentType: string;
-  schema?: unknown;
+  schema?: Record<string, unknown>;
 }
 
 export interface ApiResponse {
   statusCode: string;
   description: string;
   contentType?: string;
-  schema?: unknown;
+  schema?: Record<string, unknown>;
 }
 
 export interface ApiEndpoint {

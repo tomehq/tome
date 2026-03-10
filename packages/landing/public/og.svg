@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#080c1f"/>
+  <text x="600" y="280" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="300" font-size="96" fill="#e8e6f0">Tome<tspan fill="#ff6b4a">.</tspan></text>
+  <text x="600" y="360" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="28" fill="#9490ae">Beautiful documentation that doesn't cost a fortune.</text>
+  <rect x="510" y="410" width="180" height="44" rx="2" fill="#ff6b4a"/>
+  <text x="600" y="439" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="14" fill="#ffffff" letter-spacing="1.5">OPEN SOURCE</text>
+</svg>

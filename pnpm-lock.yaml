@@ -24,23 +24,6 @@ importers:
         specifier: ^4.0.0
         version: 4.0.18(@types/node@22.19.15)(jsdom@28.1.0)
 
-  apps/docs:
-    devDependencies:
-      '@tome/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@tome/theme':
-        specifier: workspace:*
-        version: link:../../packages/theme
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-
-  apps/web: {}
-
   packages/api:
     dependencies:
       hono:

@@ -242,7 +242,7 @@ function Nav({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
         <a className="nav-link" href="#pricing" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
           Pricing
         </a>
-        <a className="nav-link" href="https://github.com/tome-docs/tome" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
+        <a className="nav-link" href="https://github.com/vxcozy/tome" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
           GitHub
         </a>
         <button className="theme-toggle" onClick={toggle} style={{
@@ -303,7 +303,7 @@ function Hero() {
         }}>
           Get Started
         </a>
-        <a className="btn-ghost" href="https://github.com/tome-docs/tome" style={{
+        <a className="btn-ghost" href="https://github.com/vxcozy/tome" style={{
           background: "transparent", color: "var(--tx)", border: "1px solid var(--bd)",
           borderRadius: 2, padding: "14px 32px", fontSize: 13, fontWeight: 500,
           fontFamily: '"Bricolage Grotesque", sans-serif', cursor: "pointer",
@@ -547,7 +547,7 @@ function Footer() {
         display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
       }}>
         <div style={{ display: "flex", gap: 24 }}>
-          <a className="footer-link" href="https://github.com/tome-docs/tome" style={linkStyle}>GitHub</a>
+          <a className="footer-link" href="https://github.com/vxcozy/tome" style={linkStyle}>GitHub</a>
           <a className="footer-link" href="/docs" style={linkStyle}>Documentation</a>
           <a className="footer-link" href="https://x.com/vec0zy" style={linkStyle}>Contact</a>
         </div>
