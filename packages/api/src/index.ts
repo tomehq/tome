@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Env } from "./types.js";
 import { auth } from "./middleware/auth.js";
+import { requirePlan } from "./middleware/plan-gate.js";
 import { rateLimit } from "./middleware/rate-limit.js";
 import { deploy } from "./routes/deploy.js";
 import { domains } from "./routes/domains.js";
@@ -62,8 +63,9 @@ app.use("/api/analytics/event", rateLimit({ maxRequests: 100, windowMs: 60_000 }
 
 app.route("/api/webhooks", webhooks);
 
-// Analytics: event ingestion is public, summary requires auth
+// Analytics: event ingestion is public, summary requires auth + Cloud plan
 app.use("/api/analytics/summary", auth);
+app.use("/api/analytics/summary", requirePlan("cloud"));
 app.route("/api/analytics", analytics);
 
 // ── Authenticated routes ─────────────────────────────────

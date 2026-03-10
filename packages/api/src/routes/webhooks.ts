@@ -4,6 +4,35 @@ import type { Env } from "../types.js";
 
 const webhooks = new Hono<{ Bindings: Env }>();
 
+/**
+ * Resolve a Stripe price ID to a Tome plan name using price metadata.
+ * Falls back to subscription metadata, then defaults to "community".
+ */
+async function resolvePlan(
+  stripe: Stripe,
+  priceId: string | undefined,
+  sub?: Stripe.Subscription,
+): Promise<string> {
+  // Try price metadata first
+  if (priceId) {
+    try {
+      const price = await stripe.prices.retrieve(priceId);
+      if (price.metadata?.tome_plan) {
+        return price.metadata.tome_plan;
+      }
+    } catch {
+      // Price may not exist — fall through
+    }
+  }
+
+  // Try subscription metadata
+  if (sub?.metadata?.tome_plan) {
+    return sub.metadata.tome_plan;
+  }
+
+  return "community";
+}
+
 // ── POST /stripe — receive Stripe webhook events ───────
 webhooks.post("/stripe", async (c) => {
   const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
@@ -30,16 +59,11 @@ webhooks.post("/stripe", async (c) => {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.customer && session.subscription) {
-        // Look up subscription to find the plan
         const sub = await stripe.subscriptions.retrieve(
           session.subscription as string
         );
         const priceId = sub.items.data[0]?.price?.id;
-        const plan = Object.entries({
-          community: "price_1T9F2SPMQbf7oJzSNiMbUulc",
-          cloud: "price_1T9F1GPMQbf7oJzS1xKgN8U1",
-          team: "price_1T9F1yPMQbf7oJzSHh8f9djU",
-        }).find(([, v]) => v === priceId)?.[0] ?? "community";
+        const plan = await resolvePlan(stripe, priceId, sub);
 
         await c.env.TOME_DB.prepare(
           "UPDATE users SET plan = ?, stripe_customer_id = ?, updated_at = datetime('now') WHERE stripe_customer_id = ? OR email = ?"
@@ -53,16 +77,15 @@ webhooks.post("/stripe", async (c) => {
     case "customer.subscription.updated": {
       const sub = event.data.object as Stripe.Subscription;
       const priceId = sub.items.data[0]?.price?.id;
-      const plan = Object.entries({
-        community: "price_1T9F2SPMQbf7oJzSNiMbUulc",
-        cloud: "price_1T9F1GPMQbf7oJzS1xKgN8U1",
-        team: "price_1T9F1yPMQbf7oJzSHh8f9djU",
-      }).find(([, v]) => v === priceId)?.[0] ?? "community";
+      const plan = await resolvePlan(stripe, priceId, sub);
+
+      // If subscription is not active (past_due, canceled, etc.), revert to community
+      const activePlan = sub.status === "active" || sub.status === "trialing" ? plan : "community";
 
       await c.env.TOME_DB.prepare(
         "UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_customer_id = ?"
       )
-        .bind(plan, sub.customer as string)
+        .bind(activePlan, sub.customer as string)
         .run();
       break;
     }

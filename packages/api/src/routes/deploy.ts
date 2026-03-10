@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env, User } from "../types.js";
+import { PLAN_LIMITS, PLAN_NAMES } from "../plan-limits.js";
 
 const deploy = new Hono<{ Bindings: Env; Variables: { user: User } }>();
 
@@ -13,6 +14,64 @@ deploy.post("/start", async (c) => {
 
   if (!body.slug || !body.files) {
     return c.json({ error: "Missing slug or files manifest" }, 400);
+  }
+
+  // ── Plan enforcement: deployment count + storage ──────
+  const planLimits = PLAN_LIMITS[user.plan] ?? PLAN_LIMITS.community;
+  const planName = PLAN_NAMES[user.plan] ?? user.plan;
+
+  // Check monthly deployment limit
+  if (planLimits.deployments > 0) {
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    const deployCount = await c.env.TOME_DB.prepare(
+      `SELECT COUNT(*) as count FROM deployments
+       WHERE user_id = ? AND created_at >= ?`
+    )
+      .bind(user.id, monthStart.toISOString())
+      .first<{ count: number }>();
+
+    if ((deployCount?.count ?? 0) >= planLimits.deployments) {
+      return c.json(
+        {
+          error: `Monthly deployment limit reached (${planLimits.deployments} for ${planName} plan)`,
+          limit: planLimits.deployments,
+          used: deployCount?.count ?? 0,
+          requiredPlan: "cloud",
+          currentPlan: user.plan,
+        },
+        403,
+      );
+    }
+  }
+
+  // Check storage limit
+  if (planLimits.storage > 0) {
+    const storageUsed = await c.env.TOME_DB.prepare(
+      `SELECT COALESCE(SUM(d.total_size), 0) as total FROM deployments d
+       JOIN projects p ON d.project_id = p.id
+       WHERE p.user_id = ? AND d.status = 'live'`
+    )
+      .bind(user.id)
+      .first<{ total: number }>();
+
+    const limitBytes = planLimits.storage * 1024 * 1024;
+    const usedBytes = storageUsed?.total ?? 0;
+
+    if (usedBytes >= limitBytes) {
+      return c.json(
+        {
+          error: `Storage limit reached (${planLimits.storage}MB for ${planName} plan)`,
+          limitMB: planLimits.storage,
+          usedMB: Math.round(usedBytes / (1024 * 1024)),
+          requiredPlan: user.plan === "community" ? "cloud" : "team",
+          currentPlan: user.plan,
+        },
+        403,
+      );
+    }
   }
 
   // Find or create project

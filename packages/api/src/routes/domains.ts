@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env, User } from "../types.js";
+import { PLAN_LIMITS, PLAN_NAMES } from "../plan-limits.js";
 
 const domains = new Hono<{ Bindings: Env; Variables: { user: User } }>();
 
@@ -13,6 +14,42 @@ domains.post("/", async (c) => {
 
   if (!domain || !projectSlug) {
     return c.json({ error: "Missing domain or projectSlug" }, 400);
+  }
+
+  // ── Plan enforcement: custom domain limits ──────────
+  const planLimits = PLAN_LIMITS[user.plan] ?? PLAN_LIMITS.community;
+
+  if (planLimits.customDomains === 0) {
+    return c.json(
+      {
+        error: "Custom domains require the Cloud plan or higher",
+        requiredPlan: "cloud",
+        currentPlan: user.plan,
+      },
+      403,
+    );
+  }
+
+  if (planLimits.customDomains > 0) {
+    const domainCount = await c.env.TOME_DB.prepare(
+      `SELECT COUNT(*) as count FROM domains d
+       JOIN projects p ON d.project_id = p.id
+       WHERE p.user_id = ?`
+    )
+      .bind(user.id)
+      .first<{ count: number }>();
+
+    if ((domainCount?.count ?? 0) >= planLimits.customDomains) {
+      return c.json(
+        {
+          error: `Domain limit reached (${planLimits.customDomains} for ${PLAN_NAMES[user.plan] ?? user.plan} plan)`,
+          limit: planLimits.customDomains,
+          requiredPlan: "team",
+          currentPlan: user.plan,
+        },
+        403,
+      );
+    }
   }
 
   // Verify project belongs to user

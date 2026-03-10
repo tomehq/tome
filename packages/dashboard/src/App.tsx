@@ -812,32 +812,56 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
 
 function BillingPage({ token, user }: { token: string; user: User }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const plan = PLANS[user.plan] ?? PLANS.community;
+
+  // Check for checkout success/cancel in URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("checkout=success")) {
+      setSuccess("Subscription activated! Your plan will update shortly.");
+      window.history.replaceState(null, "", window.location.pathname + "#/billing");
+    } else if (hash.includes("checkout=cancelled")) {
+      setError("Checkout was cancelled.");
+      window.history.replaceState(null, "", window.location.pathname + "#/billing");
+    }
+  }, []);
 
   const handleCheckout = async (planId: string) => {
     setLoading(true);
+    setError(null);
+    setSuccess(null);
     try {
+      const successUrl = `${window.location.origin}${window.location.pathname}#/billing?checkout=success`;
+      const cancelUrl = `${window.location.origin}${window.location.pathname}#/billing?checkout=cancelled`;
       const data = await api<{ url: string }>("/api/billing/checkout", {
         method: "POST",
-        body: { planId, successUrl: window.location.href, cancelUrl: window.location.href },
+        body: { planId, successUrl, cancelUrl },
         token,
       });
+      if (!data.url) throw new Error("No checkout URL returned");
       window.location.href = data.url;
-    } catch {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start checkout. Please try again.");
       setLoading(false);
     }
   };
 
   const handlePortal = async () => {
     setLoading(true);
+    setError(null);
+    setSuccess(null);
     try {
       const data = await api<{ url: string }>("/api/billing/portal", {
         method: "POST",
         body: { returnUrl: window.location.href },
         token,
       });
+      if (!data.url) throw new Error("No portal URL returned");
       window.location.href = data.url;
-    } catch {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to open billing portal. Please try again.");
       setLoading(false);
     }
   };
@@ -845,6 +869,16 @@ function BillingPage({ token, user }: { token: string; user: User }) {
   return (
     <div className="rv">
       <h2 className="section-title">Billing</h2>
+      {success && (
+        <div style={{ padding: "12px 16px", marginBottom: 16, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "#22c55e" }}>
+          {success}
+        </div>
+      )}
+      {error && (
+        <div style={{ padding: "12px 16px", marginBottom: 16, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.3)", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "#ef4444" }}>
+          {error}
+        </div>
+      )}
       <div className="card" style={{ marginBottom: 24 }}>
         <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Current Plan</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
@@ -859,20 +893,20 @@ function BillingPage({ token, user }: { token: string; user: User }) {
           ))}
         </ul>
       </div>
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         {user.plan === "community" && (
           <>
             <button className="btn-primary" onClick={() => handleCheckout("cloud")} disabled={loading}>
-              Upgrade to Cloud
+              {loading ? "Redirecting..." : "Upgrade to Cloud"}
             </button>
             <button className="btn-ghost" onClick={() => handleCheckout("team")} disabled={loading}>
-              Upgrade to Team
+              {loading ? "Redirecting..." : "Upgrade to Team"}
             </button>
           </>
         )}
         {user.plan !== "community" && (
           <button className="btn-ghost" onClick={handlePortal} disabled={loading}>
-            Manage Billing
+            {loading ? "Redirecting..." : "Manage Billing"}
           </button>
         )}
       </div>
