@@ -1,0 +1,17 @@
+{
+  "name": "@tome/create",
+  "version": "0.1.0",
+  "description": "Create a new Tome documentation project",
+  "type": "module",
+  "bin": {
+    "create-tome": "./src/index.js"
+  },
+  "scripts": {
+    "build": "echo 'Delegates to @tome/cli init'",
+    "clean": "echo 'Nothing to clean'"
+  },
+  "dependencies": {
+    "@tome/cli": "workspace:*"
+  },
+  "license": "MIT"
+}

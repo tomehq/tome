@@ -1,0 +1,63 @@
+---
+title: Search
+description: How to set up search in your Tome documentation site — built-in Pagefind and optional Algolia DocSearch.
+icon: search
+---
+
+# Search
+
+Tome includes search out of the box. No configuration is needed for the default experience — Pagefind indexes your site at build time and provides fast, client-side search with zero external dependencies.
+
+## Built-in search (Pagefind)
+
+Pagefind is the default search provider. It runs automatically during `tome build`:
+
+1. Tome builds your static site to `out/`
+2. Pagefind indexes all HTML pages
+3. The search index is placed in `out/_pagefind/`
+4. The search UI loads the index on demand (< 1KB initial JS)
+
+No configuration required. Search is available on every page via the header search bar or the `Ctrl+K` / `Cmd+K` keyboard shortcut.
+
+```javascript
+// Default — can be omitted entirely
+search: {
+  provider: "local",
+}
+```
+
+## Algolia DocSearch
+
+For larger documentation sites, you can use Algolia DocSearch as an alternative:
+
+```javascript
+search: {
+  provider: "algolia",
+  appId: "YOUR_APP_ID",
+  apiKey: "YOUR_SEARCH_API_KEY",
+  indexName: "your-index-name",
+}
+```
+
+### Initialize the Algolia index
+
+Tome includes a helper command to set up your Algolia index:
+
+```bash
+npx tome algolia:init
+```
+
+This creates a crawler configuration optimized for Tome's HTML structure.
+
+### When to use Algolia
+
+| Feature | Pagefind | Algolia |
+|---------|----------|---------|
+| Setup | Zero config | Requires account |
+| Cost | Free | Free tier available |
+| Index size | Unlimited | 10K records free |
+| Typo tolerance | Basic | Advanced |
+| Analytics | No | Yes |
+| Real-time indexing | At build time | Crawler-based |
+
+For most documentation sites, Pagefind is sufficient. Consider Algolia if you need search analytics, advanced typo tolerance, or real-time indexing.

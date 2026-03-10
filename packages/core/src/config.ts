@@ -1,0 +1,143 @@
+import { z } from "zod";
+import { readFileSync, existsSync } from "fs";
+import { resolve } from "path";
+import { pathToFileURL } from "url";
+
+// ── CONFIG SCHEMA ────────────────────────────────────────
+export const ThemeSchema = z.object({
+  preset: z.enum(["amber", "editorial"]).default("amber"),
+  accent: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  mode: z.enum(["light", "dark", "auto"]).default("auto"),
+  fonts: z.object({
+    heading: z.string().optional(),
+    body: z.string().optional(),
+    code: z.string().optional(),
+  }).optional(),
+  radius: z.string().optional(),
+}).default({});
+
+type NavigationGroup = {
+  group: string;
+  pages: Array<string | NavigationGroup>;
+};
+
+export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.object({
+  group: z.string(),
+  pages: z.array(z.union([
+    z.string(),
+    z.lazy(() => NavigationGroupSchema),
+  ])),
+});
+
+export const SearchSchema = z.object({
+  provider: z.enum(["local", "algolia"]).default("local"),
+  appId: z.string().optional(),
+  apiKey: z.string().optional(),
+  indexName: z.string().optional(),
+}).default({});
+
+export const ApiSchema = z.object({
+  spec: z.string(),
+  playground: z.boolean().default(true),
+  baseUrl: z.string().optional(),
+  auth: z.object({
+    type: z.enum(["bearer", "apiKey", "oauth2"]).optional(),
+    header: z.string().optional(),
+  }).optional(),
+}).optional();
+
+export const AiSchema = z.object({
+  enabled: z.boolean().default(false),
+  provider: z.enum(["openai", "anthropic", "custom"]).default("anthropic"),
+  model: z.string().optional(),
+  apiKeyEnv: z.string().default("TOME_AI_KEY"),
+}).optional();
+
+export const McpSchema = z.object({
+  enabled: z.boolean().default(true),
+  server: z.boolean().default(false),
+  includeContent: z.boolean().default(true),
+  excludePages: z.array(z.string()).default([]),
+}).optional();
+
+export const I18nSchema = z.object({
+  defaultLocale: z.string().default("en"),
+  locales: z.array(z.string()).default(["en"]),
+  localeNames: z.record(z.string()).optional(),
+  fallback: z.boolean().default(true),
+}).optional();
+
+export const VersioningSchema = z.object({
+  current: z.string(),
+  versions: z.array(z.string()),
+}).optional();
+
+export const AnalyticsSchema = z.object({
+  provider: z.enum(["plausible", "posthog", "custom"]).optional(),
+  key: z.string().optional(),
+}).optional();
+
+export const TomeConfigSchema = z.object({
+  name: z.string().default("My Docs"),
+  logo: z.string().optional(),
+  favicon: z.string().optional(),
+  baseUrl: z.string().optional(),
+  basePath: z.string().optional(),
+  theme: ThemeSchema,
+  navigation: z.array(NavigationGroupSchema).default([]),
+  search: SearchSchema,
+  api: ApiSchema,
+  ai: AiSchema,
+  mcp: McpSchema,
+  i18n: I18nSchema,
+  versioning: VersioningSchema,
+  analytics: AnalyticsSchema,
+  topNav: z.array(z.object({
+    label: z.string(),
+    href: z.string(),
+  })).optional(),
+});
+
+export type TomeConfig = z.infer<typeof TomeConfigSchema>;
+
+// ── CONFIG LOADER ────────────────────────────────────────
+const CONFIG_FILES = [
+  "tome.config.js",
+  "tome.config.mjs",
+  "tome.config.ts",
+];
+
+export async function loadConfig(root: string): Promise<TomeConfig> {
+  let rawConfig: Record<string, unknown> = {};
+
+  for (const file of CONFIG_FILES) {
+    const configPath = resolve(root, file);
+    if (existsSync(configPath)) {
+      try {
+        const configUrl = pathToFileURL(configPath).href;
+        const mod = await import(configUrl);
+        rawConfig = mod.default || mod;
+        break;
+      } catch (err) {
+        throw new Error(
+          `Failed to load config from ${file}:\n${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
+  }
+
+  const result = TomeConfigSchema.safeParse(rawConfig);
+
+  if (!result.success) {
+    const errors = result.error.issues
+      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
+    throw new Error(`Invalid tome.config.js:\n${errors}`);
+  }
+
+  return result.data;
+}
+
+export function defineConfig(config: Partial<TomeConfig>): Partial<TomeConfig> {
+  return config;
+}

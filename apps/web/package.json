@@ -1,0 +1,9 @@
+{
+  "name": "@tome/web",
+  "private": true,
+  "description": "Tome marketing site — tome.dev",
+  "scripts": {
+    "dev": "echo 'TODO: marketing site'",
+    "build": "echo 'TODO: marketing site'"
+  }
+}

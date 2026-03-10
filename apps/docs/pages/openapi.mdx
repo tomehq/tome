@@ -1,0 +1,132 @@
+---
+title: API Reference
+description: Auto-generate API documentation from OpenAPI 3.0 specs with an interactive playground.
+---
+
+# API Reference Generation
+
+Tome can generate API reference documentation from an OpenAPI 3.0 specification. Each endpoint becomes a page with parameter tables, request/response schemas, and an interactive playground.
+
+## Setup
+
+Point Tome to your OpenAPI spec file in `tome.config.js`:
+
+```javascript
+import { defineConfig } from "@tome/core";
+
+export default defineConfig({
+  name: "My API Docs",
+  api: {
+    spec: "./openapi.yaml",
+  },
+});
+```
+
+Tome parses the spec at build time and generates pages for each endpoint. The pages are added to your navigation automatically.
+
+## Spec Requirements
+
+Tome supports OpenAPI 3.0 specifications in YAML or JSON format. The spec should include:
+
+- `info.title` and `info.version` -- used for the API overview page
+- `paths` -- each path/method combination becomes an endpoint page
+- `components.schemas` -- referenced in request/response bodies
+
+```yaml
+openapi: "3.0.0"
+info:
+  title: My API
+  version: "1.0"
+paths:
+  /users:
+    get:
+      summary: List users
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+```
+
+## Interactive Playground
+
+The API playground lets readers make real API calls directly from the docs. It is enabled by default.
+
+```javascript
+export default {
+  api: {
+    spec: "./openapi.yaml",
+    playground: true, // default
+    baseUrl: "https://api.example.com",
+  },
+};
+```
+
+Set `playground: false` to show endpoint documentation without the interactive testing UI.
+
+## Authentication
+
+Configure the authentication method shown in the playground:
+
+```javascript
+export default {
+  api: {
+    spec: "./openapi.yaml",
+    auth: {
+      type: "bearer", // "bearer" | "apiKey" | "oauth2"
+    },
+  },
+};
+```
+
+For API key authentication with a custom header:
+
+```javascript
+export default {
+  api: {
+    spec: "./openapi.yaml",
+    auth: {
+      type: "apiKey",
+      header: "X-API-Key",
+    },
+  },
+};
+```
+
+### Auth Types
+
+| Type | Description |
+|------|-------------|
+| `bearer` | Bearer token in the `Authorization` header |
+| `apiKey` | API key in a custom header (set with `auth.header`) |
+| `oauth2` | OAuth 2.0 flow |
+
+## Generated Components
+
+Each endpoint page includes:
+
+- **Method badge** -- `GET`, `POST`, `PUT`, `DELETE`, etc. with color coding
+- **Endpoint path** -- full URL with path parameters highlighted
+- **Parameter table** -- query, path, and header parameters with types and descriptions
+- **Request body** -- schema with field types, required markers, and descriptions
+- **Response blocks** -- one per status code, with schema details
+- **Code examples** -- `curl` commands generated from the endpoint definition
+
+## Config Reference
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `api.spec` | `string` | -- | Path to OpenAPI spec file (YAML or JSON) |
+| `api.playground` | `boolean` | `true` | Show interactive API playground |
+| `api.baseUrl` | `string` | -- | Override the API base URL |
+| `api.auth.type` | `"bearer" \| "apiKey" \| "oauth2"` | -- | Authentication type |
+| `api.auth.header` | `string` | -- | Custom auth header name (for `apiKey` type) |

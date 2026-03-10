@@ -1,0 +1,25 @@
+{
+  "name": "@tome/api",
+  "version": "0.1.0",
+  "description": "Tome cloud API — Cloudflare Worker powered by Hono",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "wrangler deploy --dry-run --outdir=dist",
+    "clean": "rm -rf dist .wrangler",
+    "db:migrate:local": "wrangler d1 execute TOME_DB --local --file=migrations/0001_initial.sql",
+    "db:migrate:remote": "wrangler d1 execute TOME_DB --remote --file=migrations/0001_initial.sql"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "stripe": "^17.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "wrangler": "^4.0.0",
+    "typescript": "^5.5.0"
+  },
+  "license": "MIT"
+}

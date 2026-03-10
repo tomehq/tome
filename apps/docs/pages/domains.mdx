@@ -1,0 +1,86 @@
+---
+title: Custom Domains
+description: Connect your own domain to your Tome Cloud docs site with automatic SSL.
+---
+
+# Custom Domains
+
+Tome Cloud lets you serve your documentation from your own domain (e.g., `docs.example.com`) with automatic SSL certificate provisioning.
+
+<Callout type="info" title="Tome Cloud required">
+  Custom domains require a Tome Cloud deployment. Self-hosted sites handle domains through your hosting platform directly.
+</Callout>
+
+## Setup
+
+<Steps>
+  <div>
+    **Add the domain**
+
+    ```bash
+    tome domains:add docs.example.com
+    ```
+
+    This registers your domain with Tome Cloud and returns the DNS records you need to configure.
+  </div>
+  <div>
+    **Configure DNS**
+
+    Add these records at your DNS provider (Cloudflare, Route 53, Namecheap, etc.):
+
+    | Type | Name | Value |
+    |------|------|-------|
+    | `CNAME` | `docs` | `<your-slug>.tome.dev` |
+    | `TXT` | `_tome-verify.docs` | `tome-verify=<your-slug>` |
+
+    The CNAME record routes traffic to your Tome Cloud site. The TXT record proves domain ownership.
+  </div>
+  <div>
+    **Wait for verification**
+
+    DNS changes can take up to 48 hours to propagate, though most providers update within minutes. Check the status:
+
+    ```bash
+    tome domains:list
+    ```
+
+    Once the DNS records are verified, Tome automatically provisions an SSL certificate. Your site will be available at `https://docs.example.com`.
+  </div>
+</Steps>
+
+## Managing Domains
+
+### List domains
+
+```bash
+tome domains:list
+```
+
+Shows all custom domains for your project with their verification and SSL status.
+
+### Remove a domain
+
+```bash
+tome domains:remove docs.example.com
+```
+
+Removes the domain from Tome Cloud and cleans up the SSL certificate. Your site will no longer be accessible at that domain, but the default `<slug>.tome.dev` URL continues working.
+
+## SSL
+
+SSL certificates are provisioned automatically when your DNS records are verified. Tome uses Cloudflare SSL for SaaS, which handles certificate issuance and renewal. No manual certificate management required.
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | DNS records detected, certificate being issued |
+| `active` | Certificate issued, HTTPS is live |
+
+## Plan Limits
+
+Custom domain availability depends on your plan:
+
+| Plan | Custom Domains |
+|------|---------------|
+| Community (Free) | 0 |
+| Cloud ($19.99/mo) | 1 |
+| Team ($49.99/mo) | Unlimited |

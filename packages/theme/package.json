@@ -1,0 +1,47 @@
+{
+  "name": "@tome/theme",
+  "version": "0.1.0",
+  "description": "Tome default theme and React app shell",
+  "type": "module",
+  "main": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./entry": "./src/entry.tsx"
+  },
+  "scripts": {
+    "build": "tsup src/index.tsx src/entry.tsx --format esm --dts --external react --external react-dom --external 'virtual:tome/config' --external 'virtual:tome/routes' --external 'virtual:tome/page-loader' --external 'virtual:tome/doc-context' --external '@tome/components'",
+    "dev": "tsup src/index.tsx src/entry.tsx --format esm --dts --external react --external react-dom --external 'virtual:tome/config' --external 'virtual:tome/routes' --external 'virtual:tome/page-loader' --external 'virtual:tome/doc-context' --external '@tome/components' --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tome/components": "workspace:*",
+    "@tome/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "@docsearch/react": "^3.0.0",
+    "@docsearch/css": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@docsearch/react": {
+      "optional": true
+    },
+    "@docsearch/css": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^28.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  },
+  "license": "MIT"
+}

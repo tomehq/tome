@@ -1,0 +1,433 @@
+{
+  "name": "Tome",
+  "version": "1.0.0",
+  "pages": [
+    {
+      "url": "/api-auth",
+      "title": "Authentication",
+      "description": "Configure API authentication for the interactive playground — Bearer tokens, API keys, and custom headers.",
+      "headings": [
+        "Configuration",
+        "Bearer token",
+        "API key",
+        "Basic auth",
+        "OpenAPI security schemes",
+        "Security notes"
+      ],
+      "tags": [],
+      "content": "\n# Authentication\n\nThe API playground supports several authentication methods. Users can enter credentials that are included in test requests.\n\n## Configuration\n\nAdd auth settings to your API config:\n\n```javascript\nexport default {\n  api: {\n    spec: \"./openapi.yaml\",\n    playground: {\n      enabled: true,\n      auth: {\n        type: \"bearer\",  // \"bearer\", \"apiKey\", or \"basic\"\n      },\n    },\n  },\n};\n```\n\n## Bearer token\n\nThe most common pattern for modern APIs. A token input appears in the playground header:\n\n```javascript\nauth: {\n  type: \"bearer\",\n}\n```\n\nRequests include the header:\n```\nAuthorization: Bearer <user-entered-token>\n```\n\n## API key\n\nFor APIs that use key-based authentication:\n\n```javascript\nauth: {\n  type: \"apiKey\",\n  name: \"X-API-Key\",     // Header name\n  in: \"header\",          // \"header\" or \"query\"\n}\n```\n\nWhen `in` is `\"query\"`, the key is appended as a URL parameter instead.\n\n## Basic auth\n\nFor username/password authentication:\n\n```javascript\nauth: {\n  type: \"basic\",\n}\n```\n\nThe playground shows username and password fields. The value is sent as a Base64-encoded `Authorization: Basic` header.\n\n## OpenAPI security schemes\n\nIf your OpenAPI spec defines security schemes, Tome reads them automatically:\n\n```yaml\ncomponents:\n  securitySchemes:\n    BearerAuth:\n      type: http\n      scheme: bearer\n    ApiKeyAuth:\n      type: apiKey\n      in: header\n      name: X-API-Key\n```\n\nWhen security schemes are defined in the spec, Tome uses them instead of the manual config. You don't need to configure `auth` separately.\n\n## Security notes\n\n- Credentials entered in the playground are stored only in browser memory for the current session\n- Credentials are never sent to Tome's servers — requests go directly from the browser to your API\n- CORS must be enabled on your API server for playground requests to work\n- For production APIs, consider providing a sandbox environment URL through the `baseUrl` config\n"
+    },
+    {
+      "url": "/api-endpoints",
+      "title": "Endpoints",
+      "description": "How Tome renders API endpoints from your OpenAPI spec — methods, parameters, schemas, and the interactive playground.",
+      "headings": [
+        "Endpoint layout",
+        "Tag grouping",
+        "Parameter rendering",
+        "Schema display",
+        "Interactive playground"
+      ],
+      "tags": [],
+      "content": "\n# Endpoints\n\nTome renders each API operation from your OpenAPI spec as a structured endpoint section with method badges, parameter tables, request/response schemas, and an optional interactive playground.\n\n## Endpoint layout\n\nEach endpoint displays:\n\n1. **Method badge** — Color-coded (GET, POST, PUT, DELETE, PATCH)\n2. **Path** — The endpoint URL with path parameters highlighted\n3. **Description** — From the operation's `summary` and `description` fields\n4. **Parameters** — Path, query, and header parameters in a table\n5. **Request body** — Schema rendered with types and descriptions\n6. **Responses** — Status codes with response schemas\n\n## Tag grouping\n\nEndpoints are organized by their OpenAPI tags. Each tag becomes a section heading:\n\n```yaml\npaths:\n  /users:\n    get:\n      tags: [Users]\n      summary: List all users\n  /users/{id}:\n    get:\n      tags: [Users]\n      summary: Get user by ID\n  /projects:\n    get:\n      tags: [Projects]\n      summary: List projects\n```\n\nThis generates two groups: \"Users\" with two endpoints and \"Projects\" with one.\n\n## Parameter rendering\n\nParameters are rendered in a table with type information:\n\n| Name | Type | In | Required | Description |\n|------|------|----|----------|-------------|\n| `id` | string | path | yes | The user ID |\n| `limit` | integer | query | no | Max results (default: 20) |\n| `offset` | integer | query | no | Pagination offset |\n\n## Schema display\n\nRequest and response schemas are rendered recursively. Nested objects show their properties with types:\n\n```\nUserResponse {\n  id: string          — Unique identifier\n  name: string        — Display name\n  email: string       — Email address\n  created_at: string  — ISO 8601 timestamp\n  settings: {\n    theme: string     — \"light\" or \"dark\"\n    locale: string    — Language code\n  }\n}\n```\n\nArrays, enums, and `oneOf`/`anyOf` unions are all supported.\n\n## Interactive playground\n\nWhen `playground.enabled` is true in your config, each endpoint gets a \"Try it\" section where users can:\n\n- Fill in path and query parameters\n- Edit the request body as JSON\n- Set authentication headers\n- Send the request and view the response\n\n```javascript\napi: {\n  spec: \"./openapi.yaml\",\n  playground: {\n    enabled: true,\n    baseUrl: \"https://api.example.com\",  // Override base URL\n  },\n},\n```\n\nThe playground uses `fetch` directly from the browser. CORS must be enabled on your API for cross-origin requests.\n"
+    },
+    {
+      "url": "/api-overview",
+      "title": "Overview",
+      "description": "Generate interactive API documentation from OpenAPI specs with Tome.",
+      "headings": [
+        "Setup",
+        "Supported formats",
+        "What gets generated",
+        "Spec organization",
+        "Next steps"
+      ],
+      "tags": [],
+      "content": "\n# API Reference\n\nTome generates a complete API reference from an OpenAPI 3.x specification. Point it at a spec file and get rendered endpoint documentation with an interactive playground — no manual writing required.\n\n## Setup\n\nAdd the `api` section to your `tome.config.js`:\n\n```javascript\nexport default {\n  name: \"My API Docs\",\n  api: {\n    spec: \"./openapi.yaml\",   // Path to your OpenAPI spec\n    playground: {\n      enabled: true,          // Enable interactive playground\n    },\n  },\n};\n```\n\nTome parses the spec at build time and generates:\n\n- Endpoint listing organized by tags\n- Request/response schema documentation\n- Parameter tables with types and descriptions\n- An interactive playground for testing endpoints\n\n## Supported formats\n\n| Format | Extension |\n|--------|-----------|\n| OpenAPI 3.0 | `.json`, `.yaml`, `.yml` |\n| OpenAPI 3.1 | `.json`, `.yaml`, `.yml` |\n\nSwagger 2.x specs are not directly supported. Convert them first using tools like `swagger2openapi`.\n\n## What gets generated\n\nFrom a single spec file, Tome creates:\n\n- **Endpoint pages** — Each operation (GET, POST, PUT, DELETE) gets its own section with method, path, description, and parameters.\n- **Schema documentation** — Request bodies and response objects are rendered with type information.\n- **Tag grouping** — Operations are organized by their OpenAPI tags.\n- **Try it** — The playground lets users send real requests with custom parameters and see responses.\n\n## Spec organization\n\nFor the best results, make sure your OpenAPI spec includes:\n\n- Descriptive `summary` and `description` fields on each operation\n- Tags to group related endpoints\n- Schema definitions with `description` fields\n- Example values for parameters and request bodies\n\n## Next steps\n\n- **[Endpoints](#api-endpoints)** for details on how endpoints are rendered\n- **[Authentication](#api-auth)** for configuring auth in the playground\n"
+    },
+    {
+      "url": "/cli",
+      "title": "CLI Reference",
+      "description": "Complete reference for every command and flag in the Tome CLI.",
+      "headings": [
+        "Installation",
+        "Commands",
+        "tome init [name]",
+        "tome dev",
+        "tome build",
+        "tome deploy",
+        "tome login",
+        "tome domains:add &#x3C;domain>",
+        "tome domains:verify &#x3C;domain>",
+        "tome domains:list",
+        "tome domains:remove &#x3C;domain>",
+        "tome algolia:init",
+        "tome mcp"
+      ],
+      "tags": [],
+      "content": "\n# CLI reference\n\nThe `tome` CLI is the primary interface for creating, developing, building, and deploying documentation sites.\n\n## Installation\n\n```bash\nnpm install -D @tome/cli\n# or globally\nnpm install -g @tome/cli\n```\n\n## Commands\n\n### `tome init [name]`\n\nCreate a new Tome documentation project.\n\n```bash\ntome init my-docs\n```\n\n| Argument | Default | Description |\n|----------|---------|-------------|\n| `name` | `my-docs` | Project directory name |\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `-t, --template <name>` | `default` | Starter template |\n\nCreates `tome.config.js`, `package.json`, `index.html`, `.tome/entry.tsx`, starter pages in `pages/`, and `public/` and `styles/` directories.\n\n---\n\n### `tome dev`\n\nStart the development server with hot reloading.\n\n```bash\ntome dev\ntome dev -p 4000\ntome dev --host\n```\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `-p, --port <number>` | `3000` | Server port |\n| `--host` | `false` | Expose to network (bind `0.0.0.0`) |\n\nWatches `pages/` for file changes and reloads automatically. Config changes trigger a full reload.\n\n---\n\n### `tome build`\n\nBuild the documentation site for production.\n\n```bash\ntome build\ntome build -o dist\n```\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `-o, --outDir <dir>` | `out` | Output directory |\n\nProduces a static site and runs Pagefind to build the search index.\n\n---\n\n### `tome deploy`\n\nDeploy the site to Tome Cloud. Requires `tome login` first.\n\n```bash\ntome deploy\n```\n\nBuilds, collects output files, and uploads using hash-based deduplication.\n\n---\n\n### `tome login`\n\nAuthenticate with Tome Cloud.\n\n```bash\ntome login\n```\n\nPrompts for email and sends a magic link. Stores the API token locally.\n\n---\n\n### `tome domains:add <domain>`\n\nAdd a custom domain. Returns DNS records to configure.\n\n```bash\ntome domains:add docs.example.com\n```\n\n### `tome domains:verify <domain>`\n\nVerify DNS configuration for a custom domain.\n\n```bash\ntome domains:verify docs.example.com\n```\n\n### `tome domains:list`\n\nList all custom domains for the current project.\n\n### `tome domains:remove <domain>`\n\nRemove a custom domain.\n\n---\n\n### `tome algolia:init`\n\nInitialize an Algolia DocSearch index. Prompts for credentials and creates a crawler configuration.\n\n---\n\n### `tome mcp`\n\nStart the MCP (Model Context Protocol) stdio server for AI tool integration. Exposes documentation content as MCP resources and tools.\n"
+    },
+    {
+      "url": "/components",
+      "title": "Components",
+      "description": "Built-in MDX components — Callout, Tabs, Card, Steps, Accordion, and more.",
+      "headings": [
+        "Callout",
+        "Tabs",
+        "Card",
+        "Card group",
+        "Steps",
+        "Accordion",
+        "Using components"
+      ],
+      "tags": [],
+      "content": "\n# Components\n\nTome includes a set of built-in components available in any `.mdx` file. No imports needed — they're injected automatically.\n\n## Callout\n\nHighlight important information with a styled callout:\n\n```mdx\n<Callout title=\"Important\">\n  This is critical information that users should not miss.\n</Callout>\n```\n\nCallouts support a `type` prop for different styles:\n\n| Type | Use case |\n|------|----------|\n| `info` | General information (default) |\n| `warning` | Cautions and potential issues |\n| `error` | Critical warnings and breaking changes |\n| `tip` | Helpful suggestions and best practices |\n\n```mdx\n<Callout type=\"warning\" title=\"Deprecation Notice\">\n  This API endpoint will be removed in v3.0.\n</Callout>\n```\n\n## Tabs\n\nPresent content variants — useful for multiple languages or platform-specific instructions:\n\n```mdx\n<Tabs items={[\"npm\", \"pnpm\", \"yarn\"]}>\n  <Tab>npm install @tome/cli</Tab>\n  <Tab>pnpm add @tome/cli</Tab>\n  <Tab>yarn add @tome/cli</Tab>\n</Tabs>\n```\n\nThe active tab persists across page navigations within the same session.\n\n## Card\n\nLink to related pages or external resources:\n\n```mdx\n<Card title=\"Quickstart\" href=\"#quickstart\">\n  Get up and running in under a minute.\n</Card>\n```\n\n### Card group\n\nArrange cards in a responsive grid:\n\n```mdx\n<CardGroup cols={3}>\n  <Card title=\"Setup\">Step 1</Card>\n  <Card title=\"Configure\">Step 2</Card>\n  <Card title=\"Deploy\">Step 3</Card>\n</CardGroup>\n```\n\nThe `cols` prop accepts `2`, `3`, or `4`. Defaults to `2`.\n\n## Steps\n\nOrdered procedural instructions with visual step indicators:\n\n```mdx\n<Steps>\n  <Step title=\"Install dependencies\">\n    Run `npm install` in your project directory.\n  </Step>\n  <Step title=\"Configure\">\n    Edit `tome.config.js` with your settings.\n  </Step>\n  <Step title=\"Deploy\">\n    Run `tome deploy` to publish your site.\n  </Step>\n</Steps>\n```\n\n## Accordion\n\nCollapsible content sections for FAQs or optional details:\n\n```mdx\n<Accordion title=\"How do I deploy?\">\n  Run `npx tome deploy` from your project directory. See the deployment guide for details.\n</Accordion>\n```\n\nMultiple accordions stack vertically. Only one opens at a time by default.\n\n## Using components\n\nComponents are only available in `.mdx` files. If your file uses the `.md` extension, rename it to `.mdx` to enable component support.\n\n```\npages/\n├── index.md          # Standard Markdown only\n├── quickstart.mdx    # Markdown + components\n```\n\nNo import statements are needed. Tome injects all built-in components automatically:\n\n```mdx\n---\ntitle: Getting Started\n---\n\n# Getting Started\n\n<Callout type=\"tip\" title=\"Prerequisites\">\n  Make sure you have Node.js 18+ installed.\n</Callout>\n\n<Steps>\n  <Step title=\"Create project\">\n    Run `npx @tome/cli init my-docs`\n  </Step>\n  <Step title=\"Start dev server\">\n    Run `npm run dev`\n  </Step>\n</Steps>\n```\n"
+    },
+    {
+      "url": "/concepts/architecture",
+      "title": "Architecture",
+      "description": "How Tome works internally — the Vite plugin, virtual modules, build pipeline, and theme system.",
+      "headings": [
+        "Overview",
+        "Vite plugin",
+        "Theme system",
+        "Content pipeline",
+        "Markdown (.md)",
+        "MDX (.mdx)",
+        "Build output",
+        "Package structure"
+      ],
+      "tags": [],
+      "content": "\n# Architecture\n\nTome is built on Vite and React. Understanding the architecture helps when debugging build issues or building advanced customizations.\n\n## Overview\n\nA Tome site is a Vite application with a custom plugin that handles page discovery, routing, and content processing. The theme package provides the React UI shell.\n\n```text\ntome.config.js  →  Vite Plugin  →  Virtual Modules  →  Theme Shell  →  Static Site\n```\n\n## Vite plugin\n\nThe core of Tome is `vite-plugin-tome` in `@tome/core`. It has three responsibilities:\n\n**1. Page discovery** — On startup, the plugin scans `pages/` for `.md` and `.mdx` files, extracts frontmatter, and builds a route table. It watches for file changes during development and triggers hot reloads.\n\n**2. Virtual modules** — The plugin exposes content through Vite's virtual module system:\n\n| Module | Contents |\n|--------|----------|\n| `virtual:tome/config` | The resolved config as JSON |\n| `virtual:tome/routes` | Route table with IDs, URLs, and frontmatter |\n| `virtual:tome/page/:id` | Processed page content |\n| `virtual:tome/api` | Parsed OpenAPI manifest |\n| `virtual:tome/analytics` | Analytics provider settings |\n\n**3. Build-time generation** — During builds, the plugin injects analytics scripts and generates the `mcp.json` manifest.\n\n## Theme system\n\nThe theme package (`@tome/theme`) provides the React shell:\n\n- **Shell component** — Header, sidebar, content area, footer\n- **Preset system** — Color tokens and CSS variables per preset\n- **Search integration** — Pagefind or Algolia, loaded dynamically\n- **AI chat** — Optional floating widget\n\nThe entry point (`.tome/entry.tsx`) bootstraps the shell by importing `@tome/theme/entry`.\n\n## Content pipeline\n\n### Markdown (`.md`)\n\n1. Frontmatter extracted via `gray-matter`\n2. Markdown processed to HTML (syntax highlighting, GFM tables, headings)\n3. HTML + headings + frontmatter served as virtual module\n\n### MDX (`.mdx`)\n\n1. Frontmatter and headings extracted from raw source\n2. File passed to `@mdx-js/rollup` for JSX compilation\n3. Virtual module re-exports the compiled React component + metadata\n\n## Build output\n\n```text\nout/\n├── index.html           # SPA entry\n├── assets/\n│   ├── index-[hash].js  # Application bundle\n│   └── index-[hash].css # Styles\n├── _pagefind/           # Search index\n├── mcp.json             # MCP manifest\n└── 404.html             # Error page\n```\n\nThe output is a single-page application. Search is fully static.\n\n## Package structure\n\n| Package | Purpose |\n|---------|---------|\n| `@tome/cli` | CLI commands (init, dev, build, deploy) |\n| `@tome/core` | Config, routing, Vite plugin, markdown processing |\n| `@tome/theme` | Shell UI, presets, search, AI chat |\n| `@tome/components` | MDX components (Callout, Tabs, Card, etc.) |\n"
+    },
+    {
+      "url": "/concepts/file-routing",
+      "title": "File-System Routing",
+      "description": "How Tome maps files in the pages/ directory to URLs — naming conventions, nested routes, i18n, and versioning.",
+      "headings": [
+        "Basic routing",
+        "Page IDs",
+        "Navigation vs. routing",
+        "i18n routing",
+        "Versioned routing",
+        "File discovery"
+      ],
+      "tags": [],
+      "content": "\n# File-system routing\n\nEvery `.md` or `.mdx` file in the `pages/` directory becomes a page. The file path determines the URL.\n\n## Basic routing\n\n| File path | URL |\n|-----------|-----|\n| `pages/index.md` | `/` |\n| `pages/quickstart.md` | `/quickstart` |\n| `pages/guides/deployment.md` | `/guides/deployment` |\n| `pages/api/endpoints.md` | `/api/endpoints` |\n| `pages/api/index.md` | `/api` |\n\n**Rules:**\n\n- `index.md` serves at the directory's root path\n- File extensions are stripped from the URL\n- Directory nesting maps directly to URL segments\n\n## Page IDs\n\nEach page has an ID derived from its path relative to `pages/`:\n\n| File | Page ID |\n|------|---------|\n| `pages/index.md` | `index` |\n| `pages/quickstart.md` | `quickstart` |\n| `pages/guides/deployment.md` | `guides/deployment` |\n\nPage IDs are used in `navigation` config to control sidebar order.\n\n## Navigation vs. routing\n\nAll pages in `pages/` are routable regardless of whether they appear in `navigation`. Navigation only controls the sidebar.\n\nPages can be hidden from the sidebar using `hidden: true` in frontmatter while remaining accessible at their URL.\n\n## i18n routing\n\nWhen multiple locales are configured, organize pages by locale subdirectory:\n\n```text\npages/\n├── en/            # Default locale\n│   ├── index.md\n│   └── quickstart.md\n├── es/            # Spanish\n│   ├── index.md\n│   └── quickstart.md\n```\n\n| File | URL |\n|------|-----|\n| `pages/en/index.md` | `/` (default — no prefix) |\n| `pages/es/index.md` | `/es/` |\n| `pages/es/quickstart.md` | `/es/quickstart` |\n\nThe default locale serves at the root without a prefix. When `fallback: true` and a page doesn't exist in a non-default locale, the default version is used.\n\n## Versioned routing\n\nWhen versioning is configured:\n\n```text\npages/\n├── current/       # Latest version\n│   ├── index.md\n│   └── api.md\n├── v1.0/\n│   ├── index.md\n│   └── api.md\n```\n\n| File | URL |\n|------|-----|\n| `pages/current/index.md` | `/` |\n| `pages/v1.0/index.md` | `/v1.0/` |\n| `pages/v1.0/api.md` | `/v1.0/api` |\n\nThe `current` directory serves at the root. Older versions are prefixed.\n\n## File discovery\n\nTome discovers pages by scanning `pages/` for `**/*.{md,mdx}` files. Discovery runs at startup and again whenever files are added, removed, or renamed during development.\n"
+    },
+    {
+      "url": "/configuration",
+      "title": "Configuration",
+      "description": "How to configure your Tome site using tome.config.js — name, logo, navigation, theme, and more.",
+      "headings": [
+        "Minimal config",
+        "Site metadata",
+        "Navigation",
+        "Nested groups",
+        "Top navigation",
+        "Theme",
+        "Base path",
+        "Search",
+        "Full example"
+      ],
+      "tags": [],
+      "content": "\n# Configuration\n\nAll site configuration lives in `tome.config.js` (or `.mjs` / `.ts`) at your project root. Tome validates the config with Zod and provides clear error messages if anything is wrong.\n\n## Minimal config\n\n```javascript\nexport default {\n  name: \"My Docs\",\n};\n```\n\nThis is all you need. Tome uses sensible defaults for everything else.\n\n## Site metadata\n\n```javascript\nexport default {\n  name: \"My Docs\",\n  logo: \"/logo.svg\",        // Path relative to public/\n  favicon: \"/favicon.ico\",  // Path relative to public/\n  baseUrl: \"https://docs.example.com\",\n};\n```\n\n`baseUrl` is used for generating canonical URLs and analytics endpoints. It should be the full URL where your site is hosted.\n\n## Navigation\n\nThe `navigation` array defines your sidebar structure. Each group has a label and a list of page IDs (filenames without extensions):\n\n```javascript\nnavigation: [\n  {\n    group: \"Getting Started\",\n    pages: [\"index\", \"quickstart\"],\n  },\n  {\n    group: \"API\",\n    pages: [\"api/authentication\", \"api/endpoints\", \"api/errors\"],\n  },\n],\n```\n\nPages not listed in navigation still exist at their URL — they're just hidden from the sidebar.\n\n### Nested groups\n\nGroups can be nested for complex documentation structures:\n\n```javascript\nnavigation: [\n  {\n    group: \"SDK\",\n    pages: [\n      \"sdk/overview\",\n      {\n        group: \"Languages\",\n        pages: [\"sdk/javascript\", \"sdk/python\", \"sdk/go\"],\n      },\n    ],\n  },\n],\n```\n\n## Top navigation\n\nAdd links to the header bar:\n\n```javascript\ntopNav: [\n  { label: \"Blog\", href: \"https://blog.example.com\" },\n  { label: \"Changelog\", href: \"/changelog\" },\n],\n```\n\n## Theme\n\n```javascript\ntheme: {\n  preset: \"editorial\",   // \"amber\" or \"editorial\"\n  accent: \"#ff6b4a\",     // Custom accent color (hex)\n  mode: \"auto\",          // \"light\", \"dark\", or \"auto\"\n  fonts: {\n    heading: \"Playfair Display\",\n    body: \"Source Sans Pro\",\n    code: \"Fira Code\",\n  },\n},\n```\n\nSee **[Theming](#theming)** for full customization details.\n\n## Base path\n\nIf your docs are served under a subpath (e.g., `example.com/docs/`), set `basePath`:\n\n```javascript\nbasePath: \"/docs/\",\n```\n\nThis configures Vite's `base` option so all asset paths resolve correctly.\n\n## Search\n\nPagefind is enabled by default with no configuration. To use Algolia DocSearch instead:\n\n```javascript\nsearch: {\n  provider: \"algolia\",\n  appId: \"YOUR_APP_ID\",\n  apiKey: \"YOUR_SEARCH_KEY\",\n  indexName: \"your-index\",\n},\n```\n\n## Full example\n\n```javascript\nexport default {\n  name: \"Acme Docs\",\n  logo: \"/acme-logo.svg\",\n  favicon: \"/favicon.ico\",\n  baseUrl: \"https://docs.acme.com\",\n  theme: {\n    preset: \"editorial\",\n    accent: \"#2563eb\",\n    mode: \"auto\",\n  },\n  navigation: [\n    { group: \"Overview\", pages: [\"index\", \"quickstart\"] },\n    { group: \"Guides\", pages: [\"guides/auth\", \"guides/deploy\"] },\n    { group: \"API\", pages: [\"api/rest\", \"api/webhooks\"] },\n  ],\n  topNav: [\n    { label: \"Changelog\", href: \"/changelog\" },\n  ],\n  search: { provider: \"local\" },\n};\n```\n"
+    },
+    {
+      "url": "/guides/api-reference",
+      "title": "API Reference Setup",
+      "description": "How to generate an interactive API reference from an OpenAPI specification in Tome.",
+      "headings": [
+        "1. Add your OpenAPI spec",
+        "2. Configure Tome",
+        "Options",
+        "3. View the reference",
+        "4. Interactive playground",
+        "Supported spec formats"
+      ],
+      "tags": [],
+      "content": "\n# API reference setup\n\nTome can generate a full API reference from an OpenAPI 3.x specification. The reference includes endpoint documentation, request/response schemas, and an interactive playground for testing endpoints.\n\n## 1. Add your OpenAPI spec\n\nPlace your OpenAPI spec file (JSON or YAML) in your project:\n\n```text\nmy-docs/\n├── openapi.yaml      # Your API spec\n├── tome.config.js\n└── pages/\n```\n\n## 2. Configure Tome\n\nAdd the `api` section to your config:\n\n```javascript\nexport default {\n  name: \"My API Docs\",\n  api: {\n    spec: \"./openapi.yaml\",\n    playground: true,\n    baseUrl: \"https://api.example.com\",\n    auth: {\n      type: \"bearer\",\n      header: \"Authorization\",\n    },\n  },\n};\n```\n\n### Options\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `spec` | string | — | Path to your OpenAPI spec file (required) |\n| `playground` | boolean | `true` | Enable the interactive API playground |\n| `baseUrl` | string | — | Base URL for playground requests |\n| `auth.type` | string | — | Auth type: `\"bearer\"`, `\"apiKey\"`, or `\"oauth2\"` |\n| `auth.header` | string | — | Header name for the auth token |\n\n## 3. View the reference\n\nStart the dev server and navigate to `/api`. Tome parses the spec and renders:\n\n- **Endpoint groups** organized by OpenAPI tags\n- **Request parameters** with types, descriptions, and required markers\n- **Response schemas** with expandable nested objects\n- **Code examples** for `curl`, JavaScript, and Python\n\n## 4. Interactive playground\n\nWhen `playground: true`, each endpoint includes a \"Try It\" panel where users can:\n\n- Set path parameters and query strings\n- Edit the request body with JSON validation\n- Add authentication headers\n- Send requests and view formatted responses\n\nThe playground sends requests directly from the browser, so CORS must be configured on your API server.\n\n## Supported spec formats\n\nTome supports OpenAPI 3.0 and 3.1 specifications in JSON or YAML format. Swagger 2.x specs are not supported — convert them with tools like `swagger2openapi`.\n"
+    },
+    {
+      "url": "/guides/configuration",
+      "title": "Configuration",
+      "description": "How to configure your Tome site using tome.config.js — name, logo, navigation, theme, and more.",
+      "headings": [
+        "Minimal config",
+        "Site metadata",
+        "Navigation",
+        "Nested groups",
+        "Top navigation",
+        "Theme",
+        "Base path",
+        "Full example"
+      ],
+      "tags": [],
+      "content": "\n# Configuration\n\nAll site configuration lives in `tome.config.js` (or `.mjs` / `.ts`) at your project root. Tome validates the config with Zod and provides clear error messages if anything is wrong.\n\n## Minimal config\n\n```javascript\nexport default {\n  name: \"My Docs\",\n};\n```\n\nThis is all you need. Tome uses sensible defaults for everything else.\n\n## Site metadata\n\n```javascript\nexport default {\n  name: \"My Docs\",\n  logo: \"/logo.svg\",        // Path relative to public/\n  favicon: \"/favicon.ico\",  // Path relative to public/\n  baseUrl: \"https://docs.example.com\",\n};\n```\n\n`baseUrl` is used for generating canonical URLs and analytics endpoints. It should be the full URL where your site is hosted.\n\n## Navigation\n\nThe `navigation` array defines your sidebar structure. Each group has a label and a list of page IDs (filenames without extensions):\n\n```javascript\nnavigation: [\n  {\n    group: \"Getting Started\",\n    pages: [\"index\", \"quickstart\"],\n  },\n  {\n    group: \"API\",\n    pages: [\"api/authentication\", \"api/endpoints\", \"api/errors\"],\n  },\n],\n```\n\nPages not listed in navigation still exist at their URL — they're just hidden from the sidebar.\n\n### Nested groups\n\nGroups can be nested for complex documentation structures:\n\n```javascript\nnavigation: [\n  {\n    group: \"SDK\",\n    pages: [\n      \"sdk/overview\",\n      {\n        group: \"Languages\",\n        pages: [\"sdk/javascript\", \"sdk/python\", \"sdk/go\"],\n      },\n    ],\n  },\n],\n```\n\n## Top navigation\n\nAdd links to the header bar:\n\n```javascript\ntopNav: [\n  { label: \"Blog\", href: \"https://blog.example.com\" },\n  { label: \"GitHub\", href: \"https://github.com/example/docs\" },\n],\n```\n\n## Theme\n\nSee the [Custom theme guide](/docs/guides/custom-theme) for full details.\n\n```javascript\ntheme: {\n  preset: \"editorial\",   // \"amber\" or \"editorial\"\n  accent: \"#ff6b4a\",     // Custom accent color (hex)\n  mode: \"auto\",          // \"light\", \"dark\", or \"auto\"\n  fonts: {\n    heading: \"Playfair Display\",\n    body: \"Source Sans Pro\",\n    code: \"Fira Code\",\n  },\n},\n```\n\n## Base path\n\nIf your docs are served under a subpath (e.g., `example.com/docs/`), set `basePath`:\n\n```javascript\nbasePath: \"/docs/\",\n```\n\nThis configures Vite's `base` option so all asset paths resolve correctly.\n\n## Full example\n\n```javascript\nexport default {\n  name: \"Acme Docs\",\n  logo: \"/acme-logo.svg\",\n  favicon: \"/favicon.ico\",\n  baseUrl: \"https://docs.acme.com\",\n  theme: {\n    preset: \"editorial\",\n    accent: \"#2563eb\",\n    mode: \"auto\",\n  },\n  navigation: [\n    { group: \"Overview\", pages: [\"index\", \"quickstart\"] },\n    { group: \"Guides\", pages: [\"guides/auth\", \"guides/deploy\"] },\n    { group: \"API\", pages: [\"api/rest\", \"api/webhooks\"] },\n  ],\n  topNav: [\n    { label: \"GitHub\", href: \"https://github.com/acme/docs\" },\n  ],\n  search: { provider: \"local\" },\n};\n```\n\nSee the [Config reference](/docs/reference/config) for every available field.\n"
+    },
+    {
+      "url": "/guides/custom-theme",
+      "title": "Custom Theme",
+      "description": "How to customize your Tome site's appearance — presets, accent colors, fonts, dark mode, and CSS variables.",
+      "headings": [
+        "Presets",
+        "Amber (default)",
+        "Editorial",
+        "Accent color",
+        "Color mode",
+        "Custom fonts",
+        "CSS variables",
+        "Border radius"
+      ],
+      "tags": [],
+      "content": "\n# Custom theme\n\nTome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.\n\n## Presets\n\nChoose between two built-in presets:\n\n### Amber (default)\n\nA warm, approachable aesthetic with golden accent tones. Good for developer documentation and technical guides.\n\n```javascript\ntheme: {\n  preset: \"amber\",\n}\n```\n\n### Editorial\n\nA refined, high-contrast aesthetic inspired by Swiss poster design and literary magazines. Features serif headings and a more dramatic visual presence.\n\n```javascript\ntheme: {\n  preset: \"editorial\",\n}\n```\n\nSee [Theme presets reference](/docs/reference/theme-presets) for the exact color values.\n\n## Accent color\n\nOverride the preset's accent color with any hex value:\n\n```javascript\ntheme: {\n  preset: \"amber\",\n  accent: \"#2563eb\",  // Blue accent instead of amber\n}\n```\n\nTome derives tint and dim variants automatically from your accent color.\n\n## Color mode\n\nControl dark/light mode behavior:\n\n| Value | Behavior |\n|-------|----------|\n| `\"auto\"` | Follows system preference (default) |\n| `\"light\"` | Always light mode |\n| `\"dark\"` | Always dark mode |\n\nUsers can toggle the mode using the theme switch in the header.\n\n## Custom fonts\n\nOverride any font family. Make sure to add the appropriate `<link>` tag to `index.html` if using custom Google Fonts.\n\n```javascript\ntheme: {\n  fonts: {\n    heading: \"Playfair Display\",\n    body: \"Source Sans Pro\",\n    code: \"Fira Code\",\n  },\n}\n```\n\n## CSS variables\n\nFor fine-grained control, override CSS variables in a custom stylesheet. The key variables are:\n\n| Variable | Description |\n|----------|-------------|\n| `--ac` | Accent color |\n| `--acD` | Accent dark variant |\n| `--acT` | Accent tint |\n| `--bg` | Page background |\n| `--sf` | Surface (cards, sidebar) |\n| `--sfH` | Surface hover state |\n| `--bd` | Border color |\n| `--tx` | Primary text |\n| `--tx2` | Secondary text |\n| `--txM` | Muted text |\n\nSee the [Theme presets reference](/docs/reference/theme-presets) for the complete variable list with values per preset.\n\n## Border radius\n\nAdjust the global border radius:\n\n```javascript\ntheme: {\n  radius: \"4px\",   // Sharper corners\n  radius: \"12px\",  // Rounder corners\n}\n```\n"
+    },
+    {
+      "url": "/guides/search",
+      "title": "Search",
+      "description": "How to set up search in your Tome documentation site — built-in Pagefind and optional Algolia DocSearch.",
+      "headings": [
+        "Built-in search (Pagefind)",
+        "Algolia DocSearch",
+        "Initialize the Algolia index",
+        "When to use Algolia"
+      ],
+      "tags": [],
+      "content": "\n# Search\n\nTome includes search out of the box. No configuration is needed for the default experience — Pagefind indexes your site at build time and provides fast, client-side search with zero external dependencies.\n\n## Built-in search (Pagefind)\n\nPagefind is the default search provider. It runs automatically during `tome build`:\n\n1. Tome builds your static site to `out/`\n2. Pagefind indexes all HTML pages\n3. The search index is placed in `out/_pagefind/`\n4. The search UI loads the index on demand (< 1KB initial JS)\n\nNo configuration required. Search is available on every page via the header search bar or the `Ctrl+K` / `Cmd+K` keyboard shortcut.\n\n```javascript\n// Default — can be omitted entirely\nsearch: {\n  provider: \"local\",\n}\n```\n\n## Algolia DocSearch\n\nFor larger documentation sites, you can use Algolia DocSearch as an alternative:\n\n```javascript\nsearch: {\n  provider: \"algolia\",\n  appId: \"YOUR_APP_ID\",\n  apiKey: \"YOUR_SEARCH_API_KEY\",\n  indexName: \"your-index-name\",\n}\n```\n\n### Initialize the Algolia index\n\nTome includes a helper command to set up your Algolia index:\n\n```bash\nnpx tome algolia:init\n```\n\nThis creates a crawler configuration optimized for Tome's HTML structure.\n\n### When to use Algolia\n\n| Feature | Pagefind | Algolia |\n|---------|----------|---------|\n| Setup | Zero config | Requires account |\n| Cost | Free | Free tier available |\n| Index size | Unlimited | 10K records free |\n| Typo tolerance | Basic | Advanced |\n| Analytics | No | Yes |\n| Real-time indexing | At build time | Crawler-based |\n\nFor most documentation sites, Pagefind is sufficient. Consider Algolia if you need search analytics, advanced typo tolerance, or real-time indexing.\n"
+    },
+    {
+      "url": "/guides/versioning",
+      "title": "Multi-Version Docs",
+      "description": "How to maintain multiple versions of your documentation with Tome's built-in versioning system.",
+      "headings": [
+        "Directory structure",
+        "Configuration",
+        "URL mapping",
+        "Version switcher",
+        "Best practices"
+      ],
+      "tags": [],
+      "content": "\n# Multi-version docs\n\nTome supports maintaining multiple versions of your documentation side by side. This is useful for libraries and APIs that need to document breaking changes across major versions.\n\n## Directory structure\n\nOrganize your pages by version using subdirectories:\n\n```text\npages/\n├── current/          # Latest version\n│   ├── index.md\n│   ├── quickstart.md\n│   └── api.md\n├── v1.0/             # Previous version\n│   ├── index.md\n│   ├── quickstart.md\n│   └── api.md\n└── v0.9/             # Older version\n    ├── index.md\n    └── api.md\n```\n\n## Configuration\n\nAdd the `versioning` section to your config:\n\n```javascript\nexport default {\n  name: \"My Docs\",\n  versioning: {\n    current: \"v2.0\",\n    versions: [\"v2.0\", \"v1.0\", \"v0.9\"],\n  },\n};\n```\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `current` | string | The label for the current (latest) version |\n| `versions` | string[] | All available versions, newest first |\n\n## URL mapping\n\n| Directory | URL |\n|-----------|-----|\n| `pages/current/index.md` | `/` |\n| `pages/current/api.md` | `/api` |\n| `pages/v1.0/index.md` | `/v1.0/` |\n| `pages/v1.0/api.md` | `/v1.0/api` |\n\nThe `current` directory always serves at the root — no version prefix. Older versions are prefixed with their version string.\n\n## Version switcher\n\nWhen versioning is configured, Tome automatically adds a version dropdown to the header. Users can switch between versions, and the URL updates to reflect the selected version.\n\nIf the current page exists in the target version, the user stays on that page. Otherwise, they're redirected to the version's index page.\n\n## Best practices\n\n- Keep the `current` directory as your working copy\n- Copy `current` to a versioned directory (e.g., `v2.0`) when you cut a release\n- Remove pages from old versions that no longer apply rather than leaving stale content\n- Use the same page IDs across versions so the version switcher can navigate between them\n"
+    },
+    {
+      "url": "/",
+      "title": "Introduction",
+      "description": "Tome is an open-source documentation platform for Markdown and MDX. Beautiful docs without the $250/month price tag.",
+      "headings": [
+        "What is Tome?",
+        "Why Tome?",
+        "Features",
+        "Learn more"
+      ],
+      "tags": [],
+      "content": "\n# Tome\n\nWelcome to Tome — beautiful documentation, zero vendor lock-in.\n\n---\n\nTome is an open-source documentation platform built for developers who believe great docs shouldn't cost $250/month. Write in Markdown or MDX, deploy anywhere, and own your content forever.\n\n## What is Tome?\n\nTome transforms your Markdown and MDX files into stunning, fully-searchable documentation sites. It handles navigation, theming, API references, code highlighting, and versioning — all from a simple folder of `.md` and `.mdx` files.\n\n> **OPEN SOURCE FOREVER**\n>\n> Tome is MIT licensed. No vendor lock-in, no surprise pricing changes, no feature gates. Your docs are yours.\n\n## Why Tome?\n\nDocumentation platforms have become unreasonably expensive. Most charge hundreds per month for features that should be table stakes. Want custom domains? Pay more. Need versioning? Upgrade your plan. Multiple projects? That'll be $250/month — per project.\n\nWe built Tome because we thought that was absurd. Every developer and team deserves polished, professional documentation without paying a premium for basic functionality. Tome gives you everything you need for free when self-hosted, or at a fraction of the cost on our cloud.\n\n```bash\n# Get started in 30 seconds\nnpx @tome/cli init my-docs\ncd my-docs && npm install && npm run dev\n```\n\n## Features\n\n- **Markdown and MDX** — Write docs in `.md` or use `.mdx` for interactive components like tabs, callouts, and code playgrounds.\n- **File-system routing** — Drop files into `pages/` and they become pages. No router config, no manifest files.\n- **Built-in components** — Callouts, tabs, cards, steps, accordions, and API playgrounds work out of the box.\n- **Two theme presets** — Ship with a warm amber aesthetic or an editorial brutalist look. Both support dark mode.\n- **Search included** — Pagefind indexes your site at build time. No external service required.\n- **API reference** — Point Tome at an OpenAPI spec and get a rendered reference with an interactive playground.\n- **Versioning** — Maintain multiple documentation versions side by side with a version switcher.\n- **i18n** — Serve docs in multiple languages with locale-based routing.\n- **Deploy anywhere** — Static output works on Vercel, Netlify, Cloudflare Pages, or Tome Cloud.\n\n## Learn more\n\n- **[Quickstart](#quickstart)** — Get a docs site running in under a minute.\n- **[Installation](#installation)** — Detailed setup instructions and prerequisites.\n- **[Configuration](#configuration)** — Customize your site name, navigation, theme, and more.\n- **[CLI Reference](#cli)** — Every command and flag available in the `tome` CLI.\n"
+    },
+    {
+      "url": "/installation",
+      "title": "Installation",
+      "description": "System requirements and detailed installation instructions for Tome.",
+      "headings": [
+        "Prerequisites",
+        "Create a new project",
+        "Install dependencies",
+        "Start the dev server",
+        "Add to an existing project",
+        "Next steps"
+      ],
+      "tags": [],
+      "content": "\n# Installation\n\nTome requires Node.js and works with npm, pnpm, or yarn.\n\n## Prerequisites\n\n| Requirement | Minimum |\n|-------------|---------|\n| Node.js | 18.0 or higher |\n| Package manager | npm, pnpm, or yarn |\n\n## Create a new project\n\nThe fastest way to start is with the CLI:\n\n```bash\nnpx @tome/cli init my-docs\n```\n\nThis creates a new directory with everything you need:\n\n```\nmy-docs/\n├── pages/\n│   ├── index.md\n│   ├── quickstart.md\n│   └── components.mdx\n├── .tome/\n│   └── entry.tsx\n├── tome.config.js\n├── index.html\n├── package.json\n└── .gitignore\n```\n\n## Install dependencies\n\n```bash\ncd my-docs\nnpm install\n```\n\nOr with pnpm / yarn:\n\n```bash\npnpm install\n# or\nyarn install\n```\n\n## Start the dev server\n\n```bash\nnpm run dev\n```\n\nThe dev server starts at `http://localhost:3000` with hot reload enabled. Changes to any `.md` or `.mdx` file in `pages/` trigger an instant refresh. Config changes in `tome.config.js` trigger a full reload.\n\n## Add to an existing project\n\nIf you already have a project and want to add Tome documentation:\n\n```bash\nnpm install @tome/cli @tome/theme react react-dom\n```\n\nCreate the required files:\n\n**`tome.config.js`**\n```javascript\nexport default {\n  name: \"My Project Docs\",\n  navigation: [\n    { group: \"Docs\", pages: [\"index\"] },\n  ],\n};\n```\n\n**`pages/index.md`**\n```markdown\n---\ntitle: Introduction\n---\n\n# Welcome\n\nYour documentation starts here.\n```\n\n**`index.html`**\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n  <title>Docs</title>\n</head>\n<body>\n  <div id=\"tome-root\"></div>\n  <script type=\"module\" src=\".tome/entry.tsx\"></script>\n</body>\n</html>\n```\n\n**`.tome/entry.tsx`**\n```tsx\nimport \"@tome/theme/entry\";\n```\n\nAdd scripts to `package.json`:\n\n```json\n{\n  \"scripts\": {\n    \"dev\": \"tome dev\",\n    \"build\": \"tome build\"\n  }\n}\n```\n\n## Next steps\n\n- **[Project Structure](#project-structure)** to understand how files are organized\n- **[Configuration](#configuration)** to customize your site\n"
+    },
+    {
+      "url": "/pages-routing",
+      "title": "Pages & Routing",
+      "description": "How Tome maps files in the pages/ directory to URLs — naming conventions, nested routes, i18n, and versioning.",
+      "headings": [
+        "Basic routing",
+        "Page IDs",
+        "Navigation vs. routing",
+        "Frontmatter",
+        "i18n routing",
+        "Versioned routing",
+        "File discovery"
+      ],
+      "tags": [],
+      "content": "\n# Pages & Routing\n\nEvery `.md` or `.mdx` file in the `pages/` directory becomes a page. The file path determines the URL.\n\n## Basic routing\n\n| File path | URL |\n|-----------|-----|\n| `pages/index.md` | `/` |\n| `pages/quickstart.md` | `/quickstart` |\n| `pages/guides/deployment.md` | `/guides/deployment` |\n| `pages/api/endpoints.md` | `/api/endpoints` |\n| `pages/api/index.md` | `/api` |\n\n**Rules:**\n\n- `index.md` serves at the directory's root path\n- File extensions are stripped from the URL\n- Directory nesting maps directly to URL segments\n- Both `.md` and `.mdx` files are supported\n\n## Page IDs\n\nEach page has an ID derived from its path relative to `pages/`:\n\n| File | Page ID |\n|------|---------|\n| `pages/index.md` | `index` |\n| `pages/quickstart.md` | `quickstart` |\n| `pages/guides/deployment.md` | `guides/deployment` |\n\nPage IDs are used in `navigation` config to control sidebar order.\n\n## Navigation vs. routing\n\nAll pages in `pages/` are routable regardless of whether they appear in `navigation`. Navigation only controls the sidebar.\n\nPages can be hidden from the sidebar using `hidden: true` in frontmatter while remaining accessible at their URL.\n\n## Frontmatter\n\nEvery page can include YAML frontmatter at the top of the file:\n\n```markdown\n---\ntitle: My Page\ndescription: A brief description for SEO and navigation.\nicon: book\nsidebarTitle: Short Title\nhidden: false\ntags: [guide, setup]\n---\n\n# My Page\n\nContent starts here.\n```\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `title` | string | Page title (falls back to first `#` heading) |\n| `description` | string | Description for metadata and navigation |\n| `icon` | string | Icon identifier shown in the sidebar |\n| `sidebarTitle` | string | Override title shown in the sidebar |\n| `hidden` | boolean | Hide page from sidebar (still accessible via URL) |\n| `tags` | string[] | Tags for categorization and search |\n\n## i18n routing\n\nWhen multiple locales are configured, organize pages by locale subdirectory:\n\n```text\npages/\n├── en/            # Default locale\n│   ├── index.md\n│   └── quickstart.md\n├── es/            # Spanish\n│   ├── index.md\n│   └── quickstart.md\n```\n\n| File | URL |\n|------|-----|\n| `pages/en/index.md` | `/` (default — no prefix) |\n| `pages/es/index.md` | `/es/` |\n| `pages/es/quickstart.md` | `/es/quickstart` |\n\nThe default locale serves at the root without a prefix. When `fallback: true` and a page doesn't exist in a non-default locale, the default version is used.\n\n## Versioned routing\n\nWhen versioning is configured:\n\n```text\npages/\n├── current/       # Latest version\n│   ├── index.md\n│   └── api.md\n├── v1.0/\n│   ├── index.md\n│   └── api.md\n```\n\n| File | URL |\n|------|-----|\n| `pages/current/index.md` | `/` |\n| `pages/v1.0/index.md` | `/v1.0/` |\n| `pages/v1.0/api.md` | `/v1.0/api` |\n\nThe `current` directory serves at the root. Older versions are prefixed with their version string.\n\n## File discovery\n\nTome discovers pages by scanning `pages/` for `**/*.{md,mdx}` files. Discovery runs at startup and again whenever files are added, removed, or renamed during development. Changes to existing files trigger a hot reload.\n"
+    },
+    {
+      "url": "/project-structure",
+      "title": "Project Structure",
+      "description": "How a Tome documentation project is organized — pages, config, entry point, and build output.",
+      "headings": [
+        "Directory layout",
+        "Key files",
+        "pages/ directory",
+        "tome.config.js",
+        ".tome/entry.tsx",
+        "index.html",
+        "out/ directory",
+        "Markdown vs MDX",
+        "Next steps"
+      ],
+      "tags": [],
+      "content": "\n# Project Structure\n\nEvery Tome project follows the same layout. Understanding it helps you customize and extend your docs.\n\n## Directory layout\n\n```\nmy-docs/\n├── pages/                  # Your documentation content\n│   ├── index.md            # Home page (/)\n│   ├── quickstart.md       # /quickstart\n│   ├── guides/\n│   │   ├── setup.md        # /guides/setup\n│   │   └── deploy.md       # /guides/deploy\n│   └── api/\n│       └── endpoints.mdx   # /api/endpoints (with components)\n├── .tome/\n│   └── entry.tsx           # App entry point\n├── tome.config.js          # Site configuration\n├── index.html              # HTML shell\n├── package.json            # Dependencies and scripts\n└── out/                    # Build output (after `tome build`)\n```\n\n## Key files\n\n### `pages/` directory\n\nAll your documentation lives here. Every `.md` and `.mdx` file becomes a page. The directory structure maps directly to URL paths:\n\n| File path | Page ID | URL path |\n|-----------|---------|----------|\n| `pages/index.md` | `index` | `/` |\n| `pages/quickstart.md` | `quickstart` | `/quickstart` |\n| `pages/guides/setup.md` | `guides/setup` | `/guides/setup` |\n\nFiles named `index.md` in subdirectories resolve to the directory path. For example, `pages/guides/index.md` maps to `/guides`.\n\n### `tome.config.js`\n\nThe central configuration file. Controls your site name, sidebar navigation, theme, search, and more:\n\n```javascript\nexport default {\n  name: \"My Docs\",\n  theme: { preset: \"amber\", mode: \"auto\" },\n  navigation: [\n    { group: \"Getting Started\", pages: [\"index\", \"quickstart\"] },\n    { group: \"Guides\", pages: [\"guides/setup\", \"guides/deploy\"] },\n  ],\n};\n```\n\nSee **[Configuration](#configuration)** for the full schema.\n\n### `.tome/entry.tsx`\n\nThe application entry point. For most projects, this is a single import:\n\n```tsx\nimport \"@tome/theme/entry\";\n```\n\nThis boots the Tome shell — the sidebar, search, theme switcher, and content renderer. You generally don't need to modify this file.\n\n### `index.html`\n\nThe HTML shell that loads your documentation app. Contains the `<div id=\"tome-root\">` mount point and the script tag for the entry file.\n\n### `out/` directory\n\nGenerated by `tome build`. Contains the static site output ready for deployment — HTML, JavaScript bundles, and a search index. This directory is gitignored by default.\n\n## Markdown vs MDX\n\nTome supports both file types:\n\n- **`.md` files** — Standard Markdown with frontmatter. Processed at build time into HTML. Good for most documentation pages.\n- **`.mdx` files** — Markdown with JSX support. You can import and use React components like `<Callout>`, `<Tabs>`, and `<Steps>` directly in your content.\n\nBoth file types support the same frontmatter fields and appear identically in the sidebar.\n\n## Next steps\n\n- **[Pages & Routing](#pages-routing)** for details on how files map to URLs\n- **[Components](#components)** for using interactive elements in `.mdx` files\n- **[Configuration](#configuration)** for the full config schema\n"
+    },
+    {
+      "url": "/quickstart",
+      "title": "Quickstart",
+      "description": "Get a Tome documentation site running in under a minute.",
+      "headings": [
+        "Create a new project",
+        "Install and run",
+        "Edit your first page",
+        "Add navigation",
+        "Build for production",
+        "Next steps"
+      ],
+      "tags": [],
+      "content": "\n# Quickstart\n\nGet a working documentation site in three commands.\n\n## Create a new project\n\n```bash\nnpx @tome/cli init my-docs\n```\n\nThis scaffolds a complete documentation project with starter pages, configuration, and build scripts.\n\n## Install and run\n\n```bash\ncd my-docs\nnpm install\nnpm run dev\n```\n\nOpen `http://localhost:3000`. You should see your documentation site with a sidebar, search, and starter content.\n\n## Edit your first page\n\nOpen `pages/index.md` in your editor. Change the title and save — the browser reloads automatically.\n\n```markdown\n---\ntitle: My Project\ndescription: Documentation for my project.\n---\n\n# My Project\n\nWelcome to the docs.\n```\n\nEvery `.md` or `.mdx` file in `pages/` becomes a page on your site. Subdirectories create nested routes:\n\n| File | URL |\n|------|-----|\n| `pages/index.md` | `/` |\n| `pages/quickstart.md` | `/quickstart` |\n| `pages/guides/setup.md` | `/guides/setup` |\n\n## Add navigation\n\nOpen `tome.config.js` and define your sidebar:\n\n```javascript\nexport default {\n  name: \"My Project\",\n  navigation: [\n    {\n      group: \"Getting Started\",\n      pages: [\"index\", \"quickstart\"],\n    },\n    {\n      group: \"Guides\",\n      pages: [\"guides/setup\"],\n    },\n  ],\n};\n```\n\n## Build for production\n\n```bash\nnpm run build\n```\n\nThis outputs a static site to `out/` ready to deploy to any hosting provider — Vercel, Netlify, Cloudflare Pages, or Tome Cloud.\n\n## Next steps\n\n- **[Installation](#installation)** for detailed setup and prerequisites\n- **[Configuration](#configuration)** to customize your site\n- **[Components](#components)** to use tabs, callouts, and other interactive elements\n"
+    },
+    {
+      "url": "/reference/cli",
+      "title": "CLI Reference",
+      "description": "Complete reference for every command and flag in the Tome CLI.",
+      "headings": [
+        "Installation",
+        "Commands",
+        "tome init [name]",
+        "tome dev",
+        "tome build",
+        "tome deploy",
+        "tome login",
+        "tome domains:add &#x3C;domain>",
+        "tome domains:verify &#x3C;domain>",
+        "tome domains:list",
+        "tome domains:remove &#x3C;domain>",
+        "tome algolia:init",
+        "tome mcp"
+      ],
+      "tags": [],
+      "content": "\n# CLI reference\n\nThe `tome` CLI is the primary interface for creating, developing, building, and deploying documentation sites.\n\n## Installation\n\n```bash\nnpm install -D @tome/cli\n# or globally\nnpm install -g @tome/cli\n```\n\n## Commands\n\n### `tome init [name]`\n\nCreate a new Tome documentation project.\n\n```bash\ntome init my-docs\n```\n\n| Argument | Default | Description |\n|----------|---------|-------------|\n| `name` | `my-docs` | Project directory name |\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `-t, --template <name>` | `default` | Starter template |\n\nCreates `tome.config.js`, `package.json`, `index.html`, `.tome/entry.tsx`, starter pages in `pages/`, and `public/` and `styles/` directories.\n\n---\n\n### `tome dev`\n\nStart the development server with hot reloading.\n\n```bash\ntome dev\ntome dev -p 4000\ntome dev --host\n```\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `-p, --port <number>` | `3000` | Server port |\n| `--host` | `false` | Expose to network (bind `0.0.0.0`) |\n\nWatches `pages/` for file changes and reloads automatically. Config changes trigger a full reload.\n\n---\n\n### `tome build`\n\nBuild the documentation site for production.\n\n```bash\ntome build\ntome build -o dist\n```\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `-o, --outDir <dir>` | `out` | Output directory |\n\nProduces a static site and runs Pagefind to build the search index.\n\n---\n\n### `tome deploy`\n\nDeploy the site to Tome Cloud. Requires `tome login` first.\n\n```bash\ntome deploy\n```\n\nBuilds, collects output files, and uploads using hash-based deduplication.\n\n---\n\n### `tome login`\n\nAuthenticate with Tome Cloud.\n\n```bash\ntome login\n```\n\nPrompts for email and sends a magic link. Stores the API token locally.\n\n---\n\n### `tome domains:add <domain>`\n\nAdd a custom domain. Returns DNS records to configure.\n\n```bash\ntome domains:add docs.example.com\n```\n\n### `tome domains:verify <domain>`\n\nVerify DNS configuration for a custom domain.\n\n```bash\ntome domains:verify docs.example.com\n```\n\n### `tome domains:list`\n\nList all custom domains for the current project.\n\n### `tome domains:remove <domain>`\n\nRemove a custom domain.\n\n---\n\n### `tome algolia:init`\n\nInitialize an Algolia DocSearch index. Prompts for credentials and creates a crawler configuration.\n\n---\n\n### `tome mcp`\n\nStart the MCP (Model Context Protocol) stdio server for AI tool integration. Exposes documentation content as MCP resources and tools.\n"
+    },
+    {
+      "url": "/reference/components",
+      "title": "Components",
+      "description": "Reference for all built-in MDX components — Callout, Tabs, Card, Steps, Accordion, and more.",
+      "headings": [
+        "Callout",
+        "Tabs",
+        "Card",
+        "CardGroup",
+        "Steps",
+        "Accordion",
+        "API components",
+        ".md vs .mdx"
+      ],
+      "tags": [],
+      "content": "\n# Components\n\nTome includes built-in components available in any `.mdx` file without imports.\n\n## Callout\n\nDraw attention to important information.\n\n```mdx\n<Callout type=\"info\" title=\"Note\">\n  This is an informational callout.\n</Callout>\n```\n\n| Prop | Type | Default | Description |\n|------|------|---------|-------------|\n| `type` | `\"info\" \\| \"tip\" \\| \"warning\" \\| \"danger\"` | `\"info\"` | Visual style and icon |\n| `title` | `string` | — | Optional heading text |\n\nTypes: `info` (blue), `tip` (green), `warning` (amber), `danger` (red).\n\n---\n\n## Tabs\n\nPresent content variants — useful for multiple languages or platform-specific instructions.\n\n```mdx\n<Tabs items={[\"npm\", \"yarn\", \"pnpm\"]}>\n  <div>npm install @tome/cli</div>\n  <div>yarn add @tome/cli</div>\n  <div>pnpm add @tome/cli</div>\n</Tabs>\n```\n\n| Prop | Type | Description |\n|------|------|-------------|\n| `items` | `string[]` | Tab labels (required) |\n\nEach child `<div>` maps to a tab in order.\n\n---\n\n## Card\n\nA linked or static content card.\n\n```mdx\n<Card title=\"Getting Started\" icon=\"rocket\" href=\"/quickstart\">\n  Set up your first project in minutes.\n</Card>\n```\n\n| Prop | Type | Description |\n|------|------|-------------|\n| `title` | `string` | Card heading (required) |\n| `icon` | `string` | Emoji or icon name |\n| `href` | `string` | Link URL (makes the card clickable) |\n\n---\n\n## CardGroup\n\nArranges cards in a responsive grid.\n\n```mdx\n<CardGroup cols={3}>\n  <Card title=\"Install\">Step 1</Card>\n  <Card title=\"Configure\">Step 2</Card>\n  <Card title=\"Deploy\">Step 3</Card>\n</CardGroup>\n```\n\n| Prop | Type | Default | Description |\n|------|------|---------|-------------|\n| `cols` | `number` | `2` | Number of columns |\n\n---\n\n## Steps\n\nSequential instructions with numbered indicators.\n\n```mdx\n<Steps>\n  <div>\n    **Create a project**\n    Run `tome init my-docs`.\n  </div>\n  <div>\n    **Install dependencies**\n    Run `npm install`.\n  </div>\n</Steps>\n```\n\nEach child `<div>` becomes a numbered step. Use bold text on the first line for the step title.\n\n---\n\n## Accordion\n\nCollapsible content sections for FAQs or optional details.\n\n```mdx\n<Accordion title=\"How do I deploy?\">\n  Run `tome build` then upload the `out/` directory.\n</Accordion>\n```\n\n| Prop | Type | Description |\n|------|------|-------------|\n| `title` | `string` | Clickable header text (required) |\n\n---\n\n## API components\n\nWhen an OpenAPI spec is configured, additional components are auto-generated:\n\n- **ApiEndpoint** — Renders an API endpoint with parameters and responses\n- **ApiPlayground** — Interactive request builder\n- **ApiResponse** — Formatted response viewer\n\nSee the [API reference guide](/docs/guides/api-reference) for setup.\n\n---\n\n## `.md` vs `.mdx`\n\nComponents are only available in `.mdx` files. Rename `.md` to `.mdx` to use them — no other changes needed.\n"
+    },
+    {
+      "url": "/reference/config",
+      "title": "Config Reference",
+      "description": "Complete reference for every field in tome.config.js — types, defaults, and descriptions.",
+      "headings": [
+        "Top-level fields",
+        "ThemeConfig",
+        "NavigationGroup",
+        "SearchConfig",
+        "ApiConfig",
+        "AiConfig",
+        "McpConfig",
+        "I18nConfig",
+        "VersioningConfig",
+        "AnalyticsConfig"
+      ],
+      "tags": [],
+      "content": "\n# Config reference\n\nThe config file (`tome.config.js`, `.mjs`, or `.ts`) is validated at startup. Invalid values produce clear error messages with the field path and expected type.\n\n## Top-level fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `name` | `string` | `\"My Docs\"` | Site name shown in the header and browser tab |\n| `logo` | `string` | — | Path to logo image, relative to `public/` |\n| `favicon` | `string` | — | Path to favicon, relative to `public/` |\n| `baseUrl` | `string` | — | Full URL where the site is hosted (for analytics, canonical links) |\n| `basePath` | `string` | — | URL subpath prefix (e.g., `\"/docs/\"`) — sets Vite's `base` option |\n| `theme` | `ThemeConfig` | `{}` | Theme configuration (see below) |\n| `navigation` | `NavigationGroup[]` | `[]` | Sidebar navigation structure |\n| `topNav` | `TopNavItem[]` | — | Header navigation links |\n| `search` | `SearchConfig` | `{ provider: \"local\" }` | Search provider configuration |\n| `api` | `ApiConfig` | — | OpenAPI spec and playground settings |\n| `ai` | `AiConfig` | — | AI chat widget configuration |\n| `mcp` | `McpConfig` | `{ enabled: true }` | MCP server manifest generation |\n| `i18n` | `I18nConfig` | — | Internationalization settings |\n| `versioning` | `VersioningConfig` | — | Multi-version documentation |\n| `analytics` | `AnalyticsConfig` | — | Analytics provider settings |\n\n## ThemeConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `preset` | `\"amber\" \\| \"editorial\"` | `\"amber\"` | Base theme preset |\n| `accent` | `string` | — | Custom accent color (hex, e.g., `\"#ff6b4a\"`) |\n| `mode` | `\"light\" \\| \"dark\" \\| \"auto\"` | `\"auto\"` | Color mode |\n| `fonts.heading` | `string` | — | Heading font family |\n| `fonts.body` | `string` | — | Body font family |\n| `fonts.code` | `string` | — | Code font family |\n| `radius` | `string` | — | Border radius (e.g., `\"8px\"`) |\n\n## NavigationGroup\n\n```typescript\n{\n  group: string;\n  pages: Array<string | NavigationGroup>;\n}\n```\n\nPage IDs are filenames without extensions, relative to `pages/`. Nested groups are supported.\n\n## SearchConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `provider` | `\"local\" \\| \"algolia\"` | `\"local\"` | Search provider |\n| `appId` | `string` | — | Algolia application ID |\n| `apiKey` | `string` | — | Algolia search-only API key |\n| `indexName` | `string` | — | Algolia index name |\n\n## ApiConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `spec` | `string` | — | Path to OpenAPI spec file (required) |\n| `playground` | `boolean` | `true` | Enable interactive API playground |\n| `baseUrl` | `string` | — | Base URL for playground requests |\n| `auth.type` | `\"bearer\" \\| \"apiKey\" \\| \"oauth2\"` | — | Authentication type |\n| `auth.header` | `string` | — | Auth header name |\n\n## AiConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `enabled` | `boolean` | `false` | Enable AI chat widget |\n| `provider` | `\"openai\" \\| \"anthropic\" \\| \"custom\"` | `\"anthropic\"` | AI provider |\n| `model` | `string` | — | Model identifier |\n| `apiKeyEnv` | `string` | `\"TOME_AI_KEY\"` | Environment variable for API key |\n\n## McpConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `enabled` | `boolean` | `true` | Generate `mcp.json` manifest at build time |\n| `server` | `boolean` | `false` | Enable MCP stdio server |\n| `includeContent` | `boolean` | `true` | Include page content in the manifest |\n| `excludePages` | `string[]` | `[]` | Page IDs to exclude |\n\n## I18nConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `defaultLocale` | `string` | `\"en\"` | Default locale code |\n| `locales` | `string[]` | `[\"en\"]` | All available locale codes |\n| `localeNames` | `Record<string, string>` | — | Display names (e.g., `{ en: \"English\" }`) |\n| `fallback` | `boolean` | `true` | Fall back to default locale for missing translations |\n\n## VersioningConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `current` | `string` | — | Label for the current version (required) |\n| `versions` | `string[]` | — | All version labels, newest first (required) |\n\n## AnalyticsConfig\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `provider` | `\"plausible\" \\| \"posthog\" \\| \"custom\"` | — | Analytics provider |\n| `key` | `string` | — | Site ID or API key |\n"
+    },
+    {
+      "url": "/reference/frontmatter",
+      "title": "Frontmatter",
+      "description": "Reference for all YAML frontmatter fields supported in Tome documentation pages.",
+      "headings": [
+        "Syntax",
+        "Fields",
+        "Title resolution",
+        "Hidden pages",
+        "Tags",
+        "Icons"
+      ],
+      "tags": [],
+      "content": "\n# Frontmatter\n\nEvery Tome page can include YAML frontmatter at the top of the file. Frontmatter controls metadata like the page title, description, sidebar behavior, and search tags.\n\n## Syntax\n\n```markdown\n---\ntitle: My Page Title\ndescription: A brief summary of the page content.\n---\n\n# My Page Title\n\nPage content starts here.\n```\n\n## Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `title` | `string` | First `#` heading | Page title for sidebar, browser tab, and search |\n| `description` | `string` | — | Short summary for SEO and search results |\n| `icon` | `string` | — | Icon identifier shown in the sidebar |\n| `sidebarTitle` | `string` | `title` | Override the title shown in sidebar navigation |\n| `hidden` | `boolean` | `false` | Hide this page from sidebar navigation |\n| `tags` | `string[]` | — | Tags for search indexing and categorization |\n\n## Title resolution\n\nIf `title` is not set in frontmatter, Tome uses the first `# Heading` in the page content. If neither exists, the page is titled \"Untitled\".\n\nThe `sidebarTitle` field lets you show a shorter name in the sidebar:\n\n```markdown\n---\ntitle: Configuring Authentication with OAuth 2.0\nsidebarTitle: Authentication\n---\n```\n\n## Hidden pages\n\nPages with `hidden: true` are excluded from sidebar navigation but remain accessible at their URL. Useful for:\n\n- Landing pages that shouldn't appear in the sidebar\n- Draft pages shared via direct link\n- Internal reference pages linked from other content\n\n## Tags\n\nTags improve search results by adding keywords that may not appear in the page content:\n\n```markdown\n---\ntitle: Deployment\ntags: [hosting, vercel, netlify, cloudflare, static]\n---\n```\n\nTags are indexed by both Pagefind and Algolia (when configured) and appear in MCP manifest output.\n\n## Icons\n\nThe `icon` field accepts identifiers displayed in the sidebar. Common values: `rocket`, `gear`, `code`, `terminal`, `puzzle`, `search`, `layers`, `cloud`, `file-text`, `palette`.\n"
+    },
+    {
+      "url": "/reference/theme-presets",
+      "title": "Theme Presets",
+      "description": "Detailed reference for Tome's built-in theme presets — color tokens, CSS variables, and font stacks.",
+      "headings": [
+        "Amber",
+        "Dark mode",
+        "Light mode",
+        "Fonts",
+        "Editorial",
+        "Dark mode",
+        "Light mode",
+        "Fonts",
+        "Additional variables"
+      ],
+      "tags": [],
+      "content": "\n# Theme presets\n\nTome ships with two theme presets. Each defines color tokens for dark and light modes plus font families.\n\n## Amber\n\nThe default preset. Warm, approachable tones with a golden accent.\n\n### Dark mode\n\n| Variable | Value | Description |\n|----------|-------|-------------|\n| `--bg` | `#1a1a1a` | Page background |\n| `--sf` | `#242424` | Surface (cards, sidebar) |\n| `--sfH` | `#2e2e2e` | Surface hover |\n| `--bd` | `#333333` | Border |\n| `--tx` | `#e5e5e5` | Primary text |\n| `--tx2` | `#999999` | Secondary text |\n| `--txM` | `#666666` | Muted text |\n| `--ac` | `#e8a845` | Accent |\n| `--acD` | `#d4922e` | Accent dark |\n| `--acT` | `#2a2318` | Accent tint |\n\n### Light mode\n\n| Variable | Value | Description |\n|----------|-------|-------------|\n| `--bg` | `#fafaf9` | Page background |\n| `--sf` | `#f5f5f4` | Surface |\n| `--sfH` | `#e7e5e4` | Surface hover |\n| `--bd` | `#d6d3d1` | Border |\n| `--tx` | `#1c1917` | Primary text |\n| `--tx2` | `#57534e` | Secondary text |\n| `--txM` | `#a8a29e` | Muted text |\n| `--ac` | `#d97706` | Accent |\n| `--acD` | `#b45309` | Accent dark |\n| `--acT` | `#fef3c7` | Accent tint |\n\n### Fonts\n\n| Variable | Value |\n|----------|-------|\n| `--font-heading` | `'Instrument Serif', serif` |\n| `--font-body` | `'DM Sans', sans-serif` |\n| `--font-code` | `'JetBrains Mono', monospace` |\n\n---\n\n## Editorial\n\nA refined, high-contrast preset inspired by Swiss poster design.\n\n### Dark mode\n\n| Variable | Value | Description |\n|----------|-------|-------------|\n| `--bg` | `#0f0f0f` | Page background |\n| `--sf` | `#1a1a1a` | Surface |\n| `--sfH` | `#252525` | Surface hover |\n| `--bd` | `#2a2a2a` | Border |\n| `--tx` | `#f0f0f0` | Primary text |\n| `--tx2` | `#888888` | Secondary text |\n| `--txM` | `#555555` | Muted text |\n| `--ac` | `#ff6b4a` | Accent (coral) |\n| `--acD` | `#e85a3a` | Accent dark |\n| `--acT` | `#1f1512` | Accent tint |\n\n### Light mode\n\n| Variable | Value | Description |\n|----------|-------|-------------|\n| `--bg` | `#faf9f7` | Page background |\n| `--sf` | `#f2f0ed` | Surface |\n| `--sfH` | `#e8e5e1` | Surface hover |\n| `--bd` | `#d8d4cf` | Border |\n| `--tx` | `#1a1a1a` | Primary text |\n| `--tx2` | `#6b6560` | Secondary text |\n| `--txM` | `#a09890` | Muted text |\n| `--ac` | `#e85a3a` | Accent (coral) |\n| `--acD` | `#d04a2a` | Accent dark |\n| `--acT` | `#fef0ec` | Accent tint |\n\n### Fonts\n\n| Variable | Value |\n|----------|-------|\n| `--font-heading` | `'Cormorant Garamond', serif` |\n| `--font-body` | `'Bricolage Grotesque', sans-serif` |\n| `--font-code` | `'Fira Code', monospace` |\n\n---\n\n## Additional variables\n\nBoth presets also define:\n\n| Variable | Description |\n|----------|-------------|\n| `--cdBg` | Code block background |\n| `--cdTx` | Code block text |\n| `--sbBg` | Sidebar background |\n| `--hdBg` | Header background |\n\nOverride any variable in custom CSS to fine-tune the theme.\n"
+    },
+    {
+      "url": "/theming",
+      "title": "Theming",
+      "description": "Customize the look of your Tome site — presets, colors, fonts, dark mode, and CSS variables.",
+      "headings": [
+        "Presets",
+        "Amber (default)",
+        "Editorial",
+        "Custom accent color",
+        "Dark mode",
+        "Custom fonts",
+        "Border radius",
+        "CSS variables",
+        "Variable reference"
+      ],
+      "tags": [],
+      "content": "\n# Theming\n\nTome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.\n\n## Presets\n\n### Amber (default)\n\nA warm, golden aesthetic with serif headings. Clean and approachable.\n\n```javascript\ntheme: {\n  preset: \"amber\",\n}\n```\n\n### Editorial\n\nSwiss poster-inspired design with a brutalist edge. Coral accent color, grotesque typography.\n\n```javascript\ntheme: {\n  preset: \"editorial\",\n}\n```\n\n## Custom accent color\n\nOverride the default accent color with any hex value:\n\n```javascript\ntheme: {\n  preset: \"amber\",\n  accent: \"#2563eb\",  // Blue accent\n}\n```\n\nTome derives tint and dim variants automatically from your accent color.\n\n## Dark mode\n\nControl the color scheme:\n\n```javascript\ntheme: {\n  mode: \"auto\",   // Follows system preference\n  // mode: \"light\",  // Always light\n  // mode: \"dark\",   // Always dark\n}\n```\n\nWhen set to `auto`, a theme toggle appears in the header.\n\n## Custom fonts\n\nOverride any of the three font families:\n\n```javascript\ntheme: {\n  fonts: {\n    heading: \"Playfair Display\",\n    body: \"Inter\",\n    code: \"JetBrains Mono\",\n  },\n}\n```\n\nLoad your fonts via Google Fonts in `index.html` or self-host them.\n\n## Border radius\n\nControl the roundness of UI elements:\n\n```javascript\ntheme: {\n  radius: 8,  // pixels, default varies by preset\n}\n```\n\n## CSS variables\n\nFor fine-grained control, override CSS variables directly. Add a `<style>` block in your `index.html`:\n\n```html\n<style>\n  :root {\n    --ac: #2563eb;      /* Accent */\n    --acD: #dbeafe;     /* Accent dim */\n    --acT: #1e40af;     /* Accent dark */\n    --bg: #ffffff;      /* Background */\n    --sf: #f8f8f6;      /* Surface */\n    --sfH: #f0efe8;     /* Surface hover */\n    --tx: #1a1a1a;      /* Text primary */\n    --tx2: #666;        /* Text secondary */\n    --txM: #999;        /* Text muted */\n    --bd: #e5e5e0;      /* Border */\n    --cdBg: #f5f5f0;    /* Code background */\n    --cdTx: #333;       /* Code text */\n    --sbBg: #fafaf8;    /* Sidebar background */\n    --hdBg: #ffffff;    /* Header background */\n  }\n\n  html.dark {\n    --bg: #1a1a1a;\n    --sf: #222;\n    --tx: #e5e5e5;\n    /* ... dark mode overrides */\n  }\n</style>\n```\n\n### Variable reference\n\n| Variable | Purpose |\n|----------|---------|\n| `--ac` | Accent color (links, highlights) |\n| `--acD` | Accent dim (callout backgrounds) |\n| `--acT` | Accent dark (hover states) |\n| `--bg` | Page background |\n| `--sf` / `--sfH` | Surface and surface hover |\n| `--tx` / `--tx2` / `--txM` | Text primary, secondary, muted |\n| `--bd` | Borders |\n| `--cdBg` / `--cdTx` | Code block background and text |\n| `--sbBg` | Sidebar background |\n| `--hdBg` | Header background |\n| `--font-heading` | Heading font family |\n| `--font-body` | Body font family |\n| `--font-code` | Code font family |\n"
+    },
+    {
+      "url": "/tutorials/deploy-to-cloud",
+      "title": "Deploy to Tome Cloud",
+      "description": "Publish your documentation site to Tome Cloud with a single command. Includes custom domain setup.",
+      "headings": [
+        "Prerequisites",
+        "1. Authenticate",
+        "2. Deploy",
+        "3. Add a custom domain",
+        "4. Manage domains",
+        "Deployment details",
+        "Next steps"
+      ],
+      "tags": [],
+      "content": "\n# Deploy to Tome Cloud\n\nTome Cloud hosts your documentation site on a global CDN with automatic SSL, custom domains, and analytics. This tutorial covers the full deployment flow.\n\n## Prerequisites\n\n- A Tome documentation project (see [Create your first site](/docs/tutorials/first-site))\n- Node.js 18+\n\n## 1. Authenticate\n\nLog in to your Tome Cloud account:\n\n```bash\nnpx tome login\n```\n\nEnter your email address. You'll receive a magic link — click it to authenticate. Your API token is stored locally for future deployments.\n\n## 2. Deploy\n\nFrom your project directory:\n\n```bash\nnpx tome deploy\n```\n\nTome builds your site, collects the output files, and uploads them using hash-based deduplication. Only changed files are transferred, making subsequent deploys fast.\n\nAfter deployment, your site is live at:\n\n```\nhttps://your-project.tome.dev\n```\n\n## 3. Add a custom domain\n\nRegister a custom domain for your docs:\n\n```bash\nnpx tome domains:add docs.example.com\n```\n\nTome returns DNS records you need to configure with your domain registrar:\n\n```text\nType:  CNAME\nName:  docs\nValue: your-project.tome.dev\n```\n\nAfter configuring DNS, verify the domain:\n\n```bash\nnpx tome domains:verify docs.example.com\n```\n\nSSL is provisioned automatically once DNS propagates.\n\n## 4. Manage domains\n\nList all domains attached to your project:\n\n```bash\nnpx tome domains:list\n```\n\nRemove a domain:\n\n```bash\nnpx tome domains:remove docs.example.com\n```\n\n## Deployment details\n\nEach deploy creates an immutable snapshot. You can view deployment history and analytics in the Tome Dashboard.\n\n| Detail | Value |\n|--------|-------|\n| CDN | Cloudflare R2 (global edge) |\n| SSL | Automatic via Cloudflare |\n| Deduplication | Content-hash based |\n| Rollback | Deploy any previous snapshot |\n\n## Next steps\n\n- **[Configuration guide](/docs/guides/configuration)** to customize your site before deploying\n- **[CLI reference](/docs/reference/cli)** for the full list of deployment commands\n"
+    },
+    {
+      "url": "/tutorials/first-site",
+      "title": "Create Your First Site",
+      "description": "A step-by-step tutorial that walks you through creating a documentation site with Tome, from installation to running the dev server.",
+      "headings": [
+        "Prerequisites",
+        "1. Scaffold the project",
+        "2. Install dependencies",
+        "3. Start the dev server",
+        "4. Add a new page",
+        "5. Configure navigation",
+        "6. Customize the theme",
+        "7. Build for production",
+        "Next steps"
+      ],
+      "tags": [],
+      "content": "\n# Create your first site\n\nThis tutorial walks you through creating a Tome documentation site from scratch. By the end, you'll have a working docs site running locally with custom pages and navigation.\n\n## Prerequisites\n\nYou need **Node.js 18+** and a package manager (`npm`, `yarn`, or `pnpm`).\n\n## 1. Scaffold the project\n\nRun the init command to create a new project:\n\n```bash\nnpx @tome/cli init my-docs\n```\n\nThis creates a directory with the following structure:\n\n```text\nmy-docs/\n├── tome.config.js     # Site configuration\n├── package.json       # Dependencies and scripts\n├── index.html         # Vite entry point\n├── .tome/entry.tsx    # Theme bootstrap (don't edit)\n├── pages/             # Your documentation pages\n│   ├── index.md\n│   ├── quickstart.md\n│   └── components.mdx\n├── public/            # Static assets\n└── styles/            # Custom CSS (optional)\n```\n\n## 2. Install dependencies\n\n```bash\ncd my-docs\nnpm install\n```\n\n## 3. Start the dev server\n\n```bash\nnpm run dev\n```\n\nOpen `http://localhost:3000`. You should see the starter documentation site. Every time you save a file, the page reloads automatically.\n\n## 4. Add a new page\n\nCreate `pages/guides/deployment.md`:\n\n```markdown\n---\ntitle: Deployment Guide\ndescription: How to deploy your Tome site to production.\n---\n\n# Deployment Guide\n\nRun `npm run build` to produce static files in the `out/` directory.\nUpload this directory to any static hosting provider.\n```\n\nThe page is immediately available at `/guides/deployment` in the dev server.\n\n## 5. Configure navigation\n\nOpen `tome.config.js` and add your new page to the sidebar:\n\n```javascript\nexport default {\n  name: \"my-docs\",\n  theme: {\n    preset: \"amber\",\n    mode: \"auto\",\n  },\n  navigation: [\n    {\n      group: \"Getting Started\",\n      pages: [\"index\", \"quickstart\"],\n    },\n    {\n      group: \"Guides\",\n      pages: [\"guides/deployment\"],\n    },\n    {\n      group: \"Reference\",\n      pages: [\"components\"],\n    },\n  ],\n};\n```\n\nThe sidebar updates to reflect the new structure.\n\n## 6. Customize the theme\n\nChange the preset to `editorial` and set a custom accent color:\n\n```javascript\ntheme: {\n  preset: \"editorial\",\n  accent: \"#ff6b4a\",\n  mode: \"auto\",\n},\n```\n\nThe entire site switches to the editorial aesthetic with your accent color.\n\n## 7. Build for production\n\n```bash\nnpm run build\n```\n\nThis outputs a static site to `out/` with a pre-built search index. The output is ready to deploy to any hosting provider.\n\n## Next steps\n\n- **[Deploy to Tome Cloud](/docs/tutorials/deploy-to-cloud)** to publish with a single command\n- **[Configuration guide](/docs/guides/configuration)** for all available options\n- **[Components reference](/docs/reference/components)** for the full list of MDX components\n"
+    }
+  ]
+}

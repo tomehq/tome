@@ -1,0 +1,51 @@
+---
+title: Introduction
+description: Tome is an open-source documentation platform for Markdown and MDX. Beautiful docs without the $250/month price tag.
+---
+
+# Tome
+
+Welcome to Tome — beautiful documentation, zero vendor lock-in.
+
+---
+
+Tome is an open-source documentation platform built for developers who believe great docs shouldn't cost $250/month. Write in Markdown or MDX, deploy anywhere, and own your content forever.
+
+## What is Tome?
+
+Tome transforms your Markdown and MDX files into stunning, fully-searchable documentation sites. It handles navigation, theming, API references, code highlighting, and versioning — all from a simple folder of `.md` and `.mdx` files.
+
+> **OPEN SOURCE FOREVER**
+>
+> Tome is MIT licensed. No vendor lock-in, no surprise pricing changes, no feature gates. Your docs are yours.
+
+## Why Tome?
+
+Documentation platforms have become unreasonably expensive. Most charge hundreds per month for features that should be table stakes. Want custom domains? Pay more. Need versioning? Upgrade your plan. Multiple projects? That'll be $250/month — per project.
+
+We built Tome because we thought that was absurd. Every developer and team deserves polished, professional documentation without paying a premium for basic functionality. Tome gives you everything you need for free when self-hosted, or at a fraction of the cost on our cloud.
+
+```bash
+# Get started in 30 seconds
+npx @tome/cli init my-docs
+cd my-docs && npm install && npm run dev
+```
+
+## Features
+
+- **Markdown and MDX** — Write docs in `.md` or use `.mdx` for interactive components like tabs, callouts, and code playgrounds.
+- **File-system routing** — Drop files into `pages/` and they become pages. No router config, no manifest files.
+- **Built-in components** — Callouts, tabs, cards, steps, accordions, and API playgrounds work out of the box.
+- **Two theme presets** — Ship with a warm amber aesthetic or an editorial brutalist look. Both support dark mode.
+- **Search included** — Pagefind indexes your site at build time. No external service required.
+- **API reference** — Point Tome at an OpenAPI spec and get a rendered reference with an interactive playground.
+- **Versioning** — Maintain multiple documentation versions side by side with a version switcher.
+- **i18n** — Serve docs in multiple languages with locale-based routing.
+- **Deploy anywhere** — Static output works on Vercel, Netlify, Cloudflare Pages, or Tome Cloud.
+
+## Learn more
+
+- **[Quickstart](#quickstart)** — Get a docs site running in under a minute.
+- **[Installation](#installation)** — Detailed setup instructions and prerequisites.
+- **[Configuration](#configuration)** — Customize your site name, navigation, theme, and more.
+- **[CLI Reference](#cli)** — Every command and flag available in the `tome` CLI.
