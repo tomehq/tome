@@ -29,7 +29,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard build
+        run: pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard --filter=!@tome/api --filter=!@tome/docs build
 
       - name: Create Release PR or Publish
         id: changesets

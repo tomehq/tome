@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [20, 22]
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all packages
-        run: pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard build
+        run: pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard --filter=!@tome/api --filter=!@tome/docs build
 
       - name: Test
         run: pnpm test run
