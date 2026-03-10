@@ -13,6 +13,7 @@ export default defineConfig({
           root: root("cli"),
           environment: "node",
           include: ["src/**/*.test.ts"],
+          testTimeout: 15000, // CLI tests spawn subprocesses (npx tsx), need extra time
         },
       },
       {
