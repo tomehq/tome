@@ -1,6 +1,12 @@
 name = "tome-api"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
+workers_dev = true
+
+routes = [
+  { pattern = "*.tome.center/*", zone_name = "tome.center" },
+  { pattern = "api.tome.center/*", zone_name = "tome.center" },
+]
 
 [observability]
 enabled = true
