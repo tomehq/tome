@@ -601,12 +601,27 @@ function ProjectsPage({ token }: { token: string }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadProjects = useCallback(() => {
+    setLoading(true);
     api<Project[]>("/api/deploy/projects", { token })
       .then(setProjects)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [token]);
+
+  useEffect(() => { loadProjects(); }, [loadProjects]);
+
+  const deleteProject = async (slug: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${slug}"? All deployments, files, and custom domains will be permanently removed.`)) return;
+    try {
+      await api(`/api/deploy/projects/${slug}`, { method: "DELETE", token });
+      loadProjects();
+    } catch {
+      // silently fail
+    }
+  };
 
   return (
     <div className="rv">
@@ -629,9 +644,19 @@ function ProjectsPage({ token }: { token: string }) {
             <a key={p.id} href={`${BASE}/project/${p.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/project/${p.slug}`); }} className="card" style={{ textDecoration: "none", cursor: "pointer" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 15, color: "var(--tx)" }}>{p.slug}</span>
-                <span className={`status-${p.deployStatus ?? "none"}`} style={{ fontFamily: '"Fira Code", monospace', fontSize: 11, textTransform: "uppercase" }}>
-                  {p.deployStatus ?? "No deploys"}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className={`status-${p.deployStatus ?? "none"}`} style={{ fontFamily: '"Fira Code", monospace', fontSize: 11, textTransform: "uppercase" }}>
+                    {p.deployStatus ?? "No deploys"}
+                  </span>
+                  <button
+                    className="btn-ghost btn-sm"
+                    style={{ color: "#ef4444", fontSize: 11, padding: "2px 6px" }}
+                    onClick={(e) => deleteProject(p.slug, e)}
+                    title="Delete project"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
               <div style={{ display: "flex", gap: 16, fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
                 <span>{p.fileCount} files</span>
@@ -701,11 +726,32 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
     }
   };
 
+  const deleteDeployment = async (deploymentId: string) => {
+    if (!window.confirm("Delete this deployment? This cannot be undone.")) return;
+    try {
+      await api(`/api/deploy/projects/${slug}/deployments/${deploymentId}`, { method: "DELETE", token });
+      loadData();
+    } catch {
+      // silently fail
+    }
+  };
+
+  const deleteProject = async () => {
+    if (!window.confirm(`Delete project "${slug}"? This will remove all deployments, files, and custom domains. This cannot be undone.`)) return;
+    try {
+      await api(`/api/deploy/projects/${slug}`, { method: "DELETE", token });
+      navigate("/");
+    } catch {
+      // silently fail
+    }
+  };
+
   if (loading) {
     return <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading…</p>;
   }
 
-  const gridCols = "2fr 1fr 1fr 1fr 1.5fr";
+  const gridCols = "2fr 1fr 1fr 1fr 1.5fr auto";
+  const activeDeploymentId = deployments.find((d) => d.status === "live")?.id;
 
   return (
     <div className="rv">
@@ -775,7 +821,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
         ) : (
           <div>
             <div className="table-header" style={{ gridTemplateColumns: gridCols }}>
-              <span>ID</span><span>Status</span><span>Files</span><span>Size</span><span>Created</span>
+              <span>ID</span><span>Status</span><span>Files</span><span>Size</span><span>Created</span><span></span>
             </div>
             {deployments.map((d) => (
               <div key={d.id} className="table-row" style={{ gridTemplateColumns: gridCols }}>
@@ -784,6 +830,16 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
                 <span>{d.fileCount}</span>
                 <span>{formatBytes(d.totalSize)}</span>
                 <span>{timeAgo(d.createdAt)}</span>
+                <span>
+                  <button
+                    className="btn-ghost btn-sm"
+                    style={{ color: "#ef4444", fontSize: 11, padding: "2px 6px" }}
+                    onClick={() => deleteDeployment(d.id)}
+                    title={d.id === activeDeploymentId ? "Delete active deployment (site will go offline)" : "Delete deployment"}
+                  >
+                    Delete
+                  </button>
+                </span>
               </div>
             ))}
           </div>
@@ -828,6 +884,24 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
         {domainError && (
           <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "#ef4444", marginTop: 8 }}>{domainError}</p>
         )}
+      </div>
+
+      {/* Danger Zone */}
+      <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid var(--bd)" }}>
+        <h3 className="section-title" style={{ fontSize: 20, color: "#ef4444" }}>Danger Zone</h3>
+        <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderColor: "rgba(239,68,68,0.3)" }}>
+          <div>
+            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 14, color: "var(--tx)", marginBottom: 4 }}>Delete this project</p>
+            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>Permanently removes all deployments, files, and custom domains.</p>
+          </div>
+          <button
+            className="btn-ghost btn-sm"
+            style={{ color: "#ef4444", borderColor: "rgba(239,68,68,0.4)", whiteSpace: "nowrap" }}
+            onClick={deleteProject}
+          >
+            Delete Project
+          </button>
+        </div>
       </div>
     </div>
   );

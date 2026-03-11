@@ -293,6 +293,120 @@ deploy.get("/projects/:slug/deployments", async (c) => {
   );
 });
 
+// ── DELETE /projects/:slug/deployments/:id — delete a single deployment ──
+deploy.delete("/projects/:slug/deployments/:id", async (c) => {
+  const user = c.get("user");
+  const slug = c.req.param("slug");
+  const id = c.req.param("id");
+
+  // Verify project ownership
+  const project = await c.env.TOME_DB.prepare(
+    "SELECT id, active_deployment_id FROM projects WHERE slug = ? AND user_id = ?"
+  )
+    .bind(slug, user.id)
+    .first<{ id: string; active_deployment_id: string | null }>();
+
+  if (!project) {
+    return c.json({ error: "Project not found" }, 404);
+  }
+
+  // Verify deployment belongs to project
+  const deployment = await c.env.TOME_DB.prepare(
+    "SELECT id FROM deployments WHERE id = ? AND project_id = ?"
+  )
+    .bind(id, project.id)
+    .first<{ id: string }>();
+
+  if (!deployment) {
+    return c.json({ error: "Deployment not found" }, 404);
+  }
+
+  // If this is the active deployment, clear the reference
+  const statements = [
+    c.env.TOME_DB.prepare("DELETE FROM deployments WHERE id = ?").bind(id),
+  ];
+
+  if (project.active_deployment_id === id) {
+    statements.push(
+      c.env.TOME_DB.prepare(
+        "UPDATE projects SET active_deployment_id = NULL, updated_at = datetime('now') WHERE id = ?"
+      ).bind(project.id),
+    );
+  }
+
+  await c.env.TOME_DB.batch(statements);
+
+  return c.json({ removed: true });
+});
+
+// ── DELETE /projects/:slug — delete project and all associated data ──
+deploy.delete("/projects/:slug", async (c) => {
+  const user = c.get("user");
+  const slug = c.req.param("slug");
+
+  // Verify project ownership
+  const project = await c.env.TOME_DB.prepare(
+    "SELECT id FROM projects WHERE slug = ? AND user_id = ?"
+  )
+    .bind(slug, user.id)
+    .first<{ id: string }>();
+
+  if (!project) {
+    return c.json({ error: "Project not found" }, 404);
+  }
+
+  // 1. Delete all R2 files under sites/{slug}/
+  const prefix = `sites/${slug}/`;
+  let cursor: string | undefined;
+  do {
+    const listed = await c.env.TOME_BUCKET.list({
+      prefix,
+      cursor,
+      limit: 1000,
+    });
+
+    if (listed.objects.length > 0) {
+      await Promise.all(
+        listed.objects.map((obj) => c.env.TOME_BUCKET.delete(obj.key)),
+      );
+    }
+
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+
+  // 2. Clean up Cloudflare custom hostnames (best-effort)
+  const { results: domainRows } = await c.env.TOME_DB.prepare(
+    "SELECT cloudflare_hostname_id FROM domains WHERE project_id = ?"
+  )
+    .bind(project.id)
+    .all<{ cloudflare_hostname_id: string | null }>();
+
+  for (const row of domainRows ?? []) {
+    if (row.cloudflare_hostname_id) {
+      try {
+        await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${c.env.CLOUDFLARE_ZONE_ID}/custom_hostnames/${row.cloudflare_hostname_id}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${c.env.CLOUDFLARE_API_TOKEN}` },
+          },
+        );
+      } catch {
+        // Best-effort cleanup
+      }
+    }
+  }
+
+  // 3. Delete DB records (order matters — no CASCADE)
+  await c.env.TOME_DB.batch([
+    c.env.TOME_DB.prepare("DELETE FROM domains WHERE project_id = ?").bind(project.id),
+    c.env.TOME_DB.prepare("DELETE FROM deployments WHERE project_id = ?").bind(project.id),
+    c.env.TOME_DB.prepare("DELETE FROM projects WHERE id = ?").bind(project.id),
+  ]);
+
+  return c.json({ removed: true });
+});
+
 // ── Helpers ────────────────────────────────────────────────────────
 function guessContentType(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase();
