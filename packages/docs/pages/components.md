@@ -39,9 +39,9 @@ Present content variants — useful for multiple languages or platform-specific 
 
 ```mdx
 <Tabs items={["npm", "pnpm", "yarn"]}>
-  <Tab>npm install @tome/cli</Tab>
-  <Tab>pnpm add @tome/cli</Tab>
-  <Tab>yarn add @tome/cli</Tab>
+  <Tab>npm install @tomehq/cli</Tab>
+  <Tab>pnpm add @tomehq/cli</Tab>
+  <Tab>yarn add @tomehq/cli</Tab>
 </Tabs>
 ```
 
@@ -126,7 +126,7 @@ title: Getting Started
 
 <Steps>
   <Step title="Create project">
-    Run `npx @tome/cli init my-docs`
+    Run `npx @tomehq/cli init my-docs`
   </Step>
   <Step title="Start dev server">
     Run `npm run dev`

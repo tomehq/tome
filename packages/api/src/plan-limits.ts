@@ -1,5 +1,5 @@
 // ── Plan limits for server-side enforcement ─────────────
-// Mirrors PLANS.limits from @tome/core/billing for use in Workers runtime
+// Mirrors PLANS.limits from @tomehq/core/billing for use in Workers runtime
 
 export const PLAN_LIMITS: Record<
   string,

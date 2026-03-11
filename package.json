@@ -2,9 +2,13 @@
   "name": "tome-monorepo",
   "private": true,
   "description": "Open-source documentation platform",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vxcozy/tome.git"
+  },
   "scripts": {
-    "dev": "pnpm --filter @tome/cli dev",
-    "build": "pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard --filter=!@tome/docs build",
+    "dev": "pnpm --filter @tomehq/cli dev",
+    "build": "pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build",
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "eslint . --ext .ts,.tsx",

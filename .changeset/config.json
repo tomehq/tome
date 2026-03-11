@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@tome/landing", "@tome/dashboard", "@tome/docs"]
+  "ignore": ["@tomehq/landing", "@tomehq/dashboard", "@tomehq/docs", "create-tome"]
 }

@@ -67,8 +67,8 @@ describe("CLI init command", () => {
     expect(pkg.name).toBe("test-docs");
     expect(pkg.scripts.dev).toBe("tome dev");
     expect(pkg.scripts.build).toBe("tome build");
-    expect(pkg.devDependencies["@tome/cli"]).toBeDefined();
-    expect(pkg.devDependencies["@tome/theme"]).toBeDefined();
+    expect(pkg.devDependencies["@tomehq/cli"]).toBeDefined();
+    expect(pkg.devDependencies["@tomehq/theme"]).toBeDefined();
   });
 
   // ── Starter pages ────────────────────────────────────────
@@ -120,7 +120,7 @@ describe("CLI init command", () => {
       join(tmpDir, "test-docs", ".tome", "entry.tsx"),
       "utf-8",
     );
-    expect(entry).toContain("@tome/theme/entry");
+    expect(entry).toContain("@tomehq/theme/entry");
   });
 
   // ── .gitignore ────────────────────────────────────────────

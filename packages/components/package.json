@@ -1,5 +1,5 @@
 {
-  "name": "@tome/components",
+  "name": "@tomehq/components",
   "version": "0.1.0",
   "description": "Built-in MDX components for Tome documentation sites",
   "type": "module",
@@ -21,5 +21,10 @@
     "tsup": "^8.0.0",
     "typescript": "^5.5.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vxcozy/tome.git",
+    "directory": "packages/components"
+  }
 }

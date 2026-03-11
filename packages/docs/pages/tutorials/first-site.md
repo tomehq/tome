@@ -17,7 +17,7 @@ You need **Node.js 18+** and a package manager (`npm`, `yarn`, or `pnpm`).
 Run the init command to create a new project:
 
 ```bash
-npx @tome/cli init my-docs
+npx @tomehq/cli init my-docs
 ```
 
 This creates a directory with the following structure:

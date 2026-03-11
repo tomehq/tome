@@ -1,5 +1,5 @@
 {
-  "name": "@tome/create",
+  "name": "create-tome",
   "version": "0.1.0",
   "description": "Create a new Tome documentation project",
   "type": "module",
@@ -7,11 +7,16 @@
     "create-tome": "./src/index.js"
   },
   "scripts": {
-    "build": "echo 'Delegates to @tome/cli init'",
+    "build": "echo 'Delegates to @tomehq/cli init'",
     "clean": "echo 'Nothing to clean'"
   },
   "dependencies": {
-    "@tome/cli": "workspace:*"
+    "@tomehq/cli": "workspace:*"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vxcozy/tome.git",
+    "directory": "packages/create-tome"
+  }
 }

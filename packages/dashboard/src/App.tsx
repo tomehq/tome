@@ -509,7 +509,7 @@ function GettingStartedCard() {
   const steps = [
     {
       title: "Install Tome CLI",
-      code: "npm install -g @tome/cli",
+      code: "npm install -g @tomehq/cli",
       description: "The CLI is your main tool for creating, developing, and deploying docs.",
     },
     {

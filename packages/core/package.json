@@ -1,5 +1,5 @@
 {
-  "name": "@tome/core",
+  "name": "@tomehq/core",
   "version": "0.1.0",
   "description": "Tome build engine — Vite plugin, Markdown pipeline, config loader",
   "type": "module",
@@ -49,5 +49,10 @@
   "peerDependencies": {
     "vite": "^5.0.0 || ^6.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vxcozy/tome.git",
+    "directory": "packages/core"
+  }
 }

@@ -20,7 +20,7 @@ Tome requires Node.js and works with npm, pnpm, or yarn.
 The fastest way to start is with the CLI:
 
 ```bash
-npx @tome/cli init my-docs
+npx @tomehq/cli init my-docs
 ```
 
 This creates a new directory with everything you need:
@@ -67,7 +67,7 @@ The dev server starts at `http://localhost:3000` with hot reload enabled. Change
 If you already have a project and want to add Tome documentation:
 
 ```bash
-npm install @tome/cli @tome/theme react react-dom
+npm install @tomehq/cli @tomehq/theme react react-dom
 ```
 
 Create the required files:
@@ -111,7 +111,7 @@ Your documentation starts here.
 
 **`.tome/entry.tsx`**
 ```tsx
-import "@tome/theme/entry";
+import "@tomehq/theme/entry";
 ```
 
 Add scripts to `package.json`:

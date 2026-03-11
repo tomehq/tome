@@ -28,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all packages
-        run: pnpm -r --filter=!@tome/landing --filter=!@tome/dashboard --filter=!@tome/docs build
+        run: pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build
 
       - name: Test
         run: pnpm test run

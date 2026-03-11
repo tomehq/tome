@@ -33,9 +33,9 @@ Present content variants — useful for multiple languages or platform-specific 
 
 ```mdx
 <Tabs items={["npm", "yarn", "pnpm"]}>
-  <div>npm install @tome/cli</div>
-  <div>yarn add @tome/cli</div>
-  <div>pnpm add @tome/cli</div>
+  <div>npm install @tomehq/cli</div>
+  <div>yarn add @tomehq/cli</div>
+  <div>pnpm add @tomehq/cli</div>
 </Tabs>
 ```
 

@@ -31,11 +31,11 @@ pnpm dev
 ```
 tome/
 ├── packages/
-│   ├── cli/          # @tome/cli — CLI tool (init, dev, build, deploy)
-│   ├── core/         # @tome/core — Build engine, Markdown pipeline, Vite plugin
-│   ├── theme/        # @tome/theme — Default themes and React app shell
-│   ├── components/   # @tome/components — Built-in MDX components
-│   └── create-tome/  # @tome/create — Project scaffolder
+│   ├── cli/          # @tomehq/cli — CLI tool (init, dev, build, deploy)
+│   ├── core/         # @tomehq/core — Build engine, Markdown pipeline, Vite plugin
+│   ├── theme/        # @tomehq/theme — Default themes and React app shell
+│   ├── components/   # @tomehq/components — Built-in MDX components
+│   └── create-tome/  # @tomehq/create — Project scaffolder
 ├── apps/
 │   ├── docs/         # Tome's own documentation (dogfood)
 │   └── web/          # Marketing site

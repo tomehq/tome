@@ -1,4 +1,4 @@
-/** @type {import('@tome/core').TomeConfig} */
+/** @type {import('@tomehq/core').TomeConfig} */
 export default {
   name: "Tome",
   basePath: "/docs/",

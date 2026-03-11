@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { ApiPlayground } from "./ApiPlayground.js";
 import type { ApiPlaygroundProps } from "./ApiPlayground.js";
 
-// ── TYPES (mirrored from @tome/core openapi) ────────────
+// ── TYPES (mirrored from @tomehq/core openapi) ────────────
 // These are kept lightweight so the components package doesn't
-// depend on @tome/core at runtime — the data is passed as props.
+// depend on @tomehq/core at runtime — the data is passed as props.
 
 export interface ApiParameter {
   name: string;

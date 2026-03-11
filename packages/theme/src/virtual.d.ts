@@ -1,5 +1,5 @@
 declare module "virtual:tome/config" {
-  const config: import("@tome/core").TomeConfig;
+  const config: import("@tomehq/core").TomeConfig;
   export default config;
 }
 
@@ -7,8 +7,8 @@ declare module "virtual:tome/routes" {
   export const routes: Array<{
     id: string;
     urlPath: string;
-    frontmatter: import("@tome/core").PageFrontmatter;
+    frontmatter: import("@tomehq/core").PageFrontmatter;
     isMdx: boolean;
   }>;
-  export const navigation: import("@tome/core").NavigationGroup[];
+  export const navigation: import("@tomehq/core").NavigationGroup[];
 }

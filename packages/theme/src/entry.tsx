@@ -11,7 +11,7 @@ import loadPageModule from "virtual:tome/page-loader";
 // @ts-ignore — resolved by vite-plugin-tome
 import docContext from "virtual:tome/doc-context";
 
-// TOM-8: Built-in MDX components from @tome/components
+// TOM-8: Built-in MDX components from @tomehq/components
 // These are injected into every MDX page automatically
 import {
   Callout,
@@ -20,7 +20,7 @@ import {
   CardGroup,
   Steps,
   Accordion,
-} from "@tome/components";
+} from "@tomehq/components";
 
 const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
   Callout,

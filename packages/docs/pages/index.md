@@ -27,7 +27,7 @@ We built Tome because we thought that was absurd. Every developer and team deser
 
 ```bash
 # Get started in 30 seconds
-npx @tome/cli init my-docs
+npx @tomehq/cli init my-docs
 cd my-docs && npm install && npm run dev
 ```
 

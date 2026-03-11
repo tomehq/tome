@@ -1,3 +1,3 @@
-// Programmatic API for @tome/cli
-export { loadConfig, defineConfig } from "@tome/core";
-export type { TomeConfig } from "@tome/core";
+// Programmatic API for @tomehq/cli
+export { loadConfig, defineConfig } from "@tomehq/core";
+export type { TomeConfig } from "@tomehq/core";

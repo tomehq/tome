@@ -45,7 +45,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@tome/core':
+      '@tomehq/core':
         specifier: workspace:*
         version: link:../core
       '@vitejs/plugin-react':
@@ -173,7 +173,7 @@ importers:
 
   packages/create-tome:
     dependencies:
-      '@tome/cli':
+      '@tomehq/cli':
         specifier: workspace:*
         version: link:../cli
 
@@ -216,10 +216,10 @@ importers:
 
   packages/docs:
     devDependencies:
-      '@tome/cli':
+      '@tomehq/cli':
         specifier: workspace:*
         version: link:../cli
-      '@tome/theme':
+      '@tomehq/theme':
         specifier: workspace:*
         version: link:../theme
       react:
@@ -271,10 +271,10 @@ importers:
       '@docsearch/react':
         specifier: ^3.0.0
         version: 3.9.0(@algolia/client-search@5.49.2)(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(search-insights@2.17.3)
-      '@tome/components':
+      '@tomehq/components':
         specifier: workspace:*
         version: link:../components
-      '@tome/core':
+      '@tomehq/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

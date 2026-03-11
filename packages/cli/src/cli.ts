@@ -47,7 +47,7 @@ program
     // Write tome.config.js
     writeFileSync(
       join(targetDir, "tome.config.js"),
-      `/** @type {import('@tome/core').TomeConfig} */
+      `/** @type {import('@tomehq/core').TomeConfig} */
 export default {
   name: "${projectName}",
   theme: {
@@ -78,8 +78,8 @@ export default {
             deploy: "tome deploy",
           },
           devDependencies: {
-            "@tome/cli": "^0.1.0",
-            "@tome/theme": "^0.1.0",
+            "@tomehq/cli": "^0.1.0",
+            "@tomehq/theme": "^0.1.0",
             "react": "^19.0.0",
             "react-dom": "^19.0.0",
           },
@@ -331,17 +331,17 @@ Tabs let you present multiple variants of content — perfect for showing code i
 <Tabs items={["npm", "yarn", "pnpm"]}>
   <div>
     \`\`\`bash
-    npm install @tome/cli
+    npm install @tomehq/cli
     \`\`\`
   </div>
   <div>
     \`\`\`bash
-    yarn add @tome/cli
+    yarn add @tomehq/cli
     \`\`\`
   </div>
   <div>
     \`\`\`bash
-    pnpm add @tome/cli
+    pnpm add @tomehq/cli
     \`\`\`
   </div>
 </Tabs>
@@ -447,7 +447,7 @@ Accordions let you hide content behind a collapsible header — useful for FAQs,
 
     writeFileSync(
       join(targetDir, ".tome", "entry.tsx"),
-      `// Bootstraps the Tome documentation shell.\n// Configure your site in tome.config.js instead.\nimport "@tome/theme/entry";\n`
+      `// Bootstraps the Tome documentation shell.\n// Configure your site in tome.config.js instead.\nimport "@tomehq/theme/entry";\n`
     );
 
     // Write .gitignore
@@ -481,7 +481,7 @@ program
     try {
       const { createServer } = await import("vite");
       const { default: react } = await import("@vitejs/plugin-react");
-      const { default: tomePlugin } = await import("@tome/core/vite-plugin");
+      const { default: tomePlugin } = await import("@tomehq/core/vite-plugin");
 
       const root = process.cwd();
 
@@ -539,7 +539,7 @@ program
     try {
       const { build } = await import("vite");
       const { default: react } = await import("@vitejs/plugin-react");
-      const { default: tomePlugin } = await import("@tome/core/vite-plugin");
+      const { default: tomePlugin } = await import("@tomehq/core/vite-plugin");
 
       const root = process.cwd();
 
@@ -614,7 +614,7 @@ program
     }
 
     try {
-      const { saveAuthToken } = await import("@tome/core/deploy");
+      const { saveAuthToken } = await import("@tomehq/core/deploy");
       await saveAuthToken(token);
       console.log(pc.green("  Logged in successfully.\n"));
     } catch (err) {
@@ -632,7 +632,7 @@ program
   .action(async (opts: { outDir: string }) => {
     console.log(logo);
 
-    const { readAuthToken, deployToCloud } = await import("@tome/core/deploy");
+    const { readAuthToken, deployToCloud } = await import("@tomehq/core/deploy");
 
     // Check auth
     const token = readAuthToken();
@@ -774,7 +774,7 @@ program
     console.log(pc.dim("  Starting MCP server...\n"));
 
     try {
-      const { startMcpServer } = await import("@tome/core/mcp-server");
+      const { startMcpServer } = await import("@tomehq/core/mcp-server");
       await startMcpServer({ root: process.cwd(), outDir: opts.outDir });
     } catch (err) {
       console.error(pc.red("\n  MCP server failed:\n"));
@@ -792,8 +792,8 @@ program
   .action(async (domain: string) => {
     console.log(logo);
 
-    const { readAuthToken } = await import("@tome/core/deploy");
-    const { validateDomain, addDomain } = await import("@tome/core/domains");
+    const { readAuthToken } = await import("@tomehq/core/deploy");
+    const { validateDomain, addDomain } = await import("@tomehq/core/domains");
 
     // Check auth
     const token = readAuthToken();
@@ -859,8 +859,8 @@ program
   .action(async () => {
     console.log(logo);
 
-    const { readAuthToken } = await import("@tome/core/deploy");
-    const { listDomains } = await import("@tome/core/domains");
+    const { readAuthToken } = await import("@tomehq/core/deploy");
+    const { listDomains } = await import("@tomehq/core/domains");
 
     // Check auth
     const token = readAuthToken();
@@ -923,6 +923,84 @@ program
     }
   });
 
+// ── DOMAINS:VERIFY ─────────────────────────────────────
+program
+  .command("domains:verify <domain>")
+  .description("Check DNS verification and SSL status for a custom domain")
+  .action(async (domain: string) => {
+    console.log(logo);
+
+    const { readAuthToken } = await import("@tomehq/core/deploy");
+    const { checkDomainDns } = await import("@tomehq/core/domains");
+
+    // Check auth
+    const token = readAuthToken();
+    if (!token) {
+      console.error(pc.red("  Error: Not logged in.\n"));
+      console.log(pc.dim("  Run ") + pc.cyan("tome login") + pc.dim(" first to authenticate.\n"));
+      process.exit(1);
+    }
+
+    // Load config for project slug
+    const root = process.cwd();
+    let slug = "my-docs";
+
+    for (const configFile of ["tome.config.js", "tome.config.mjs", "tome.config.ts"]) {
+      const configPath = join(root, configFile);
+      if (existsSync(configPath)) {
+        try {
+          const { pathToFileURL } = await import("url");
+          const configUrl = pathToFileURL(configPath).href;
+          const mod = await import(configUrl);
+          const config = mod.default || mod;
+          if (config.name) {
+            slug = config.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          }
+        } catch {
+          // Use default slug
+        }
+        break;
+      }
+    }
+
+    try {
+      console.log(pc.dim("  Checking DNS and SSL status...\n"));
+      const status = await checkDomainDns(domain, slug, undefined, token);
+
+      const verifiedIcon = status.verified ? pc.green("✓") : pc.yellow("○");
+      const sslLabel =
+        status.sslStatus === "active"
+          ? pc.green("active")
+          : status.sslStatus === "failed"
+          ? pc.red("failed")
+          : pc.yellow("pending");
+
+      console.log(`  ${verifiedIcon} ${pc.bold(status.domain)}\n`);
+      console.log(`    ${pc.dim("Verified:")} ${status.verified ? pc.green("yes") : pc.yellow("no")}`);
+      console.log(`    ${pc.dim("SSL:")}      ${sslLabel}\n`);
+
+      if (status.dnsRecords.length > 0) {
+        console.log(pc.dim("  Required DNS records:\n"));
+        for (const r of status.dnsRecords) {
+          const recordIcon = r.verified ? pc.green("✓") : pc.yellow("○");
+          console.log(`    ${recordIcon} ${pc.bold(r.type)} ${pc.cyan(r.name)} → ${r.value}`);
+        }
+        console.log();
+      }
+
+      if (!status.verified) {
+        console.log(pc.yellow("  DNS not yet verified. Add the records above at your DNS provider"));
+        console.log(pc.yellow("  and run this command again to check status.\n"));
+      } else {
+        console.log(pc.green("  Domain is verified and SSL is active!\n"));
+      }
+    } catch (err) {
+      console.error(pc.red("\n  Failed to verify domain:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
 // ── DOMAINS:REMOVE ──────────────────────────────────────
 program
   .command("domains:remove <domain>")
@@ -930,8 +1008,8 @@ program
   .action(async (domain: string) => {
     console.log(logo);
 
-    const { readAuthToken } = await import("@tome/core/deploy");
-    const { removeDomain } = await import("@tome/core/domains");
+    const { readAuthToken } = await import("@tomehq/core/deploy");
+    const { removeDomain } = await import("@tomehq/core/domains");
 
     // Check auth
     const token = readAuthToken();

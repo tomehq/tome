@@ -16,7 +16,7 @@ Tome is an open-source documentation platform for developers. Write Markdown, ge
 ## Quickstart
 
 ```bash
-npx @tome/create my-docs
+npx create-tome my-docs
 cd my-docs
 npm run dev
 ```

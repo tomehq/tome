@@ -11,9 +11,9 @@ The `tome` CLI is the primary interface for creating, developing, building, and 
 ## Installation
 
 ```bash
-npm install -D @tome/cli
+npm install -D @tomehq/cli
 # or globally
-npm install -g @tome/cli
+npm install -g @tomehq/cli
 ```
 
 ## Commands

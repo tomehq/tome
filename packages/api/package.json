@@ -1,5 +1,5 @@
 {
-  "name": "@tome/api",
+  "name": "@tomehq/api",
   "version": "0.1.0",
   "description": "Tome cloud API — Cloudflare Worker powered by Hono",
   "type": "module",
@@ -21,5 +21,10 @@
     "wrangler": "^4.0.0",
     "typescript": "^5.5.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vxcozy/tome.git",
+    "directory": "packages/api"
+  }
 }

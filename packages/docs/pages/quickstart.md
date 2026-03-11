@@ -11,7 +11,7 @@ Get a working documentation site in three commands.
 ## Create a new project
 
 ```bash
-npx @tome/cli init my-docs
+npx @tomehq/cli init my-docs
 ```
 
 This scaffolds a complete documentation project with starter pages, configuration, and build scripts.

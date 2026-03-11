@@ -64,7 +64,7 @@ See **[Configuration](#configuration)** for the full schema.
 The application entry point. For most projects, this is a single import:
 
 ```tsx
-import "@tome/theme/entry";
+import "@tomehq/theme/entry";
 ```
 
 This boots the Tome shell — the sidebar, search, theme switcher, and content renderer. You generally don't need to modify this file.
