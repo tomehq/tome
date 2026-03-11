@@ -17,9 +17,17 @@ const app = new Hono<{ Bindings: Env }>();
 // ── Site-serving middleware (runs before everything) ─────
 // Intercepts requests to hosted sites based on the Host header.
 // API hosts (*.workers.dev, localhost, api.tome.center) pass through.
+// Platform hosts (www.tome.center, tome.center) proxy to origin (Vercel).
 app.use("*", async (c, next) => {
   const host = c.req.header("host") ?? "";
   if (isApiHost(host)) return next();
+
+  // Platform hostnames — proxy to origin (Vercel landing page).
+  // The *.tome.center/* Worker route catches www, but it's not a hosted site.
+  const bare = host.replace(/:\d+$/, "");
+  if (bare === "www.tome.center" || bare === "tome.center") {
+    return fetch(c.req.raw);
+  }
 
   const slug = await resolveHostname(host, c.env.TOME_DB);
   if (!slug) return c.text("Site not found", 404);
