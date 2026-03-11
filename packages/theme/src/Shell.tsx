@@ -371,6 +371,11 @@ export function Shell({
     return () => mq.removeEventListener("change", handler);
   }, [themeMode]);
 
+  // Sync dark mode class on <html> so global CSS selectors (e.g. Shiki dual-theme) work
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
   useEffect(() => {
     const c = () => setWide(window.innerWidth > 1100);
     c(); window.addEventListener("resize", c);
