@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Tome build engine — Vite plugin, Markdown pipeline, config loader",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,11 +14,18 @@
     "./deploy": "./dist/deploy.js",
     "./billing": "./dist/billing.js",
     "./domains": "./dist/domains.js",
-    "./analytics": "./dist/analytics.js"
+    "./analytics": "./dist/analytics.js",
+    "./linter": "./dist/linter.js",
+    "./og-image": "./dist/og-image.js",
+    "./preview": "./dist/preview.js",
+    "./webhooks": "./dist/webhooks.js",
+    "./changelog": "./dist/changelog.js",
+    "./git-dates": "./dist/git-dates.js",
+    "./link-checker": "./dist/link-checker.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts --format esm --dts",
-    "dev": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts --format esm --dts --watch",
+    "build": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts --format esm --dts",
+    "dev": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts --format esm --dts --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
