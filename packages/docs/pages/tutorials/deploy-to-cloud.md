@@ -34,7 +34,7 @@ Tome builds your site, collects the output files, and uploads them using hash-ba
 After deployment, your site is live at:
 
 ```
-https://your-project.tome.dev
+https://your-project.tome.center
 ```
 
 ## 3. Add a custom domain
@@ -50,7 +50,7 @@ Tome returns DNS records you need to configure with your domain registrar:
 ```text
 Type:  CNAME
 Name:  docs
-Value: your-project.tome.dev
+Value: your-project.tome.center
 ```
 
 After configuring DNS, verify the domain:

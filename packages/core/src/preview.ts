@@ -67,7 +67,7 @@ export function slugifyBranch(branch: string): string {
 /**
  * Generate the preview URL for a branch.
  */
-export function getPreviewUrl(branchSlug: string, projectSlug: string, baseDomain: string = "tome.dev"): string {
+export function getPreviewUrl(branchSlug: string, projectSlug: string, baseDomain: string = "tome.center"): string {
   return `https://${branchSlug}.preview.${projectSlug}.${baseDomain}`;
 }
 

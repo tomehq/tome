@@ -661,7 +661,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
     try {
       const [deps, doms] = await Promise.all([
         api<Deployment[]>(`/api/deploy/projects/${slug}/deployments`, { token }),
-        api<DomainStatus[]>("/api/domains/", { token }).catch(() => [] as DomainStatus[]),
+        api<DomainStatus[]>("/api/domains", { token }).catch(() => [] as DomainStatus[]),
       ]);
       setDeployments(deps);
       setDomains(doms);
@@ -679,10 +679,12 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
 
   const addDomain = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDomain.trim()) return;
+    // Strip protocol and trailing slashes from domain input
+    const cleanDomain = newDomain.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    if (!cleanDomain) return;
     setDomainError(null);
     try {
-      await api("/api/domains/", { method: "POST", body: { domain: newDomain.trim(), projectSlug: slug }, token });
+      await api("/api/domains", { method: "POST", body: { domain: cleanDomain, projectSlug: slug }, token });
       setNewDomain("");
       loadData();
     } catch (err) {

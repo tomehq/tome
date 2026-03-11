@@ -199,7 +199,7 @@ deploy.post("/finalize", async (c) => {
     ).bind(body.deploymentId, deployment.project_id),
   ]);
 
-  const url = `https://${deployment.slug}.tome.dev`;
+  const url = `https://${deployment.slug}.tome.center`;
 
   return c.json({
     url,
@@ -227,7 +227,7 @@ deploy.get("/status/:id", async (c) => {
     status: deployment.status,
     fileCount: deployment.file_count,
     totalSize: deployment.total_size,
-    url: deployment.status === "live" ? `https://${deployment.slug}.tome.dev` : null,
+    url: deployment.status === "live" ? `https://${deployment.slug}.tome.center` : null,
     createdAt: deployment.created_at,
     finalizedAt: deployment.finalized_at,
   });
@@ -258,7 +258,7 @@ deploy.get("/projects", async (c) => {
       lastDeployAt: r.last_deploy_at ?? null,
       fileCount: r.file_count ?? 0,
       totalSize: r.total_size ?? 0,
-      url: r.deploy_status === "live" ? `https://${r.slug}.tome.dev` : null,
+      url: r.deploy_status === "live" ? `https://${r.slug}.tome.center` : null,
       createdAt: r.created_at,
     }))
   );
@@ -288,7 +288,7 @@ deploy.get("/projects/:slug/deployments", async (c) => {
       totalSize: d.total_size,
       createdAt: d.created_at,
       finalizedAt: d.finalized_at,
-      url: d.status === "live" ? `https://${slug}.tome.dev` : null,
+      url: d.status === "live" ? `https://${slug}.tome.center` : null,
     }))
   );
 });

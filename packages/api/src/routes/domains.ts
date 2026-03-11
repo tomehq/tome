@@ -7,10 +7,14 @@ const domains = new Hono<{ Bindings: Env; Variables: { user: User } }>();
 // ── POST / — register custom domain for a project ─────
 domains.post("/", async (c) => {
   const user = c.get("user");
-  const { domain, projectSlug } = await c.req.json<{
+  const body = await c.req.json<{
     domain: string;
     projectSlug: string;
   }>();
+
+  // Normalize domain — strip protocol and trailing slashes
+  const domain = (body.domain || "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  const projectSlug = body.projectSlug;
 
   if (!domain || !projectSlug) {
     return c.json({ error: "Missing domain or projectSlug" }, 400);
@@ -116,7 +120,7 @@ domains.post("/", async (c) => {
     verified: false,
     sslStatus: "pending",
     dnsRecords: [
-      { type: "CNAME", name: "docs", value: `${projectSlug}.tome.dev`, verified: false },
+      { type: "CNAME", name: "docs", value: `${projectSlug}.tome.center`, verified: false },
       { type: "TXT", name: "_tome-verify.docs", value: `tome-verify=${projectSlug}`, verified: false },
     ],
   });
@@ -179,7 +183,7 @@ domains.get("/", async (c) => {
       verified: d.verified === 1,
       sslStatus: d.ssl_status,
       dnsRecords: [
-        { type: "CNAME", name: "docs", value: `${d.project_slug}.tome.dev`, verified: d.verified === 1 },
+        { type: "CNAME", name: "docs", value: `${d.project_slug}.tome.center`, verified: d.verified === 1 },
         { type: "TXT", name: "_tome-verify.docs", value: `tome-verify=${d.project_slug}`, verified: d.verified === 1 },
       ],
     }))
@@ -247,7 +251,7 @@ domains.get("/:domain/verify", async (c) => {
     verified,
     sslStatus,
     dnsRecords: [
-      { type: "CNAME", name: "docs", value: `${row.project_slug}.tome.dev`, verified },
+      { type: "CNAME", name: "docs", value: `${row.project_slug}.tome.center`, verified },
       { type: "TXT", name: "_tome-verify.docs", value: `tome-verify=${row.project_slug}`, verified },
     ],
   });

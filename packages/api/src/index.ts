@@ -16,7 +16,7 @@ const app = new Hono<{ Bindings: Env }>();
 
 // ── Site-serving middleware (runs before everything) ─────
 // Intercepts requests to hosted sites based on the Host header.
-// API hosts (*.workers.dev, localhost, api.tome.dev) pass through.
+// API hosts (*.workers.dev, localhost, api.tome.center) pass through.
 app.use("*", async (c, next) => {
   const host = c.req.header("host") ?? "";
   if (isApiHost(host)) return next();
@@ -36,7 +36,7 @@ app.use("*", cors({
       "https://www.tome.center",
     ];
     const allowedPatterns = [
-      /^https:\/\/.*\.tome\.dev$/,
+      /^https:\/\/.*\.tome\.center$/,
       /^https:\/\/.*\.vercel\.app$/,
       /^http:\/\/localhost(:\d+)?$/,
       /^http:\/\/127\.0\.0\.1(:\d+)?$/,

@@ -23,7 +23,7 @@ const mockProjects = [
     lastDeployAt: new Date().toISOString(),
     fileCount: 12,
     totalSize: 51200,
-    url: "https://my-docs.tome.dev",
+    url: "https://my-docs.tome.center",
     createdAt: "2026-01-01T00:00:00Z",
   },
 ];
@@ -36,7 +36,7 @@ const mockDeployments = [
     totalSize: 51200,
     createdAt: "2026-03-09T10:00:00Z",
     finalizedAt: "2026-03-09T10:01:00Z",
-    url: "https://my-docs.tome.dev",
+    url: "https://my-docs.tome.center",
   },
 ];
 
@@ -71,10 +71,10 @@ function mockFetch(overrides: Record<string, unknown> = {}) {
     }
 
     // Domains
-    if (method === "GET" && path === "/api/domains/") {
+    if (method === "GET" && (path === "/api/domains" || path === "/api/domains/")) {
       return Response.json(overrides.domains ?? []);
     }
-    if (method === "POST" && path === "/api/domains/") {
+    if (method === "POST" && (path === "/api/domains" || path === "/api/domains/")) {
       return Response.json({ domain: "docs.example.com", verified: false, sslStatus: "pending", dnsRecords: [] });
     }
 
@@ -232,7 +232,7 @@ describe("Project Detail", () => {
         domain: "docs.acme.io",
         verified: true,
         sslStatus: "active",
-        dnsRecords: [{ type: "CNAME", name: "docs", value: "my-docs.tome.dev", verified: true }],
+        dnsRecords: [{ type: "CNAME", name: "docs", value: "my-docs.tome.center", verified: true }],
       }],
     }));
     render(<App />);

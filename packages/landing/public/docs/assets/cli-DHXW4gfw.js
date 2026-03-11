@@ -121,7 +121,7 @@ const n={frontmatter:{title:"CLI Reference",description:"Complete reference for 
 </tr>
 </tbody>
 </table>
-<p>Builds, collects output files, and uploads using hash-based deduplication. With <code>--preview</code>, deploys to a branch-specific URL (e.g., <code>feature-auth.preview.my-docs.tome.dev</code>) and injects a preview banner.</p>
+<p>Builds, collects output files, and uploads using hash-based deduplication. With <code>--preview</code>, deploys to a branch-specific URL (e.g., <code>feature-auth.preview.my-docs.tome.center</code>) and injects a preview banner.</p>
 <hr>
 <h3 id="tome-lint"><a class="heading-anchor" aria-hidden tabindex="-1" href="#tome-lint"><span class="icon icon-link"></span></a><code>tome lint</code></h3>
 <p>Lint documentation content for common issues.</p>
@@ -280,7 +280,7 @@ tome deploy --preview --branch feature/auth
 | \`--branch <name>\` | auto-detect | Git branch name for preview |
 | \`--expires <days>\` | \`7\` | Preview expiry in days |
 
-Builds, collects output files, and uploads using hash-based deduplication. With \`--preview\`, deploys to a branch-specific URL (e.g., \`feature-auth.preview.my-docs.tome.dev\`) and injects a preview banner.
+Builds, collects output files, and uploads using hash-based deduplication. With \`--preview\`, deploys to a branch-specific URL (e.g., \`feature-auth.preview.my-docs.tome.center\`) and injects a preview banner.
 
 ---
 

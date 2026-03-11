@@ -170,7 +170,7 @@ describe("deployToCloud", () => {
       if (urlStr.endsWith("/api/deploy/finalize")) {
         return new Response(
           JSON.stringify({
-            url: "https://my-project.tome.dev",
+            url: "https://my-project.tome.center",
             deploymentId: "deploy-abc123",
             status: "live",
           }),
@@ -190,14 +190,14 @@ describe("deployToCloud", () => {
 
     const result = await deployToCloud(
       {
-        apiUrl: "https://api.tome.dev",
+        apiUrl: "https://api.tome.center",
         token: "test-token",
         slug: "my-project",
       },
       tmpDir,
     );
 
-    expect(result.url).toBe("https://my-project.tome.dev");
+    expect(result.url).toBe("https://my-project.tome.center");
     expect(result.deploymentId).toBe("deploy-abc123");
     expect(result.fileCount).toBe(2);
     expect(result.size).toBeGreaterThan(0);
@@ -209,13 +209,13 @@ describe("deployToCloud", () => {
     mockFetchSequence(["index.html"]);
 
     await deployToCloud(
-      { apiUrl: "https://api.tome.dev", token: "test-token", slug: "my-docs" },
+      { apiUrl: "https://api.tome.center", token: "test-token", slug: "my-docs" },
       tmpDir,
     );
 
     // First call should be to /start with manifest
     const startCall = fetchSpy.mock.calls[0];
-    expect(startCall[0]).toBe("https://api.tome.dev/api/deploy/start");
+    expect(startCall[0]).toBe("https://api.tome.center/api/deploy/start");
     const body = JSON.parse((startCall[1] as RequestInit).body as string);
     expect(body.slug).toBe("my-docs");
     expect(body.files["index.html"]).toBeTruthy();
@@ -227,13 +227,13 @@ describe("deployToCloud", () => {
     mockFetchSequence(["page.html"]);
 
     await deployToCloud(
-      { apiUrl: "https://api.tome.dev", token: "test-token", slug: "my-docs" },
+      { apiUrl: "https://api.tome.center", token: "test-token", slug: "my-docs" },
       tmpDir,
     );
 
     // Second call should be upload
     const uploadCall = fetchSpy.mock.calls[1];
-    expect(uploadCall[0]).toBe("https://api.tome.dev/api/deploy/upload");
+    expect(uploadCall[0]).toBe("https://api.tome.center/api/deploy/upload");
     const headers = (uploadCall[1] as RequestInit).headers as Record<string, string>;
     expect(headers["X-Deployment-Id"]).toBe("deploy-abc123");
     expect(headers["X-File-Path"]).toBe("page.html");
@@ -256,7 +256,7 @@ describe("deployToCloud", () => {
       }
       if (urlStr.endsWith("/api/deploy/finalize")) {
         return new Response(
-          JSON.stringify({ url: "https://cached.tome.dev", deploymentId: "deploy-xyz", status: "live" }),
+          JSON.stringify({ url: "https://cached.tome.center", deploymentId: "deploy-xyz", status: "live" }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
@@ -264,11 +264,11 @@ describe("deployToCloud", () => {
     });
 
     const result = await deployToCloud(
-      { apiUrl: "https://api.tome.dev", token: "test-token", slug: "cached" },
+      { apiUrl: "https://api.tome.center", token: "test-token", slug: "cached" },
       tmpDir,
     );
 
-    expect(result.url).toBe("https://cached.tome.dev");
+    expect(result.url).toBe("https://cached.tome.center");
     // Should only call start + finalize (no upload calls)
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
@@ -279,7 +279,7 @@ describe("deployToCloud", () => {
     await expect(
       deployToCloud(
         {
-          apiUrl: "https://api.tome.dev",
+          apiUrl: "https://api.tome.center",
           token: "test-token",
           slug: "my-project",
         },
@@ -297,7 +297,7 @@ describe("deployToCloud", () => {
 
     await expect(
       deployToCloud(
-        { apiUrl: "https://api.tome.dev", token: "bad-token", slug: "fail" },
+        { apiUrl: "https://api.tome.center", token: "bad-token", slug: "fail" },
         tmpDir,
       ),
     ).rejects.toThrow("Deploy failed: Unauthorized");
@@ -324,7 +324,7 @@ describe("deployToCloud", () => {
 
     await expect(
       deployToCloud(
-        { apiUrl: "https://api.tome.dev", token: "tok", slug: "full" },
+        { apiUrl: "https://api.tome.center", token: "tok", slug: "full" },
         tmpDir,
       ),
     ).rejects.toThrow("Upload failed for index.html: Storage full");

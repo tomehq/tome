@@ -30,7 +30,7 @@ export function generateDnsRecords(domain: string, projectSlug: string): DnsReco
     {
       type: "CNAME",
       name: "docs",
-      value: `${projectSlug}.tome.dev`,
+      value: `${projectSlug}.tome.center`,
       verified: false,
     },
     {

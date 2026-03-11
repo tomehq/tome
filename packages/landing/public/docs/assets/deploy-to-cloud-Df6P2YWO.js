@@ -13,7 +13,7 @@ const e={frontmatter:{title:"Deploy to Tome Cloud",description:"Publish your doc
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npx</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> tome</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> deploy</span></span></code></pre>
 <p>Tome builds your site, collects the output files, and uploads them using hash-based deduplication. Only changed files are transferred, making subsequent deploys fast.</p>
 <p>After deployment, your site is live at:</p>
-<pre><code>https://your-project.tome.dev
+<pre><code>https://your-project.tome.center
 </code></pre>
 <h2 id="3-add-a-custom-domain"><a class="heading-anchor" aria-hidden tabindex="-1" href="#3-add-a-custom-domain"><span class="icon icon-link"></span></a>3. Add a custom domain</h2>
 <p>Register a custom domain for your docs:</p>
@@ -21,7 +21,7 @@ const e={frontmatter:{title:"Deploy to Tome Cloud",description:"Publish your doc
 <p>Tome returns DNS records you need to configure with your domain registrar:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span>Type:  CNAME</span></span>
 <span class="line"><span>Name:  docs</span></span>
-<span class="line"><span>Value: your-project.tome.dev</span></span></code></pre>
+<span class="line"><span>Value: your-project.tome.center</span></span></code></pre>
 <p>After configuring DNS, verify the domain:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npx</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> tome</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> domains:verify</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> docs.example.com</span></span></code></pre>
 <p>SSL is provisioned automatically once DNS propagates.</p>
@@ -93,7 +93,7 @@ Tome builds your site, collects the output files, and uploads them using hash-ba
 After deployment, your site is live at:
 
 \`\`\`
-https://your-project.tome.dev
+https://your-project.tome.center
 \`\`\`
 
 ## 3. Add a custom domain
@@ -109,7 +109,7 @@ Tome returns DNS records you need to configure with your domain registrar:
 \`\`\`text
 Type:  CNAME
 Name:  docs
-Value: your-project.tome.dev
+Value: your-project.tome.center
 \`\`\`
 
 After configuring DNS, verify the domain:

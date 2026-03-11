@@ -26,7 +26,7 @@ describe("generateDnsRecords", () => {
 
     const cname = records.find((r) => r.type === "CNAME")!;
     expect(cname.name).toBe("docs");
-    expect(cname.value).toBe("acme-docs.tome.dev");
+    expect(cname.value).toBe("acme-docs.tome.center");
     expect(cname.verified).toBe(false);
 
     const txt = records.find((r) => r.type === "TXT")!;
@@ -94,19 +94,19 @@ describe("checkDomainDns", () => {
           verified: true,
           sslStatus: "active",
           dnsRecords: [
-            { type: "CNAME", name: "docs", value: "my-project.tome.dev", verified: true },
+            { type: "CNAME", name: "docs", value: "my-project.tome.center", verified: true },
           ],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       ),
     );
 
-    const status = await checkDomainDns("docs.example.com", "my-project", "https://api.tome.dev", "test-token");
+    const status = await checkDomainDns("docs.example.com", "my-project", "https://api.tome.center", "test-token");
 
     expect(status.verified).toBe(true);
     expect(status.sslStatus).toBe("active");
     expect(fetchSpy).toHaveBeenCalledWith(
-      "https://api.tome.dev/api/domains/docs.example.com/verify",
+      "https://api.tome.center/api/domains/docs.example.com/verify",
       expect.objectContaining({ headers: { Authorization: "Bearer test-token" } }),
     );
 
@@ -135,7 +135,7 @@ describe("addDomain", () => {
           verified: false,
           sslStatus: "pending",
           dnsRecords: [
-            { type: "CNAME", name: "docs", value: "my-project.tome.dev", verified: false },
+            { type: "CNAME", name: "docs", value: "my-project.tome.center", verified: false },
             { type: "TXT", name: "_tome-verify.docs", value: "tome-verify=my-project", verified: false },
           ],
         }),
@@ -210,7 +210,7 @@ describe("listDomains", () => {
             verified: true,
             sslStatus: "active",
             dnsRecords: [
-              { type: "CNAME", name: "docs", value: "my-project.tome.dev", verified: true },
+              { type: "CNAME", name: "docs", value: "my-project.tome.center", verified: true },
             ],
           },
         ]),

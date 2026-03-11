@@ -17,16 +17,12 @@ describe("isApiHost", () => {
     expect(isApiHost("127.0.0.1:8787")).toBe(true);
   });
 
-  it("matches api.tome.dev", () => {
-    expect(isApiHost("api.tome.dev")).toBe(true);
-  });
-
   it("matches api.tome.center", () => {
     expect(isApiHost("api.tome.center")).toBe(true);
   });
 
   it("rejects site subdomains", () => {
-    expect(isApiHost("my-docs.tome.dev")).toBe(false);
+    expect(isApiHost("my-docs.tome.center")).toBe(false);
   });
 
   it("rejects custom domains", () => {
@@ -47,11 +43,6 @@ function mockDb(row: { slug: string } | null = null) {
 }
 
 describe("resolveHostname", () => {
-  it("extracts slug from *.tome.dev subdomain", async () => {
-    const db = mockDb();
-    expect(await resolveHostname("my-docs.tome.dev", db)).toBe("my-docs");
-  });
-
   it("extracts slug from *.tome.center subdomain", async () => {
     const db = mockDb();
     expect(await resolveHostname("my-docs.tome.center", db)).toBe("my-docs");
@@ -59,22 +50,17 @@ describe("resolveHostname", () => {
 
   it("strips port before extracting", async () => {
     const db = mockDb();
-    expect(await resolveHostname("my-docs.tome.dev:443", db)).toBe("my-docs");
+    expect(await resolveHostname("my-docs.tome.center:443", db)).toBe("my-docs");
   });
 
-  it("rejects bare tome.dev (no subdomain)", async () => {
-    const db = mockDb();
-    expect(await resolveHostname("tome.dev", db)).toBeNull();
-  });
-
-  it("rejects bare tome.center", async () => {
+  it("rejects bare tome.center (no subdomain)", async () => {
     const db = mockDb();
     expect(await resolveHostname("tome.center", db)).toBeNull();
   });
 
   it("rejects multi-level subdomains", async () => {
     const db = mockDb();
-    expect(await resolveHostname("a.b.tome.dev", db)).toBeNull();
+    expect(await resolveHostname("a.b.tome.center", db)).toBeNull();
   });
 
   it("resolves custom domain via D1 lookup", async () => {

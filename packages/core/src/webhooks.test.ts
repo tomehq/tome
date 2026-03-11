@@ -18,7 +18,7 @@ const basePayload: WebhookPayload = {
   event: "deploy.succeeded",
   timestamp: "2025-06-15T12:00:00Z",
   project: "my-docs",
-  url: "https://my-docs.tome.dev",
+  url: "https://my-docs.tome.center",
   deploymentId: "dep-123",
   fileCount: 42,
   size: 102400,
@@ -139,7 +139,7 @@ describe("formatHttpPayload", () => {
     const result = formatHttpPayload(basePayload);
     expect(result.event).toBe("deploy.succeeded");
     expect(result.project).toBe("my-docs");
-    expect(result.url).toBe("https://my-docs.tome.dev");
+    expect(result.url).toBe("https://my-docs.tome.center");
     expect(result.fileCount).toBe(42);
   });
 });
@@ -378,10 +378,10 @@ describe("dispatchWebhooks", () => {
 
 describe("createDeployPayload", () => {
   it("creates deploy.succeeded payload", () => {
-    const payload = createDeployPayload("my-docs", "https://my-docs.tome.dev", "dep-1", 10, 5000);
+    const payload = createDeployPayload("my-docs", "https://my-docs.tome.center", "dep-1", 10, 5000);
     expect(payload.event).toBe("deploy.succeeded");
     expect(payload.project).toBe("my-docs");
-    expect(payload.url).toBe("https://my-docs.tome.dev");
+    expect(payload.url).toBe("https://my-docs.tome.center");
     expect(payload.deploymentId).toBe("dep-1");
     expect(payload.fileCount).toBe(10);
     expect(payload.size).toBe(5000);
@@ -400,7 +400,7 @@ describe("createDeployFailedPayload", () => {
 
 describe("createPreviewPayload", () => {
   it("creates preview.deployed payload", () => {
-    const payload = createPreviewPayload("my-docs", "https://preview.tome.dev", "feature/auth", "dep-2", 5, 2000);
+    const payload = createPreviewPayload("my-docs", "https://preview.tome.center", "feature/auth", "dep-2", 5, 2000);
     expect(payload.event).toBe("preview.deployed");
     expect(payload.branch).toBe("feature/auth");
   });

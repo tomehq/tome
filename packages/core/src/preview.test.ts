@@ -57,7 +57,7 @@ describe("slugifyBranch", () => {
 describe("getPreviewUrl", () => {
   it("generates standard preview URL", () => {
     const url = getPreviewUrl("feature-auth", "my-docs");
-    expect(url).toBe("https://feature-auth.preview.my-docs.tome.dev");
+    expect(url).toBe("https://feature-auth.preview.my-docs.tome.center");
   });
 
   it("uses custom base domain", () => {
@@ -67,7 +67,7 @@ describe("getPreviewUrl", () => {
 
   it("handles default base domain", () => {
     const url = getPreviewUrl("main", "project");
-    expect(url).toContain("tome.dev");
+    expect(url).toContain("tome.center");
   });
 });
 

@@ -11,7 +11,6 @@ const API_PATTERNS = [
   /\.workers\.dev$/,
   /^localhost(:\d+)?$/,
   /^127\.0\.0\.1(:\d+)?$/,
-  /^api\.tome\.dev$/,
   /^api\.tome\.center$/,
 ];
 
@@ -26,7 +25,6 @@ export function isApiHost(hostname: string): boolean {
 /**
  * Maps an incoming hostname to a project slug.
  *
- * - `{slug}.tome.dev`  → extract slug from subdomain (no DB hit)
  * - `{slug}.tome.center` → extract slug from subdomain (no DB hit)
  * - Custom domain       → D1 lookup (domains + projects join)
  * - Returns `null` if no match
@@ -37,18 +35,16 @@ export async function resolveHostname(
 ): Promise<string | null> {
   const bare = hostname.replace(/:\d+$/, "");
 
-  // Subdomain extraction for *.tome.dev and *.tome.center
-  for (const base of ["tome.dev", "tome.center"]) {
-    if (bare.endsWith(`.${base}`)) {
-      const sub = bare.slice(0, -(base.length + 1));
-      // Reject multi-level subdomains (e.g. "a.b.tome.dev")
-      if (!sub || sub.includes(".")) return null;
-      return sub;
-    }
+  // Subdomain extraction for *.tome.center
+  if (bare.endsWith(".tome.center")) {
+    const sub = bare.slice(0, -(".tome.center".length));
+    // Reject multi-level subdomains (e.g. "a.b.tome.center")
+    if (!sub || sub.includes(".")) return null;
+    return sub;
   }
 
-  // Bare platform domains — no slug
-  if (bare === "tome.dev" || bare === "tome.center") return null;
+  // Bare platform domain — no slug
+  if (bare === "tome.center") return null;
 
   // Custom domain — D1 lookup
   const row = await db
