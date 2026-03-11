@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.1
+
+### Bug Fixes
+
+- **Fix hosted domain** — replaced all `tome.dev` references with `tome.center` across deploy URLs, CORS config, DNS records, preview URLs, API routes, docs, and pre-built assets
+- **Fix custom domain registration** — dashboard now strips protocol prefixes and trailing slashes from domain input; API-side normalization added as safety net
+- **Fix dashboard routing** — replaced hash-based routing with History API for proper `/dashboard/` path handling
+- **Fix duplicate headings** — removed double H1 tags from docs pages
+- **Fix CLI test flakiness** — replaced `npx tsx` with local binary to eliminate concurrent subprocess resolution errors
+- Rebuilt dashboard and docs pre-built assets with corrected domain
+
 ## 0.2.0
 
 ### New Features
