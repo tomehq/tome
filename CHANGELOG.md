@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.3
+
+### New Features
+
+- **Delete deployments & projects** — dashboard now has delete buttons for individual deployments and full project teardown (R2 files, DB records, Cloudflare custom hostnames)
+- **Custom domains pipeline** — end-to-end Cloudflare for SaaS integration: `tome domains:add`, CNAME verification, auto SSL provisioning, and serving via Worker
+
+### Improvements
+
+- Migrated all API URL references from `tome-api.tome-api.workers.dev` to `api.tome.center`
+- DNS record instructions now show the actual domain name instead of a generic placeholder
+- Analytics event endpoint allows any origin (CORS `*`) so sites on custom domains can send pageview beacons
+- Worker middleware proxies `www.tome.center` and `tome.center` to Vercel origin, preventing false 404s from wildcard route
+
+### Bug Fixes
+
+- **Fix dark mode code block contrast** — Shiki dual-theme CSS was targeting selectors that don't exist in Shiki v1, causing light-theme colors (near-black text) to render on dark backgrounds; fixed by switching to `var(--shiki-dark)` CSS variables
+- Brightened github-dark comment token color (`#6A737D` → `#a0aab5`) for better contrast on dark code backgrounds
+
 ## 0.2.2
 
 ### Bug Fixes
