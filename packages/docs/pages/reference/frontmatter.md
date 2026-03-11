@@ -4,8 +4,6 @@ description: Reference for all YAML frontmatter fields supported in Tome documen
 icon: file-text
 ---
 
-# Frontmatter
-
 Every Tome page can include YAML frontmatter at the top of the file. Frontmatter controls metadata like the page title, description, sidebar behavior, and search tags.
 
 ## Syntax
@@ -31,6 +29,7 @@ Page content starts here.
 | `sidebarTitle` | `string` | `title` | Override the title shown in sidebar navigation |
 | `hidden` | `boolean` | `false` | Hide this page from sidebar navigation |
 | `tags` | `string[]` | — | Tags for search indexing and categorization |
+| `ogImage` | `string` | auto-generated | Custom OpenGraph image URL or path |
 
 ## Title resolution
 
@@ -69,3 +68,16 @@ Tags are indexed by both Pagefind and Algolia (when configured) and appear in MC
 ## Icons
 
 The `icon` field accepts identifiers displayed in the sidebar. Common values: `rocket`, `gear`, `code`, `terminal`, `puzzle`, `search`, `layers`, `cloud`, `file-text`, `palette`.
+
+## OpenGraph images
+
+By default, Tome auto-generates OG images for every page at build time. Use `ogImage` to override with a custom image:
+
+```markdown
+---
+title: Getting Started
+ogImage: /images/custom-og.png
+---
+```
+
+The value can be a relative path (resolved from your site root) or a full URL. Pages with a custom `ogImage` skip auto-generation.

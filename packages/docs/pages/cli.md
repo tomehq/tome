@@ -4,8 +4,6 @@ description: Complete reference for every command and flag in the Tome CLI.
 icon: terminal
 ---
 
-# CLI reference
-
 The `tome` CLI is the primary interface for creating, developing, building, and deploying documentation sites.
 
 ## Installation

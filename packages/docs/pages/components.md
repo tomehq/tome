@@ -4,8 +4,6 @@ description: Built-in MDX components — Callout, Tabs, Card, Steps, Accordion, 
 icon: puzzle
 ---
 
-# Components
-
 Tome includes a set of built-in components available in any `.mdx` file. No imports needed — they're injected automatically.
 
 ## Callout

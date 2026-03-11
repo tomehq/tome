@@ -77,6 +77,24 @@ export const AnalyticsSchema = z.object({
   key: z.string().optional(),
 }).optional();
 
+export const WebhookSchema = z.object({
+  url: z.string().url(),
+  channel: z.enum(["slack", "discord", "http"]),
+  events: z.array(z.enum(["deploy.succeeded", "deploy.failed", "preview.deployed", "domain.verified"])).optional(),
+  secret: z.string().optional(),
+});
+
+export const TocSchema = z.object({
+  enabled: z.boolean().default(true),
+  depth: z.number().min(2).max(4).default(3),
+}).default({});
+
+export const EditLinkSchema = z.object({
+  repo: z.string(),
+  branch: z.string().default("main"),
+  dir: z.string().default(""),
+}).optional();
+
 export const TomeConfigSchema = z.object({
   name: z.string().default("My Docs"),
   logo: z.string().optional(),
@@ -91,11 +109,26 @@ export const TomeConfigSchema = z.object({
   mcp: McpSchema,
   i18n: I18nSchema,
   versioning: VersioningSchema,
+  toc: TocSchema,
+  editLink: EditLinkSchema,
+  strictLinks: z.boolean().default(false),
+  lastUpdated: z.boolean().default(true),
+  plugins: z.object({
+    remark: z.array(z.union([
+      z.string(),
+      z.tuple([z.string(), z.record(z.unknown())]),
+    ])).default([]),
+    rehype: z.array(z.union([
+      z.string(),
+      z.tuple([z.string(), z.record(z.unknown())]),
+    ])).default([]),
+  }).optional(),
   analytics: AnalyticsSchema,
   topNav: z.array(z.object({
     label: z.string(),
     href: z.string(),
   })).optional(),
+  webhooks: z.array(WebhookSchema).optional(),
 });
 
 export type TomeConfig = z.infer<typeof TomeConfigSchema>;

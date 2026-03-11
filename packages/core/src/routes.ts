@@ -106,6 +106,7 @@ export async function discoverPages(
           sidebarTitle: data.sidebarTitle,
           hidden: data.hidden ?? false,
           tags: data.tags,
+          type: data.type,
         };
 
         allRoutes.push({
@@ -201,6 +202,7 @@ export async function discoverPages(
           sidebarTitle: data.sidebarTitle,
           hidden: data.hidden ?? false,
           tags: data.tags,
+          type: data.type,
         };
 
         allRoutes.push({

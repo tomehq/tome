@@ -4,8 +4,6 @@ description: Get a Tome documentation site running in under a minute.
 icon: zap
 ---
 
-# Quickstart
-
 Get a working documentation site in three commands.
 
 ## Create a new project

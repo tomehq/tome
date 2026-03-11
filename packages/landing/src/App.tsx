@@ -213,12 +213,24 @@ const CONFIG_CODE = `export default {
 
 // ── Nav ─────────────────────────────────────────────────
 
+function scrollTo(id: string) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function Nav({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
+  const navLinkStyle: React.CSSProperties = {
+    color: "var(--txM)", textDecoration: "none", fontSize: 13,
+    fontFamily: '"Bricolage Grotesque", sans-serif', cursor: "pointer",
+    background: "none", border: "none", padding: 0,
+  };
+
   return (
     <nav style={{
       display: "flex", alignItems: "center", justifyContent: "space-between",
       padding: "20px 40px", maxWidth: 1300, margin: "0 auto",
-      position: "relative", zIndex: 10,
+      position: "sticky", top: 0, zIndex: 100,
+      background: "var(--hdBg)", backdropFilter: "blur(12px)",
     }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
         <span style={{
@@ -233,16 +245,16 @@ function Nav({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
         }} />
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <a className="nav-link" href="/docs" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
+        <a className="nav-link" href="/docs" style={navLinkStyle}>
           Docs
         </a>
-        <a className="nav-link" href="#features" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
+        <button className="nav-link" onClick={() => scrollTo("features")} style={navLinkStyle}>
           Features
-        </a>
-        <a className="nav-link" href="#pricing" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
+        </button>
+        <button className="nav-link" onClick={() => scrollTo("pricing")} style={navLinkStyle}>
           Pricing
-        </a>
-        <a className="nav-link" href="https://github.com/vxcozy/tome" style={{ color: "var(--txM)", textDecoration: "none", fontSize: 13, fontFamily: '"Bricolage Grotesque", sans-serif' }}>
+        </button>
+        <a className="nav-link" href="https://github.com/vxcozy/tome" style={navLinkStyle}>
           GitHub
         </a>
         <button className="theme-toggle" onClick={toggle} style={{

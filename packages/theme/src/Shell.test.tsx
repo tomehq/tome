@@ -182,22 +182,121 @@ describe("Shell theme mode", () => {
   });
 });
 
-// ── TOC ───────────────────────────────────────────────────
+// ── TOC (TOM-52) ──────────────────────────────────────────
 
 describe("Shell table of contents", () => {
-  it("renders TOC headings when headings are provided", () => {
+  beforeEach(() => {
     // jsdom window.innerWidth defaults to 0 so 'wide' will be false — we need to set it
     Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1400 });
     fireEvent(window, new Event("resize"));
+  });
 
-    renderShell({
-      headings: [
-        { depth: 2, text: "Overview", id: "overview" },
-        { depth: 3, text: "Details", id: "details" },
-      ],
-    });
+  const sampleHeadings = [
+    { depth: 2, text: "Overview", id: "overview" },
+    { depth: 3, text: "Details", id: "details" },
+    { depth: 2, text: "Usage", id: "usage" },
+  ];
+
+  it("renders TOC headings when headings are provided", () => {
+    renderShell({ headings: sampleHeadings });
+    expect(screen.getByTestId("toc-sidebar")).toBeInTheDocument();
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Details")).toBeInTheDocument();
+    expect(screen.getByText("Usage")).toBeInTheDocument();
+  });
+
+  it("renders 'On this page' label", () => {
+    renderShell({ headings: sampleHeadings });
+    expect(screen.getByText("On this page")).toBeInTheDocument();
+  });
+
+  it("renders TOC links with correct href attributes", () => {
+    renderShell({ headings: sampleHeadings });
+    const overviewLink = screen.getByTestId("toc-link-overview");
+    expect(overviewLink).toHaveAttribute("href", "#overview");
+    const detailsLink = screen.getByTestId("toc-link-details");
+    expect(detailsLink).toHaveAttribute("href", "#details");
+  });
+
+  it("renders TOC inside a nav element with aria-label", () => {
+    renderShell({ headings: sampleHeadings });
+    const nav = screen.getByRole("navigation", { name: "Table of contents" });
+    expect(nav).toBeInTheDocument();
+  });
+
+  it("does not render TOC when fewer than 2 headings", () => {
+    renderShell({
+      headings: [{ depth: 2, text: "Only One", id: "only-one" }],
+    });
+    expect(screen.queryByTestId("toc-sidebar")).not.toBeInTheDocument();
+  });
+
+  it("does not render TOC when headings array is empty", () => {
+    renderShell({ headings: [] });
+    expect(screen.queryByTestId("toc-sidebar")).not.toBeInTheDocument();
+  });
+
+  it("hides TOC when tocEnabled is false (frontmatter toc: false)", () => {
+    renderShell({ headings: sampleHeadings, tocEnabled: false });
+    expect(screen.queryByTestId("toc-sidebar")).not.toBeInTheDocument();
+  });
+
+  it("hides TOC when config toc.enabled is false", () => {
+    renderShell({
+      headings: sampleHeadings,
+      config: { ...baseConfig, toc: { enabled: false } },
+    });
+    expect(screen.queryByTestId("toc-sidebar")).not.toBeInTheDocument();
+  });
+
+  it("filters headings by config toc.depth", () => {
+    const headingsWithH4 = [
+      { depth: 2, text: "Section", id: "section" },
+      { depth: 3, text: "Subsection", id: "subsection" },
+      { depth: 4, text: "Deep", id: "deep" },
+    ];
+    // depth: 2 means only h2 headings
+    renderShell({
+      headings: headingsWithH4,
+      config: { ...baseConfig, toc: { depth: 2 } },
+    });
+    // Only h2 shown, but need at least 2 headings — only 1 h2 so TOC hidden
+    expect(screen.queryByTestId("toc-sidebar")).not.toBeInTheDocument();
+  });
+
+  it("shows only headings up to configured depth", () => {
+    const headingsMultiDepth = [
+      { depth: 2, text: "First", id: "first" },
+      { depth: 2, text: "Second", id: "second" },
+      { depth: 3, text: "Sub", id: "sub" },
+      { depth: 4, text: "Deep", id: "deep" },
+    ];
+    // depth: 3 means h2 + h3, but not h4
+    renderShell({
+      headings: headingsMultiDepth,
+      config: { ...baseConfig, toc: { depth: 3 } },
+    });
+    expect(screen.getByTestId("toc-sidebar")).toBeInTheDocument();
+    expect(screen.getByText("First")).toBeInTheDocument();
+    expect(screen.getByText("Second")).toBeInTheDocument();
+    expect(screen.getByText("Sub")).toBeInTheDocument();
+    expect(screen.queryByTestId("toc-link-deep")).not.toBeInTheDocument();
+  });
+
+  it("hides TOC on narrow viewports", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 800 });
+    fireEvent(window, new Event("resize"));
+
+    renderShell({ headings: sampleHeadings });
+    expect(screen.queryByTestId("toc-sidebar")).not.toBeInTheDocument();
+  });
+
+  it("shows TOC on wide viewports", () => {
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1400 });
+    fireEvent(window, new Event("resize"));
+
+    renderShell({ headings: sampleHeadings });
+    expect(screen.getByTestId("toc-sidebar")).toBeInTheDocument();
   });
 });
 
@@ -538,6 +637,141 @@ describe("Shell language switcher", () => {
   it("defaults to defaultLocale when currentLocale is not provided", () => {
     renderShell({ i18n: i18nInfo });
     expect(screen.getByTestId("language-switcher").textContent).toContain("English");
+  });
+});
+
+// ── Edit this page on GitHub (TOM-48) ────────────────────
+
+describe("Shell edit link", () => {
+  it("renders edit link when editUrl is provided", () => {
+    renderShell({ editUrl: "https://github.com/org/repo/edit/main/docs/intro.md" });
+    const link = screen.getByTestId("edit-page-link");
+    expect(link).toBeInTheDocument();
+    expect(link.querySelector("a")?.getAttribute("href")).toBe(
+      "https://github.com/org/repo/edit/main/docs/intro.md"
+    );
+  });
+
+  it("edit link opens in new tab", () => {
+    renderShell({ editUrl: "https://github.com/org/repo/edit/main/docs/intro.md" });
+    const anchor = screen.getByTestId("edit-page-link").querySelector("a");
+    expect(anchor?.getAttribute("target")).toBe("_blank");
+    expect(anchor?.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("shows 'Edit this page on GitHub' text", () => {
+    renderShell({ editUrl: "https://github.com/org/repo/edit/main/docs/intro.md" });
+    expect(screen.getByText("Edit this page on GitHub")).toBeInTheDocument();
+  });
+
+  it("does not render edit link when editUrl is not provided", () => {
+    renderShell();
+    expect(screen.queryByTestId("edit-page-link")).not.toBeInTheDocument();
+  });
+
+  it("does not render edit link when editUrl is undefined", () => {
+    renderShell({ editUrl: undefined });
+    expect(screen.queryByTestId("edit-page-link")).not.toBeInTheDocument();
+  });
+});
+
+// ── Last Updated (TOM-54) ────────────────────────────────
+
+describe("Shell last updated", () => {
+  it("renders last updated when lastUpdated is provided", () => {
+    renderShell({ lastUpdated: "2025-01-15T10:00:00Z" });
+    const el = screen.getByTestId("last-updated");
+    expect(el).toBeInTheDocument();
+    expect(el.textContent).toContain("Last updated");
+  });
+
+  it("does not render last updated when lastUpdated is not provided", () => {
+    renderShell();
+    expect(screen.queryByTestId("last-updated")).not.toBeInTheDocument();
+  });
+
+  it("does not render last updated when lastUpdated is undefined", () => {
+    renderShell({ lastUpdated: undefined });
+    expect(screen.queryByTestId("last-updated")).not.toBeInTheDocument();
+  });
+
+  it("renders both edit link and last updated when both provided", () => {
+    renderShell({
+      editUrl: "https://github.com/org/repo/edit/main/docs/intro.md",
+      lastUpdated: "2025-06-01T12:00:00Z",
+    });
+    expect(screen.getByTestId("edit-page-link")).toBeInTheDocument();
+    expect(screen.getByTestId("last-updated")).toBeInTheDocument();
+  });
+
+  it("shows relative date text for recent date", () => {
+    // Use a date from "1 day ago" to test relative formatting
+    const yesterday = new Date(Date.now() - 86400000).toISOString();
+    renderShell({ lastUpdated: yesterday });
+    const el = screen.getByTestId("last-updated");
+    expect(el.textContent).toContain("Last updated 1 day ago");
+  });
+});
+
+// ── Changelog (TOM-49) ──────────────────────────────────
+
+describe("Shell changelog rendering", () => {
+  const sampleEntries = [
+    {
+      version: "2.0.0",
+      date: "2025-06-01",
+      sections: [
+        { type: "Added", items: ["New feature", "Another feature"] },
+        { type: "Fixed", items: ["Bug fix"] },
+      ],
+    },
+    {
+      version: "1.0.0",
+      date: "2025-01-15",
+      sections: [
+        { type: "Added", items: ["Initial release"] },
+      ],
+    },
+  ];
+
+  it("renders changelog timeline when entries provided", () => {
+    renderShell({ changelogEntries: sampleEntries });
+    expect(screen.getByTestId("changelog-timeline")).toBeInTheDocument();
+  });
+
+  it("renders each changelog entry", () => {
+    renderShell({ changelogEntries: sampleEntries });
+    expect(screen.getByTestId("changelog-entry-2.0.0")).toBeInTheDocument();
+    expect(screen.getByTestId("changelog-entry-1.0.0")).toBeInTheDocument();
+  });
+
+  it("renders version text and dates", () => {
+    renderShell({ changelogEntries: sampleEntries });
+    expect(screen.getByText("2.0.0")).toBeInTheDocument();
+    expect(screen.getByText("2025-06-01")).toBeInTheDocument();
+  });
+
+  it("renders section labels", () => {
+    renderShell({ changelogEntries: sampleEntries });
+    expect(screen.getAllByText("Added").length).toBeGreaterThan(0);
+    expect(screen.getByText("Fixed")).toBeInTheDocument();
+  });
+
+  it("renders change items", () => {
+    renderShell({ changelogEntries: sampleEntries });
+    expect(screen.getByText("New feature")).toBeInTheDocument();
+    expect(screen.getByText("Bug fix")).toBeInTheDocument();
+    expect(screen.getByText("Initial release")).toBeInTheDocument();
+  });
+
+  it("does not render changelog when no entries provided", () => {
+    renderShell();
+    expect(screen.queryByTestId("changelog-timeline")).not.toBeInTheDocument();
+  });
+
+  it("does not render changelog when entries array is empty", () => {
+    renderShell({ changelogEntries: [] });
+    expect(screen.queryByTestId("changelog-timeline")).not.toBeInTheDocument();
   });
 });
 

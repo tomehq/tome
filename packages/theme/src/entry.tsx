@@ -20,6 +20,7 @@ import {
   CardGroup,
   Steps,
   Accordion,
+  ChangelogTimeline,
 } from "@tomehq/components";
 
 const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -29,6 +30,7 @@ const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
   CardGroup,
   Steps,
   Accordion,
+  ChangelogTimeline,
 };
 
 // ── CONTENT STYLES ───────────────────────────────────────
@@ -82,14 +84,15 @@ const contentStyles = `
 interface HtmlPage {
   isMdx: false;
   html: string;
-  frontmatter: { title: string; description?: string };
+  frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
   headings: Array<{ depth: number; text: string; id: string }>;
+  changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
 }
 
 interface MdxPage {
   isMdx: true;
   component: React.ComponentType<{ components?: Record<string, React.ComponentType> }>;
-  frontmatter: { title: string; description?: string };
+  frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
   headings: Array<{ depth: number; text: string; id: string }>;
 }
 
@@ -113,6 +116,12 @@ async function loadPage(id: string): Promise<LoadedPage | null> {
 
     // Regular .md page — mod.default is { html, frontmatter, headings }
     if (!mod.default) return null;
+
+    // TOM-49: Changelog page type
+    if (mod.isChangelog && mod.changelogEntries) {
+      return { isMdx: false, ...mod.default, changelogEntries: mod.changelogEntries };
+    }
+
     return { isMdx: false, ...mod.default };
   } catch (err) {
     console.error(`Failed to load page: ${id}`, err);
@@ -160,6 +169,15 @@ function App() {
     description: r.frontmatter.description,
   }));
 
+  // TOM-48: Compute edit URL for current page
+  const currentRoute = routes.find((r: any) => r.id === currentPageId);
+  let editUrl: string | undefined;
+  if (config.editLink && currentRoute?.filePath) {
+    const { repo, branch = "main", dir = "" } = config.editLink;
+    const dirPrefix = dir ? `${dir.replace(/\/$/, "")}/` : "";
+    editUrl = `https://github.com/${repo}/edit/${branch}/${dirPrefix}${currentRoute.filePath}`;
+  }
+
   return (
     <>
       <style>{contentStyles}</style>
@@ -173,6 +191,10 @@ function App() {
         pageTitle={pageData?.frontmatter.title || (loading ? "Loading..." : "Not Found")}
         pageDescription={pageData?.frontmatter.description}
         headings={pageData?.headings || []}
+        tocEnabled={pageData?.frontmatter.toc !== false}
+        editUrl={editUrl}
+        lastUpdated={currentRoute?.lastUpdated}
+        changelogEntries={!pageData?.isMdx ? pageData?.changelogEntries : undefined}
         onNavigate={navigateTo}
         allPages={allPages}
         docContext={docContext}

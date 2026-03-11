@@ -4,8 +4,6 @@ description: Detailed reference for Tome's built-in theme presets — color toke
 icon: swatches
 ---
 
-# Theme presets
-
 Tome ships with two theme presets. Each defines color tokens for dark and light modes plus font families.
 
 ## Amber

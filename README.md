@@ -49,10 +49,68 @@ That's it. Open [localhost:3000](http://localhost:3000) to see your docs.
 - **Versioning** — Multi-version docs with version switcher
 - **Analytics** — Privacy-first, no cookies, <1KB script
 - **Custom domains** — Full DNS management with SSL
+- **Preview deployments** — Branch-based preview URLs for PR review
+- **Webhooks** — Slack, Discord, and HTTP notifications for deploy events
+- **OG images** — Auto-generated social preview cards at build time
+- **Content linting** — Validate heading structure, alt text, paragraph length, and more
+- **Broken link checker** — Catch dead internal links during build
+- **Changelog pages** — Parse Keep a Changelog format with filtering and color coding
+- **Git-based dates** — Auto-display "Last updated" from git history
+- **Plugin system** — Extend Tome with custom build hooks and Vite plugins
+
+## CLI
+
+```
+tome init [name]        Scaffold a new docs project
+tome dev                Start the dev server
+tome build              Build static site for production
+tome deploy             Deploy to Tome Cloud
+tome deploy --preview   Deploy a branch preview
+tome lint               Lint content for common issues
+tome login              Authenticate with Tome Cloud
+tome mcp                Start MCP server for AI tools
+tome algolia:init       Generate Algolia DocSearch config
+tome domains:add        Add a custom domain
+tome domains:remove     Remove a custom domain
+tome domains:list       List configured domains
+tome domains:check      Check DNS status
+```
+
+## Configuration
+
+Create a `tome.config.js` (or `.ts`) in your project root:
+
+```js
+import { defineConfig } from "@tomehq/core";
+
+export default defineConfig({
+  name: "My Docs",
+  theme: { preset: "amber" },
+  search: { provider: "local" },
+  // Optional
+  webhooks: [
+    { url: "https://hooks.slack.com/...", channel: "slack" },
+  ],
+  analytics: { enabled: true },
+  i18n: { defaultLocale: "en", locales: ["en", "ja"] },
+  versioning: { versions: ["v1", "v2"], current: "v2" },
+});
+```
 
 ## Documentation
 
 Visit [tome.center/docs](https://tome.center/docs) for the full documentation.
+
+## Packages
+
+| Package | Description |
+|---|---|
+| [`@tomehq/core`](./packages/core) | Config, routes, markdown processing, deploy, billing, webhooks, linting |
+| [`@tomehq/cli`](./packages/cli) | Command-line interface |
+| [`@tomehq/theme`](./packages/theme) | Default theme with Shell, AiChat, presets |
+| [`@tomehq/components`](./packages/components) | MDX components (Callout, Tabs, Card, Steps, Accordion, API) |
+| [`@tomehq/landing`](./packages/landing) | Marketing landing page |
+| [`create-tome`](./packages/create-tome) | Project scaffolding (`npx create-tome`) |
 
 ## Contributing
 

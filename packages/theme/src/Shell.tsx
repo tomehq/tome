@@ -44,6 +44,28 @@ const MoonIcon = () => <Icon d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
 const SunIcon = () => <Icon d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z" />;
 const ArrowLeft = () => <Icon d="M19 12H5M12 19l-7-7 7-7" size={14} />;
 const ArrowRight = () => <Icon d="M5 12h14M12 5l7 7-7 7" size={14} />;
+const PencilIcon = () => <Icon d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" size={13} />;
+
+// ── RELATIVE DATE FORMATTER (TOM-54) ─────────────────────
+function formatRelativeDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  if (isNaN(diffMs)) return "";
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+  if (seconds < 60) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+  if (years >= 1) return `${years} year${years === 1 ? "" : "s"} ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 // ── PAGEFIND CLIENT (TOM-15) ─────────────────────────────
 let pagefindInstance: any = null;
@@ -195,12 +217,79 @@ export interface I18nInfo {
   localeNames?: Record<string, string>;
 }
 
+// ── CHANGELOG VIEW (TOM-49) ─────────────────────────────
+const CHANGELOG_SECTION_COLORS: Record<string, string> = {
+  Added: "#22c55e", Changed: "#3b82f6", Deprecated: "#f59e0b",
+  Removed: "#ef4444", Fixed: "#8b5cf6", Security: "#f97316",
+};
+
+interface ChangelogViewEntry {
+  version: string;
+  date?: string;
+  url?: string;
+  sections: Array<{ type: string; items: string[] }>;
+}
+
+function ChangelogView({ entries }: { entries: ChangelogViewEntry[] }) {
+  const [showAll, setShowAll] = useState(entries.length <= 5);
+  const visible = showAll ? entries : entries.slice(0, 5);
+
+  return (
+    <div data-testid="changelog-timeline" style={{ position: "relative" }}>
+      <div style={{ position: "absolute", left: 15, top: 8, bottom: 8, width: 2, background: "var(--bd)" }} />
+      {visible.map((entry, i) => (
+        <div key={entry.version} data-testid={`changelog-entry-${entry.version}`}
+          style={{ position: "relative", paddingLeft: 44, paddingBottom: i < visible.length - 1 ? 32 : 0 }}>
+          <div style={{
+            position: "absolute", left: 8, top: 6, width: 16, height: 16, borderRadius: "50%",
+            background: entry.version === "Unreleased" ? "var(--txM)" : "var(--ac)",
+            border: "3px solid var(--bg, #1a1a1a)",
+          }} />
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 12 }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "var(--tx)", fontFamily: "var(--font-heading, inherit)" }}>
+              {entry.url ? (
+                <a href={entry.url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>{entry.version}</a>
+              ) : entry.version}
+            </span>
+            {entry.date && <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-code, monospace)" }}>{entry.date}</span>}
+          </div>
+          {entry.sections.map((section) => {
+            const sColor = CHANGELOG_SECTION_COLORS[section.type] || "#6b7280";
+            return (
+              <div key={section.type} style={{ marginBottom: 16 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: sColor }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: sColor, fontFamily: "var(--font-code, monospace)" }}>{section.type}</span>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, listStyleType: "disc", color: "var(--tx2)" }}>
+                  {section.items.map((item, j) => (
+                    <li key={j} style={{ fontSize: 14, lineHeight: 1.7, color: "var(--tx2)", marginBottom: 2 }}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      {!showAll && entries.length > 5 && (
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <button data-testid="changelog-show-more" onClick={() => setShowAll(true)}
+            style={{ background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "8px 20px", color: "var(--tx2)", fontSize: 13, fontFamily: "var(--font-body, inherit)", cursor: "pointer" }}>
+            Show all {entries.length} releases
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface ShellProps {
   config: {
     name: string;
     theme?: { preset?: string; mode?: string; accent?: string; fonts?: { heading?: string; body?: string; code?: string } };
     search?: { provider?: string; appId?: string; apiKey?: string; indexName?: string };
     ai?: { enabled?: boolean; provider?: "openai" | "anthropic" | "custom"; model?: string; apiKeyEnv?: string };
+    toc?: { enabled?: boolean; depth?: number };
     topNav?: Array<{ label: string; href: string }>;
     [key: string]: unknown;
   };
@@ -215,6 +304,10 @@ interface ShellProps {
   pageTitle: string;
   pageDescription?: string;
   headings: Array<{ depth: number; text: string; id: string }>;
+  tocEnabled?: boolean;
+  editUrl?: string;
+  lastUpdated?: string;
+  changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
   onNavigate: (id: string) => void;
   allPages: Array<{ id: string; title: string; description?: string }>;
   versioning?: VersioningInfo;
@@ -226,7 +319,7 @@ interface ShellProps {
 
 export function Shell({
   config, navigation, currentPageId, pageHtml, pageComponent, mdxComponents,
-  pageTitle, pageDescription, headings, onNavigate, allPages,
+  pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries, onNavigate, allPages,
   versioning, currentVersion, i18n, currentLocale, docContext,
 }: ShellProps) {
   const themeMode = config.theme?.mode || "auto";
@@ -286,6 +379,77 @@ export function Shell({
 
   useEffect(() => { contentRef.current?.scrollTo(0, 0); }, [currentPageId]);
 
+  // ── TOC: Config-based depth filtering + frontmatter opt-out ──
+  const tocConfig = config.toc;
+  const tocDepth = tocConfig?.depth ?? 3;
+  const tocGlobalEnabled = tocConfig?.enabled !== false;
+  const showToc = tocGlobalEnabled && tocEnabled;
+  const filteredHeadings = headings.filter(h => h.depth <= tocDepth);
+
+  // ── TOC: Scroll-spy with IntersectionObserver ──
+  const [activeHeadingId, setActiveHeadingId] = useState<string>("");
+
+  useEffect(() => {
+    if (!showToc || filteredHeadings.length < 2) return;
+
+    const scrollRoot = contentRef.current;
+    if (!scrollRoot) return;
+
+    // Small delay to ensure DOM headings are rendered (especially after page load)
+    const timerId = setTimeout(() => {
+      const headingElements: Element[] = [];
+      for (const h of filteredHeadings) {
+        const el = scrollRoot.querySelector(`#${CSS.escape(h.id)}`);
+        if (el) headingElements.push(el);
+      }
+      if (headingElements.length === 0) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          // Find the topmost visible heading
+          const visible = entries
+            .filter(e => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible.length > 0) {
+            setActiveHeadingId(visible[0].target.id);
+          }
+        },
+        {
+          root: scrollRoot,
+          // Trigger when heading enters the top 20% of the scroll container
+          rootMargin: "0px 0px -80% 0px",
+          threshold: 0,
+        }
+      );
+
+      for (const el of headingElements) observer.observe(el);
+      observerRef.current = observer;
+    }, 100);
+
+    return () => {
+      clearTimeout(timerId);
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
+  }, [currentPageId, showToc, filteredHeadings.map(h => h.id).join(",")]);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // Reset active heading when page changes
+  useEffect(() => { setActiveHeadingId(""); }, [currentPageId]);
+
+  // Smooth scroll handler for TOC links
+  const scrollToHeading = useCallback((e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const scrollRoot = contentRef.current;
+    if (!scrollRoot) return;
+    const target = scrollRoot.querySelector(`#${CSS.escape(id)}`);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveHeadingId(id);
+    }
+  }, []);
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setSearch(true); }
@@ -342,12 +506,12 @@ export function Shell({
           display: "flex", flexDirection: "column",
           transition: "width .2s, min-width .2s", overflow: "hidden",
         }}>
-          <div style={{ padding: "18px 20px", display: "flex", alignItems: "baseline", gap: 6, borderBottom: "1px solid var(--bd)" }}>
+          <a href="/" style={{ padding: "18px 20px", display: "flex", alignItems: "baseline", gap: 6, borderBottom: "1px solid var(--bd)", textDecoration: "none", color: "inherit" }}>
             <span style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 700, fontStyle: "italic" }}>
               {config.name}
             </span>
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--ac)", display: "inline-block" }} />
-          </div>
+          </a>
 
           <div style={{ padding: "12px 14px" }}>
             <button onClick={() => setSearch(true)} style={{
@@ -607,8 +771,10 @@ export function Shell({
               </h1>
               {pageDescription && <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 32 }}>{pageDescription}</p>}
               <div style={{ borderTop: "1px solid var(--bd)", paddingTop: 28 }}>
-                {/* TOM-8: Render MDX component or raw HTML */}
-                {PageComponent ? (
+                {/* TOM-49: Changelog page type */}
+                {changelogEntries && changelogEntries.length > 0 ? (
+                  <ChangelogView entries={changelogEntries} />
+                ) : PageComponent ? (
                   <div className="tome-content">
                     <PageComponent components={mdxComponents || {}} />
                   </div>
@@ -620,8 +786,37 @@ export function Shell({
                 )}
               </div>
 
+              {/* TOM-48: Edit this page link + TOM-54: Last updated */}
+              {(editUrl || lastUpdated) && (
+                <div style={{ marginTop: 40, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  {editUrl && (
+                    <div data-testid="edit-page-link">
+                      <a
+                        href={editUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          color: "var(--txM)", textDecoration: "none", fontSize: 13,
+                          fontFamily: "var(--font-body)", transition: "color .15s",
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = "var(--ac)")}
+                        onMouseOut={(e) => (e.currentTarget.style.color = "var(--txM)")}
+                      >
+                        <PencilIcon /> Edit this page on GitHub
+                      </a>
+                    </div>
+                  )}
+                  {lastUpdated && (
+                    <div data-testid="last-updated" style={{ fontSize: 12, color: "var(--txM)", fontFamily: "var(--font-body)" }}>
+                      Last updated {formatRelativeDate(lastUpdated)}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Prev / Next */}
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 48, paddingTop: 24, borderTop: "1px solid var(--bd)", gap: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: (editUrl || lastUpdated) ? 16 : 48, paddingTop: 24, borderTop: "1px solid var(--bd)", gap: 16 }}>
                 {prev ? (
                   <button onClick={() => onNavigate(prev.id)} style={{
                     display: "flex", alignItems: "center", gap: 8, background: "none",
@@ -641,19 +836,35 @@ export function Shell({
               </div>
             </main>
 
-            {/* TOC */}
-            {headings.length > 0 && wide && (
-              <aside style={{ width: 200, padding: "40px 16px 40px 0", position: "sticky", top: 0, alignSelf: "flex-start", flexShrink: 0 }}>
+            {/* TOC (TOM-52) */}
+            {showToc && filteredHeadings.length >= 2 && wide && (
+              <aside data-testid="toc-sidebar" style={{ width: 200, padding: "40px 16px 40px 0", position: "sticky", top: 0, alignSelf: "flex-start", flexShrink: 0 }}>
                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".1em", color: "var(--txM)", marginBottom: 12, fontFamily: "var(--font-code)" }}>On this page</div>
-                <div style={{ borderLeft: "1px solid var(--bd)", paddingLeft: 0 }}>
-                  {headings.map((h, i) => (
-                    <a key={i} href={`#${h.id}`} style={{
-                      display: "block", fontSize: 12, color: "var(--txM)",
-                      textDecoration: "none", padding: "4px 12px", paddingLeft: 12 + (h.depth - 2) * 12,
-                      lineHeight: 1.4, transition: "color .12s",
-                    }}>{h.text}</a>
-                  ))}
-                </div>
+                <nav aria-label="Table of contents" style={{ borderLeft: "1px solid var(--bd)", paddingLeft: 0 }}>
+                  {filteredHeadings.map((h, i) => {
+                    const isActive = activeHeadingId === h.id;
+                    return (
+                      <a
+                        key={i}
+                        href={`#${h.id}`}
+                        onClick={(e) => scrollToHeading(e, h.id)}
+                        data-testid={`toc-link-${h.id}`}
+                        style={{
+                          display: "block", fontSize: 12,
+                          color: isActive ? "var(--ac)" : "var(--txM)",
+                          fontWeight: isActive ? 500 : 400,
+                          textDecoration: "none",
+                          padding: "4px 12px",
+                          paddingLeft: 12 + (h.depth - 2) * 12,
+                          lineHeight: 1.4,
+                          transition: "color .15s, font-weight .15s",
+                          borderLeft: isActive ? "2px solid var(--ac)" : "2px solid transparent",
+                          marginLeft: -1,
+                        }}
+                      >{h.text}</a>
+                    );
+                  })}
+                </nav>
               </aside>
             )}
           </div>

@@ -4,8 +4,6 @@ description: System requirements and detailed installation instructions for Tome
 icon: download
 ---
 
-# Installation
-
 Tome requires Node.js and works with npm, pnpm, or yarn.
 
 ## Prerequisites

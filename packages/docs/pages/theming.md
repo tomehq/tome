@@ -4,8 +4,6 @@ description: Customize the look of your Tome site — presets, colors, fonts, da
 icon: palette
 ---
 
-# Theming
-
 Tome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.
 
 ## Presets

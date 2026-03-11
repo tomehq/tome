@@ -4,8 +4,6 @@ description: Complete reference for every command and flag in the Tome CLI.
 icon: terminal
 ---
 
-# CLI reference
-
 The `tome` CLI is the primary interface for creating, developing, building, and deploying documentation sites.
 
 ## Installation
@@ -80,9 +78,40 @@ Deploy the site to Tome Cloud. Requires `tome login` first.
 
 ```bash
 tome deploy
+tome deploy --preview --branch feature/auth
 ```
 
-Builds, collects output files, and uploads using hash-based deduplication.
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--preview` | `false` | Deploy as a preview (branch-based URL) |
+| `--branch <name>` | auto-detect | Git branch name for preview |
+| `--expires <days>` | `7` | Preview expiry in days |
+
+Builds, collects output files, and uploads using hash-based deduplication. With `--preview`, deploys to a branch-specific URL (e.g., `feature-auth.preview.my-docs.tome.dev`) and injects a preview banner.
+
+---
+
+### `tome lint`
+
+Lint documentation content for common issues.
+
+```bash
+tome lint
+tome lint --strict
+tome lint --banned-words "simply,obviously"
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--max-paragraph <n>` | `300` | Max words per paragraph |
+| `--no-heading-increment` | — | Disable heading increment check |
+| `--no-image-alt` | — | Disable missing alt text check |
+| `--no-single-h1` | — | Disable single H1 check |
+| `--no-empty-links` | — | Disable empty link check |
+| `--banned-words <words>` | — | Comma-separated list of banned words |
+| `--strict` | `false` | Treat warnings as errors |
+
+Checks all pages for heading hierarchy issues, missing image alt text, overly long paragraphs, duplicate H1 tags, empty links, and banned words.
 
 ---
 

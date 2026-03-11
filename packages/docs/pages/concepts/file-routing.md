@@ -3,8 +3,6 @@ title: File-System Routing
 description: How Tome maps files in the pages/ directory to URLs — naming conventions, nested routes, i18n, and versioning.
 ---
 
-# File-system routing
-
 Every `.md` or `.mdx` file in the `pages/` directory becomes a page. The file path determines the URL.
 
 ## Basic routing

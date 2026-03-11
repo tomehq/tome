@@ -6,9 +6,11 @@ import type { Plugin, ViteDevServer } from "vite";
 const _require = createRequire(import.meta.url);
 import { loadConfig, type TomeConfig } from "./config.js";
 import { discoverPages, buildNavigation, type PageRoute, type NavigationGroup, type I18nConfig } from "./routes.js";
-import { processMarkdown, extractHeadingsFromSource, type ProcessedPage } from "./markdown.js";
+import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions } from "./markdown.js";
 import { parseOpenApiSpec, type ApiManifest } from "./openapi.js";
 import { generateAnalyticsScript } from "./analytics.js";
+import { getGitLastUpdated } from "./git-dates.js";
+import { parseChangelog } from "./changelog.js";
 import matter from "gray-matter";
 
 // ── VIRTUAL MODULE IDS ───────────────────────────────────
@@ -48,9 +50,52 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
   // Cache processed pages (HTML only — MDX pages are loaded directly by Vite)
   const pageCache = new Map<string, ProcessedPage>();
+  // TOM-54: Cache git last-updated dates per page
+  const gitDates = new Map<string, string>();
+  // TOM-57: Resolved markdown plugins
+  let resolvedPlugins: MarkdownPluginOptions | undefined;
 
   async function loadAll() {
     config = await loadConfig(root);
+
+    // TOM-57: Resolve custom markdown plugins from config
+    resolvedPlugins = undefined;
+    if (config.plugins) {
+      const resolved: MarkdownPluginOptions = {};
+
+      if (config.plugins.remark && config.plugins.remark.length > 0) {
+        resolved.remarkPlugins = [];
+        for (const entry of config.plugins.remark) {
+          try {
+            const [name, options] = Array.isArray(entry) ? entry : [entry, undefined];
+            const mod = await import(name as string);
+            const plugin = mod.default || mod;
+            resolved.remarkPlugins.push(options ? [plugin, options] : [plugin]);
+          } catch (err) {
+            console.warn(`[tome] Failed to load remark plugin: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      }
+
+      if (config.plugins.rehype && config.plugins.rehype.length > 0) {
+        resolved.rehypePlugins = [];
+        for (const entry of config.plugins.rehype) {
+          try {
+            const [name, options] = Array.isArray(entry) ? entry : [entry, undefined];
+            const mod = await import(name as string);
+            const plugin = mod.default || mod;
+            resolved.rehypePlugins.push(options ? [plugin, options] : [plugin]);
+          } catch (err) {
+            console.warn(`[tome] Failed to load rehype plugin: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      }
+
+      if ((resolved.remarkPlugins && resolved.remarkPlugins.length > 0) ||
+          (resolved.rehypePlugins && resolved.rehypePlugins.length > 0)) {
+        resolvedPlugins = resolved;
+      }
+    }
     // Build i18n config if configured with multiple locales
     const i18nConfig: I18nConfig | undefined = config.i18n && config.i18n.locales.length > 1
       ? {
@@ -75,6 +120,20 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       }
     }
 
+    // TOM-54: Compute git last-updated dates
+    gitDates.clear();
+    if (config.lastUpdated !== false) {
+      for (const route of routes) {
+        // Use frontmatter override first, then git
+        if (route.frontmatter.lastUpdated) {
+          gitDates.set(route.id, route.frontmatter.lastUpdated);
+        } else {
+          const date = getGitLastUpdated(route.absolutePath);
+          if (date) gitDates.set(route.id, date);
+        }
+      }
+    }
+
     // Add synthetic API reference route
     if (apiManifest) {
       routes.push({
@@ -95,7 +154,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     if (!route) return null;
 
     const source = readFileSync(route.absolutePath, "utf-8");
-    const processed = await processMarkdown(source, route.absolutePath);
+    const processed = await processMarkdown(source, route.absolutePath, resolvedPlugins);
     pageCache.set(id, processed);
     return processed;
   }
@@ -121,6 +180,9 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         sidebarTitle: data.sidebarTitle as string | undefined,
         hidden: (data.hidden as boolean | undefined) ?? false,
         tags: data.tags as string[] | undefined,
+        toc: (data.toc as boolean | undefined) ?? true,
+        lastUpdated: data.lastUpdated as string | undefined,
+        type: data.type as string | undefined,
       },
       headings: extractHeadingsFromSource(content),
     };
@@ -237,11 +299,13 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       if (id === RESOLVED_ROUTES) {
         const routeData = routes.map((r) => ({
           id: r.id,
+          filePath: r.filePath,
           urlPath: r.urlPath,
           frontmatter: r.frontmatter,
           isMdx: r.isMdx,
           ...(r.version ? { version: r.version } : {}),
           ...(r.locale ? { locale: r.locale } : {}),
+          ...(gitDates.has(r.id) ? { lastUpdated: gitDates.get(r.id) } : {}),
         }));
         const versioningData = config.versioning
           ? { current: config.versioning.current, versions: config.versioning.versions }
@@ -350,6 +414,19 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         // Regular .md pages — return processed HTML
         const page = await getPage(pageId);
         if (!page) return `export default null;`;
+
+        // TOM-49: Changelog page type — also export parsed changelog entries
+        if (route.frontmatter.type === "changelog") {
+          const source = readFileSync(route.absolutePath, "utf-8");
+          const { content } = matter(source);
+          const changelogEntries = parseChangelog(content);
+          return `
+            export const isChangelog = true;
+            export const changelogEntries = ${JSON.stringify(changelogEntries)};
+            export default ${JSON.stringify(page)};
+          `;
+        }
+
         return `export default ${JSON.stringify(page)};`;
       }
 

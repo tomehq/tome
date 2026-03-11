@@ -4,8 +4,6 @@ description: Configure API authentication for the interactive playground — Bea
 icon: lock
 ---
 
-# Authentication
-
 The API playground supports several authentication methods. Users can enter credentials that are included in test requests.
 
 ## Configuration

@@ -3,8 +3,6 @@ title: Architecture
 description: How Tome works internally — the Vite plugin, virtual modules, build pipeline, and theme system.
 ---
 
-# Architecture
-
 Tome is built on Vite and React. Understanding the architecture helps when debugging build issues or building advanced customizations.
 
 ## Overview

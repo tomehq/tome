@@ -4,8 +4,6 @@ description: How Tome maps files in the pages/ directory to URLs — naming conv
 icon: map
 ---
 
-# Pages & Routing
-
 Every `.md` or `.mdx` file in the `pages/` directory becomes a page. The file path determines the URL.
 
 ## Basic routing

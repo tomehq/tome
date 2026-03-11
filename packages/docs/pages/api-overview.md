@@ -4,8 +4,6 @@ description: Generate interactive API documentation from OpenAPI specs with Tome
 icon: code
 ---
 
-# API Reference
-
 Tome generates a complete API reference from an OpenAPI 3.x specification. Point it at a spec file and get rendered endpoint documentation with an interactive playground — no manual writing required.
 
 ## Setup

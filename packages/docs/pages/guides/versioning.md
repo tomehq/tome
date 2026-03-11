@@ -4,8 +4,6 @@ description: How to maintain multiple versions of your documentation with Tome's
 icon: layers
 ---
 
-# Multi-version docs
-
 Tome supports maintaining multiple versions of your documentation side by side. This is useful for libraries and APIs that need to document breaking changes across major versions.
 
 ## Directory structure

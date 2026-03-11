@@ -4,8 +4,6 @@ description: Publish your documentation site to Tome Cloud with a single command
 icon: cloud
 ---
 
-# Deploy to Tome Cloud
-
 Tome Cloud hosts your documentation site on a global CDN with automatic SSL, custom domains, and analytics. This tutorial covers the full deployment flow.
 
 ## Prerequisites

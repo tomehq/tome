@@ -118,4 +118,99 @@ describe("processMarkdown", () => {
     const result = await processMarkdown(source);
     expect(result.html).toContain("<table");
   }, 15000);
+
+  it("defaults toc to true in frontmatter", async () => {
+    const source = "# Page\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.toc).toBe(true);
+  }, 15000);
+
+  it("respects toc: false in frontmatter", async () => {
+    const source = "---\ntoc: false\n---\n\n# Page\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.toc).toBe(false);
+  }, 15000);
+
+  it("respects toc: true in frontmatter", async () => {
+    const source = "---\ntoc: true\n---\n\n# Page\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.toc).toBe(true);
+  }, 15000);
+
+  it("parses type: changelog from frontmatter", async () => {
+    const source = "---\ntype: changelog\ntitle: Changelog\n---\n\n## [1.0.0] - 2025-01-15\n\n### Added\n- Feature";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.type).toBe("changelog");
+  }, 15000);
+
+  it("defaults type to undefined when not set", async () => {
+    const source = "---\ntitle: Normal Page\n---\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.type).toBeUndefined();
+  }, 15000);
+
+  it("parses ogImage from frontmatter", async () => {
+    const source = "---\ntitle: Custom OG\nogImage: /images/custom-og.png\n---\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.ogImage).toBe("/images/custom-og.png");
+  }, 15000);
+
+  it("defaults ogImage to undefined when not set", async () => {
+    const source = "---\ntitle: Normal Page\n---\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.ogImage).toBeUndefined();
+  }, 15000);
+});
+
+// ── Plugin system (TOM-57) ──────────────────────────────
+
+describe("processMarkdown with plugins", () => {
+  it("applies custom remark plugin", async () => {
+    // Create a simple remark plugin that uppercases all text nodes
+    const uppercasePlugin = () => (tree: any) => {
+      const visit = (node: any) => {
+        if (node.type === "text") {
+          node.value = node.value.toUpperCase();
+        }
+        if (node.children) {
+          node.children.forEach(visit);
+        }
+      };
+      visit(tree);
+    };
+
+    const source = "# Hello\n\nSome content here.";
+    const result = await processMarkdown(source, undefined, {
+      remarkPlugins: [[uppercasePlugin]],
+    });
+    expect(result.html).toContain("SOME CONTENT HERE.");
+  }, 15000);
+
+  it("applies custom rehype plugin", async () => {
+    // Create a simple rehype plugin that adds a class to all paragraphs
+    const addClassPlugin = () => (tree: any) => {
+      const visit = (node: any) => {
+        if (node.tagName === "p") {
+          node.properties = node.properties || {};
+          node.properties.className = ["custom-paragraph"];
+        }
+        if (node.children) {
+          node.children.forEach(visit);
+        }
+      };
+      visit(tree);
+    };
+
+    const source = "# Hello\n\nSome content.";
+    const result = await processMarkdown(source, undefined, {
+      rehypePlugins: [[addClassPlugin]],
+    });
+    expect(result.html).toContain('class="custom-paragraph"');
+  }, 15000);
+
+  it("works without plugins (backward compatible)", async () => {
+    const source = "# Hello\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.html).toContain("Content.");
+  }, 15000);
 });

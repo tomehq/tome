@@ -4,8 +4,6 @@ description: How to set up search in your Tome documentation site — built-in P
 icon: search
 ---
 
-# Search
-
 Tome includes search out of the box. No configuration is needed for the default experience — Pagefind indexes your site at build time and provides fast, client-side search with zero external dependencies.
 
 ## Built-in search (Pagefind)

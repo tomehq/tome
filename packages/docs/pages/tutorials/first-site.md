@@ -4,8 +4,6 @@ description: A step-by-step tutorial that walks you through creating a documenta
 icon: rocket
 ---
 
-# Create your first site
-
 This tutorial walks you through creating a Tome documentation site from scratch. By the end, you'll have a working docs site running locally with custom pages and navigation.
 
 ## Prerequisites

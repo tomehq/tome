@@ -4,8 +4,6 @@ description: Reference for all built-in MDX components — Callout, Tabs, Card, 
 icon: puzzle
 ---
 
-# Components
-
 Tome includes built-in components available in any `.mdx` file without imports.
 
 ## Callout

@@ -18,6 +18,10 @@ const FrontmatterSchema = z.object({
   sidebarTitle: z.string().optional(),
   hidden: z.boolean().default(false),
   tags: z.array(z.string()).optional(),
+  toc: z.boolean().default(true),
+  lastUpdated: z.string().optional(),
+  type: z.enum(["page", "changelog"]).optional(),
+  ogImage: z.string().optional(),
 });
 
 export type PageFrontmatter = {
@@ -27,6 +31,10 @@ export type PageFrontmatter = {
   sidebarTitle?: string;
   hidden?: boolean;
   tags?: string[];
+  toc?: boolean;
+  lastUpdated?: string;
+  type?: "page" | "changelog";
+  ogImage?: string;
 };
 
 function validateFrontmatter(
@@ -44,6 +52,7 @@ function validateFrontmatter(
   // Return with defaults applied (coerce booleans etc.)
   return FrontmatterSchema.catch({
     hidden: false,
+    toc: true,
   }).parse(raw);
 }
 
@@ -139,10 +148,19 @@ function createCodeBlockTransformer(highlighter: Highlighter) {
   };
 }
 
+// ── PLUGIN TYPES (TOM-57) ────────────────────────────────
+export interface MarkdownPluginOptions {
+  /** Custom remark plugins to add after built-in remark plugins */
+  remarkPlugins?: Array<[any, ...any[]]>;
+  /** Custom rehype plugins to add after built-in rehype plugins */
+  rehypePlugins?: Array<[any, ...any[]]>;
+}
+
 // ── MAIN PROCESSOR ───────────────────────────────────────
 export async function processMarkdown(
   source: string,
-  filePath?: string
+  filePath?: string,
+  pluginOptions?: MarkdownPluginOptions
 ): Promise<ProcessedPage> {
   // Extract frontmatter
   const { data, content } = matter(source);
@@ -164,17 +182,41 @@ export async function processMarkdown(
     sidebarTitle: validated.sidebarTitle,
     hidden: validated.hidden,
     tags: validated.tags,
+    toc: validated.toc,
+    lastUpdated: validated.lastUpdated,
+    type: validated.type,
+    ogImage: validated.ogImage,
   };
 
   // Process Markdown → HTML
-  const processor = unified()
+  // eslint-disable-next-line -- unified processor generics are complex; pipeline is type-safe at each step
+  let processor: any = unified()
     .use(remarkParse)
     .use(remarkFrontmatter, ["yaml"])
-    .use(remarkGfm)
+    .use(remarkGfm);
+
+  // TOM-57: Apply custom remark plugins (after built-in remark plugins)
+  if (pluginOptions?.remarkPlugins) {
+    for (const plugin of pluginOptions.remarkPlugins) {
+      const [fn, ...args] = plugin;
+      processor = processor.use(fn, ...args);
+    }
+  }
+
+  processor = processor
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug)
-    .use(rehypeAutolinkHeadings, { behavior: "prepend", properties: { className: ["heading-anchor"], ariaHidden: true, tabIndex: -1 } })
-    .use(rehypeStringify, { allowDangerousHtml: true });
+    .use(rehypeAutolinkHeadings, { behavior: "prepend", properties: { className: ["heading-anchor"], ariaHidden: true, tabIndex: -1 } });
+
+  // TOM-57: Apply custom rehype plugins (after built-in rehype plugins)
+  if (pluginOptions?.rehypePlugins) {
+    for (const plugin of pluginOptions.rehypePlugins) {
+      const [fn, ...args] = plugin;
+      processor = processor.use(fn, ...args);
+    }
+  }
+
+  processor = processor.use(rehypeStringify, { allowDangerousHtml: true });
 
   const result = await processor.process(content);
   let html = String(result);

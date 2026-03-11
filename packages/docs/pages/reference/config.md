@@ -4,8 +4,6 @@ description: Complete reference for every field in tome.config.js — types, def
 icon: file-text
 ---
 
-# Config reference
-
 The config file (`tome.config.js`, `.mjs`, or `.ts`) is validated at startup. Invalid values produce clear error messages with the field path and expected type.
 
 ## Top-level fields
@@ -27,6 +25,7 @@ The config file (`tome.config.js`, `.mjs`, or `.ts`) is validated at startup. In
 | `i18n` | `I18nConfig` | — | Internationalization settings |
 | `versioning` | `VersioningConfig` | — | Multi-version documentation |
 | `analytics` | `AnalyticsConfig` | — | Analytics provider settings |
+| `webhooks` | `WebhookConfig[]` | — | Webhook notifications for deploy events |
 
 ## ThemeConfig
 
@@ -110,3 +109,35 @@ Page IDs are filenames without extensions, relative to `pages/`. Nested groups a
 |-------|------|---------|-------------|
 | `provider` | `"plausible" \| "posthog" \| "custom"` | — | Analytics provider |
 | `key` | `string` | — | Site ID or API key |
+
+## WebhookConfig
+
+Send notifications to Slack, Discord, or generic HTTP endpoints when deploy events occur.
+
+```js
+webhooks: [
+  {
+    url: "https://hooks.slack.com/services/T.../B.../...",
+    channel: "slack",
+    events: ["deploy.succeeded", "deploy.failed"],
+  },
+  {
+    url: "https://discord.com/api/webhooks/...",
+    channel: "discord",
+  },
+  {
+    url: "https://example.com/webhook",
+    channel: "http",
+    secret: "my-hmac-secret",
+  },
+]
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `url` | `string` | — | Webhook endpoint URL (required) |
+| `channel` | `"slack" \| "discord" \| "http"` | — | Notification format (required) |
+| `events` | `WebhookEventType[]` | all | Filter which events trigger the webhook |
+| `secret` | `string` | — | HMAC-SHA256 secret for HTTP signature (`X-Tome-Signature` header) |
+
+**Event types:** `deploy.succeeded`, `deploy.failed`, `preview.deployed`, `domain.verified`

@@ -4,8 +4,6 @@ description: How a Tome documentation project is organized — pages, config, en
 icon: folder
 ---
 
-# Project Structure
-
 Every Tome project follows the same layout. Understanding it helps you customize and extend your docs.
 
 ## Directory layout

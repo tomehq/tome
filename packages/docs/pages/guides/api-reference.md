@@ -4,8 +4,6 @@ description: How to generate an interactive API reference from an OpenAPI specif
 icon: code
 ---
 
-# API reference setup
-
 Tome can generate a full API reference from an OpenAPI 3.x specification. The reference includes endpoint documentation, request/response schemas, and an interactive playground for testing endpoints.
 
 ## 1. Add your OpenAPI spec

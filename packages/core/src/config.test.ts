@@ -81,6 +81,100 @@ describe("TomeConfigSchema", () => {
     });
     expect(result.topNav).toEqual([{ label: "Blog", href: "/blog" }]);
   });
+
+  it("applies toc defaults when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.toc.enabled).toBe(true);
+    expect(result.toc.depth).toBe(3);
+  });
+
+  it("accepts custom toc config", () => {
+    const result = TomeConfigSchema.parse({
+      toc: { enabled: false, depth: 2 },
+    });
+    expect(result.toc.enabled).toBe(false);
+    expect(result.toc.depth).toBe(2);
+  });
+
+  it("accepts toc with only depth", () => {
+    const result = TomeConfigSchema.parse({
+      toc: { depth: 4 },
+    });
+    expect(result.toc.enabled).toBe(true);
+    expect(result.toc.depth).toBe(4);
+  });
+
+  it("rejects toc depth outside 2-4 range", () => {
+    expect(() => TomeConfigSchema.parse({ toc: { depth: 1 } })).toThrow();
+    expect(() => TomeConfigSchema.parse({ toc: { depth: 5 } })).toThrow();
+  });
+
+  it("accepts editLink config", () => {
+    const result = TomeConfigSchema.parse({
+      editLink: { repo: "org/repo", branch: "develop", dir: "docs" },
+    });
+    expect(result.editLink?.repo).toBe("org/repo");
+    expect(result.editLink?.branch).toBe("develop");
+    expect(result.editLink?.dir).toBe("docs");
+  });
+
+  it("applies editLink defaults for branch and dir", () => {
+    const result = TomeConfigSchema.parse({
+      editLink: { repo: "org/repo" },
+    });
+    expect(result.editLink?.repo).toBe("org/repo");
+    expect(result.editLink?.branch).toBe("main");
+    expect(result.editLink?.dir).toBe("");
+  });
+
+  it("allows omitting editLink entirely", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.editLink).toBeUndefined();
+  });
+
+  it("defaults strictLinks to false", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.strictLinks).toBe(false);
+  });
+
+  it("accepts strictLinks: true", () => {
+    const result = TomeConfigSchema.parse({ strictLinks: true });
+    expect(result.strictLinks).toBe(true);
+  });
+
+  it("defaults lastUpdated to true", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.lastUpdated).toBe(true);
+  });
+
+  it("accepts lastUpdated: false", () => {
+    const result = TomeConfigSchema.parse({ lastUpdated: false });
+    expect(result.lastUpdated).toBe(false);
+  });
+
+  it("allows plugins config with remark and rehype arrays", () => {
+    const result = TomeConfigSchema.parse({
+      plugins: {
+        remark: ["remark-math", ["remark-directive", { option: true }]],
+        rehype: ["rehype-katex"],
+      },
+    });
+    expect(result.plugins?.remark).toHaveLength(2);
+    expect(result.plugins?.rehype).toHaveLength(1);
+  });
+
+  it("defaults plugins to undefined when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.plugins).toBeUndefined();
+  });
+
+  it("allows empty plugin arrays", () => {
+    const result = TomeConfigSchema.parse({
+      plugins: { remark: [], rehype: [] },
+    });
+    expect(result.plugins?.remark).toHaveLength(0);
+    expect(result.plugins?.rehype).toHaveLength(0);
+  });
 });
 
 describe("defineConfig", () => {

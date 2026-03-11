@@ -4,8 +4,6 @@ description: How Tome renders API endpoints from your OpenAPI spec — methods, 
 icon: globe
 ---
 
-# Endpoints
-
 Tome renders each API operation from your OpenAPI spec as a structured endpoint section with method badges, parameter tables, request/response schemas, and an optional interactive playground.
 
 ## Endpoint layout

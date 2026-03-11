@@ -14,6 +14,10 @@ export {
 // ── API PLAYGROUND (TOM-20) ─────────────────────────────
 export { ApiPlayground } from "./ApiPlayground.js";
 
+// ── CHANGELOG (TOM-49) ─────────────────────────────────
+export { ChangelogTimeline } from "./Changelog.js";
+export type { ChangelogTimelineProps } from "./Changelog.js";
+
 // ── CALLOUT ──────────────────────────────────────────────
 export interface CalloutProps {
   type?: "info" | "warning" | "tip" | "danger";

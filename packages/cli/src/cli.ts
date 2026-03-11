@@ -577,6 +577,41 @@ program
         console.log(pc.yellow("  ⚠ Search index skipped (pagefind not available)\n"));
       }
 
+      // TOM-50: Generate OG images
+      try {
+        const { loadConfig: loadCfg, discoverPages: discoverPgs, generateOgImages } = await import("@tomehq/core");
+        const cfg2 = await loadCfg(root);
+        const pagesDir2 = resolve(root, "pages");
+        const routes2 = await discoverPgs(pagesDir2, cfg2.versioning ?? undefined, cfg2.i18n ?? undefined);
+        const ogResult = await generateOgImages(routes2, cfg2, resolve(root, opts.outDir));
+        console.log(`  ${pc.green("✓")} ${ogResult.generated} OG image${ogResult.generated === 1 ? "" : "s"} generated${ogResult.skipped > 0 ? ` (${ogResult.skipped} custom)` : ""}\n`);
+      } catch {
+        console.log(pc.yellow("  ⚠ OG image generation skipped\n"));
+      }
+
+      // TOM-51: Run broken link checker
+      try {
+        const { loadConfig, discoverPages, checkLinks, formatLinkCheckResults } = await import("@tomehq/core");
+        const cfg = await loadConfig(root);
+        const pagesDir = resolve(root, "pages");
+        const discoveredRoutes = await discoverPages(pagesDir);
+        const result = checkLinks(discoveredRoutes, cfg);
+
+        if (result.ok) {
+          console.log(`  ${pc.green("✓")} ${result.totalLinks} internal links checked — all valid\n`);
+        } else {
+          const output = formatLinkCheckResults(result);
+          if (cfg.strictLinks) {
+            console.error(pc.red(`\n  ${output}`));
+            process.exit(1);
+          } else {
+            console.log(pc.yellow(`\n  ⚠ ${output}`));
+          }
+        }
+      } catch {
+        // Link checking is non-critical, don't fail build
+      }
+
     } catch (err) {
       console.error(pc.red("\n  Build failed:\n"));
       console.error(
@@ -629,7 +664,10 @@ program
   .command("deploy")
   .description("Deploy to Tome Cloud")
   .option("-o, --outDir <dir>", "Build output directory", "out")
-  .action(async (opts: { outDir: string }) => {
+  .option("--preview", "Create a preview deployment (branch-based)")
+  .option("--branch <name>", "Branch name for preview (auto-detected if omitted)")
+  .option("--expires <days>", "Preview expiry in days", "7")
+  .action(async (opts: { outDir: string; preview?: boolean; branch?: string; expires: string }) => {
     console.log(logo);
 
     const { readAuthToken, deployToCloud } = await import("@tomehq/core/deploy");
@@ -666,6 +704,49 @@ program
 
     const outDir = resolve(root, opts.outDir);
 
+    // Preview deployment
+    if (opts.preview) {
+      const { deployPreview, detectBranch, detectCommitSha, detectPrNumber } = await import("@tomehq/core");
+
+      const branch = opts.branch || detectBranch();
+      if (!branch) {
+        console.error(pc.red("  Error: Could not detect branch name.\n"));
+        console.log(pc.dim("  Use ") + pc.cyan("--branch <name>") + pc.dim(" to specify manually.\n"));
+        process.exit(1);
+      }
+
+      console.log(pc.dim("  Deploying preview to Tome Cloud...\n"));
+
+      try {
+        const result = await deployPreview(
+          {
+            apiUrl: process.env.TOME_API_URL ?? "https://tome-api.tome-api.workers.dev",
+            token,
+            slug,
+            branch,
+            commitSha: detectCommitSha() ?? undefined,
+            prNumber: detectPrNumber() ?? undefined,
+            expiresInDays: parseInt(opts.expires),
+          },
+          outDir,
+        );
+
+        console.log(`\n  ${pc.green("✓")} Preview deployed successfully!\n`);
+        console.log(`  ${pc.dim("Preview URL:")}   ${pc.cyan(result.previewUrl)}`);
+        console.log(`  ${pc.dim("Branch:")}        ${pc.bold(result.branch)}`);
+        console.log(`  ${pc.dim("Deployment ID:")} ${result.deploymentId}`);
+        console.log(`  ${pc.dim("Expires:")}       ${new Date(result.expiresAt).toLocaleDateString()}`);
+        console.log(`  ${pc.dim("Files:")}         ${result.fileCount}`);
+        console.log(`  ${pc.dim("Size:")}          ${(result.size / 1024).toFixed(1)} KB\n`);
+      } catch (err) {
+        console.error(pc.red("\n  Preview deploy failed:\n"));
+        console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    // Standard deployment
     console.log(pc.dim("  Deploying to Tome Cloud...\n"));
 
     try {
@@ -996,6 +1077,63 @@ program
       }
     } catch (err) {
       console.error(pc.red("\n  Failed to verify domain:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+// ── LINT (TOM-53) ───────────────────────────────────────
+program
+  .command("lint")
+  .description("Lint documentation content for style and accessibility issues")
+  .option("--max-paragraph <words>", "Max paragraph length in words (0 to disable)", "200")
+  .option("--no-heading-increment", "Disable heading increment check")
+  .option("--no-image-alt", "Disable image alt text check")
+  .option("--no-single-h1", "Disable single h1 check")
+  .option("--no-empty-links", "Disable empty link check")
+  .option("--banned-words <words>", "Comma-separated list of banned words")
+  .option("--strict", "Treat warnings as errors (exit 1)")
+  .action(async (opts: {
+    maxParagraph: string;
+    headingIncrement: boolean;
+    imageAlt: boolean;
+    singleH1: boolean;
+    emptyLinks: boolean;
+    bannedWords?: string;
+    strict?: boolean;
+  }) => {
+    console.log(logo);
+    console.log(pc.dim("  Linting documentation content...\n"));
+
+    try {
+      const { loadConfig, discoverPages, lintPages, formatLintResults } = await import("@tomehq/core");
+
+      const root = process.cwd();
+      const pagesDir = resolve(root, "pages");
+      const config = await loadConfig(root);
+      const routes = await discoverPages(pagesDir, config.versioning ?? undefined, config.i18n ?? undefined);
+
+      const bannedWords = opts.bannedWords
+        ? opts.bannedWords.split(",").map((w) => w.trim()).filter(Boolean)
+        : [];
+
+      const result = lintPages(routes, {
+        headingIncrement: opts.headingIncrement,
+        imageAltText: opts.imageAlt,
+        maxParagraphLength: parseInt(opts.maxParagraph),
+        singleH1: opts.singleH1,
+        emptyLinks: opts.emptyLinks,
+        bannedWords,
+      });
+
+      const output = formatLintResults(result);
+      console.log(`  ${output}\n`);
+
+      if (!result.ok || (opts.strict && result.warnings > 0)) {
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(pc.red("\n  Lint failed:\n"));
       console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
       process.exit(1);
     }

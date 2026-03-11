@@ -270,6 +270,21 @@ const CSS = `
   font-family:"Fira Code",monospace;font-size:12.5px;color:var(--cdTx);
   line-height:1.6;overflow-x:auto;
 }
+
+.upgrade-wrap{position:relative;display:inline-flex}
+.upgrade-wrap .upgrade-tooltip{
+  display:none;position:absolute;bottom:calc(100% + 10px);left:50%;
+  transform:translateX(-50%);width:260px;padding:14px 16px;
+  background:var(--sf);border:1px solid var(--bd);
+  box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:200;
+  font-family:"Bricolage Grotesque",sans-serif;font-size:12px;
+  color:var(--tx2);line-height:1.5;pointer-events:none;
+}
+.upgrade-wrap .upgrade-tooltip::after{
+  content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--bd);
+}
+.upgrade-wrap:hover .upgrade-tooltip{display:block}
 `;
 
 // ── Utilities ──────────────────────────────────────────────
@@ -896,12 +911,34 @@ function BillingPage({ token, user }: { token: string; user: User }) {
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         {user.plan === "community" && (
           <>
-            <button className="btn-primary" onClick={() => handleCheckout("cloud")} disabled={loading}>
-              {loading ? "Redirecting..." : "Upgrade to Cloud"}
-            </button>
-            <button className="btn-ghost" onClick={() => handleCheckout("team")} disabled={loading}>
-              {loading ? "Redirecting..." : "Upgrade to Team"}
-            </button>
+            <div className="upgrade-wrap">
+              <button className="btn-primary" onClick={() => handleCheckout("cloud")} disabled={loading}>
+                {loading ? "Redirecting..." : "Upgrade to Cloud"}
+              </button>
+              <div className="upgrade-tooltip">
+                <div style={{ fontWeight: 600, color: "var(--tx)", marginBottom: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: ".5px" }}>Everything on Community, plus:</div>
+                <div>Custom domain</div>
+                <div>Algolia search</div>
+                <div>Analytics dashboard</div>
+                <div>Priority support</div>
+                <div>Unlimited deployments</div>
+                <div style={{ marginTop: 8, fontFamily: '"Fira Code", monospace', fontSize: 11, color: "var(--coral)" }}>$19.99/mo</div>
+              </div>
+            </div>
+            <div className="upgrade-wrap">
+              <button className="btn-ghost" onClick={() => handleCheckout("team")} disabled={loading}>
+                {loading ? "Redirecting..." : "Upgrade to Team"}
+              </button>
+              <div className="upgrade-tooltip">
+                <div style={{ fontWeight: 600, color: "var(--tx)", marginBottom: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: ".5px" }}>Everything on Cloud, plus:</div>
+                <div>Unlimited custom domains</div>
+                <div>Team collaboration</div>
+                <div>AI chat assistant</div>
+                <div>SSO</div>
+                <div>Unlimited team members</div>
+                <div style={{ marginTop: 8, fontFamily: '"Fira Code", monospace', fontSize: 11, color: "var(--coral)" }}>$49.99/mo</div>
+              </div>
+            </div>
           </>
         )}
         {user.plan !== "community" && (

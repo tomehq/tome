@@ -4,8 +4,6 @@ description: How to configure your Tome site using tome.config.js — name, logo
 icon: gear
 ---
 
-# Configuration
-
 All site configuration lives in `tome.config.js` (or `.mjs` / `.ts`) at your project root. Tome validates the config with Zod and provides clear error messages if anything is wrong.
 
 ## Minimal config
