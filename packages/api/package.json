@@ -1,6 +1,7 @@
 {
   "name": "@tomehq/api",
   "version": "0.1.0",
+  "private": true,
   "description": "Tome cloud API — Cloudflare Worker powered by Hono",
   "type": "module",
   "main": "./src/index.ts",
