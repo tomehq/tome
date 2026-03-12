@@ -331,7 +331,8 @@ export function Shell({
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
   });
 
-  const [sbOpen, setSb] = useState(true);
+  const [mobile, setMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const [sbOpen, setSb] = useState(() => typeof window !== "undefined" && window.innerWidth >= 768);
   const [searchOpen, setSearch] = useState(false);
   const [versionDropdownOpen, setVersionDropdown] = useState(false);
   const [localeDropdownOpen, setLocaleDropdown] = useState(false);
@@ -340,7 +341,7 @@ export function Shell({
   const isOldVersion = versioning && currentVersion && currentVersion !== versioning.current;
   const [expanded, setExpanded] = useState<string[]>(navigation.map(n => n.section));
   const contentRef = useRef<HTMLDivElement>(null);
-  const [wide, setWide] = useState(true);
+  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.innerWidth > 1100);
 
   const preset = (config.theme?.preset || "amber") as PresetName;
   const baseTokens = THEME_PRESETS[preset]?.[isDark ? "dark" : "light"] || THEME_PRESETS.amber.dark;
@@ -377,10 +378,23 @@ export function Shell({
   }, [isDark]);
 
   useEffect(() => {
-    const c = () => setWide(window.innerWidth > 1100);
-    c(); window.addEventListener("resize", c);
-    return () => window.removeEventListener("resize", c);
+    const handleResize = () => {
+      const w = window.innerWidth;
+      setWide(w > 1100);
+      setMobile(w < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobile && sbOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [mobile, sbOpen]);
 
   useEffect(() => { contentRef.current?.scrollTo(0, 0); }, [currentPageId]);
 
@@ -500,16 +514,25 @@ export function Shell({
           allPages={allPages}
           onNavigate={(id) => { onNavigate(id); setSearch(false); }}
           onClose={() => setSearch(false)}
+          mobile={mobile}
         />
       ) : null}
 
       <div style={{ display: "flex", height: "100vh" }}>
+        {/* Mobile sidebar backdrop */}
+        {mobile && sbOpen && (
+          <div onClick={() => setSb(false)} style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)",
+          }} />
+        )}
         {/* Sidebar */}
         <aside style={{
           width: sbOpen ? 270 : 0, minWidth: sbOpen ? 270 : 0,
           background: "var(--sbBg)", borderRight: "1px solid var(--bd)",
           display: "flex", flexDirection: "column",
           transition: "width .2s, min-width .2s", overflow: "hidden",
+          ...(mobile ? { position: "fixed" as const, top: 0, left: 0, bottom: 0, zIndex: 201 } : {}),
         }}>
           <a href="/" style={{ padding: "18px 20px", display: "flex", alignItems: "baseline", gap: 6, borderBottom: "1px solid var(--bd)", textDecoration: "none", color: "inherit" }}>
             <span style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 700, fontStyle: "italic" }}>
@@ -519,7 +542,7 @@ export function Shell({
           </a>
 
           <div style={{ padding: "12px 14px" }}>
-            <button onClick={() => setSearch(true)} style={{
+            <button onClick={() => { setSearch(true); if (mobile) setSb(false); }} style={{
               display: "flex", alignItems: "center", gap: 8, width: "100%",
               background: "var(--cdBg)", border: "1px solid var(--bd)", borderRadius: 2,
               padding: "8px 12px", cursor: "pointer", color: "var(--txM)", fontSize: 12.5,
@@ -545,7 +568,7 @@ export function Shell({
                   {sec.pages.map(p => {
                     const active = currentPageId === p.id;
                     return (
-                      <button key={p.id} onClick={() => onNavigate(p.id)} style={{
+                      <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
                         display: "flex", alignItems: "center", gap: 10, width: "100%",
                         textAlign: "left", background: "none",
                         border: "none", borderRadius: 0,
@@ -580,24 +603,30 @@ export function Shell({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           {/* Header */}
           <header style={{
-            display: "flex", alignItems: "center", gap: 12, padding: "10px 24px",
+            display: "flex", alignItems: "center", gap: mobile ? 8 : 12, padding: mobile ? "8px 12px" : "10px 24px",
             borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
           }}>
             <button aria-label={sbOpen ? "Close sidebar" : "Open sidebar"} onClick={() => setSb(!sbOpen)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
               {sbOpen ? <XIcon /> : <MenuIcon />}
             </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-code)", fontSize: 11, color: "var(--txM)", letterSpacing: ".03em", flex: 1 }}>
-              {navigation.map(s => {
-                const f = s.pages.find(p => p.id === currentPageId);
-                if (!f) return null;
-                return <span key={s.section} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span>{s.section}</span><ChevRight /><span style={{ color: "var(--ac)" }}>{f.title}</span>
-                </span>;
-              })}
-            </div>
+            {mobile ? (
+              <span style={{ fontSize: 13, color: "var(--ac)", fontFamily: "var(--font-code)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {navigation.flatMap(s => s.pages).find(p => p.id === currentPageId)?.title || ""}
+              </span>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-code)", fontSize: 11, color: "var(--txM)", letterSpacing: ".03em", flex: 1 }}>
+                {navigation.map(s => {
+                  const f = s.pages.find(p => p.id === currentPageId);
+                  if (!f) return null;
+                  return <span key={s.section} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>{s.section}</span><ChevRight /><span style={{ color: "var(--ac)" }}>{f.title}</span>
+                  </span>;
+                })}
+              </div>
+            )}
 
             {/* Top Nav Links */}
-            {config.topNav && config.topNav.length > 0 && (
+            {config.topNav && config.topNav.length > 0 && !mobile && (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {config.topNav.map((link) => {
                   const isExternal = link.href.startsWith("http") || !link.href.startsWith("#");
@@ -771,8 +800,8 @@ export function Shell({
 
           {/* Content + TOC */}
           <div ref={contentRef} style={{ flex: 1, overflow: "auto", display: "flex" }}>
-            <main style={{ flex: 1, maxWidth: 760, padding: "40px 48px 80px", margin: "0 auto" }}>
-              <h1 style={{ fontFamily: "var(--font-heading)", fontSize: 38, fontWeight: 400, fontStyle: "italic", lineHeight: 1.15, marginBottom: 8 }}>
+            <main style={{ flex: 1, maxWidth: mobile ? "100%" : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
+              <h1 style={{ fontFamily: "var(--font-heading)", fontSize: mobile ? 26 : 38, fontWeight: 400, fontStyle: "italic", lineHeight: 1.15, marginBottom: 8 }}>
                 {pageTitle}
               </h1>
               {pageDescription && <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 32 }}>{pageDescription}</p>}
@@ -794,7 +823,7 @@ export function Shell({
 
               {/* TOM-48: Edit this page link + TOM-54: Last updated */}
               {(editUrl || lastUpdated) && (
-                <div style={{ marginTop: 40, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                <div style={{ marginTop: 40, display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "flex-start" : "center", justifyContent: "space-between", gap: mobile ? 8 : 16 }}>
                   {editUrl && (
                     <div data-testid="edit-page-link">
                       <a
@@ -822,7 +851,7 @@ export function Shell({
               )}
 
               {/* Prev / Next */}
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: (editUrl || lastUpdated) ? 16 : 48, paddingTop: 24, borderTop: "1px solid var(--bd)", gap: 16 }}>
+              <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "space-between", marginTop: (editUrl || lastUpdated) ? 16 : 48, paddingTop: 24, borderTop: "1px solid var(--bd)", gap: mobile ? 12 : 16 }}>
                 {prev ? (
                   <button onClick={() => onNavigate(prev.id)} style={{
                     display: "flex", alignItems: "center", gap: 8, background: "none",
@@ -898,10 +927,11 @@ interface SearchResult {
 }
 
 // ── SEARCH MODAL (TOM-15) ────────────────────────────────
-function SearchModal({ allPages, onNavigate, onClose }: {
+function SearchModal({ allPages, onNavigate, onClose, mobile }: {
   allPages: Array<{ id: string; title: string; description?: string }>;
   onNavigate: (id: string) => void;
   onClose: () => void;
+  mobile?: boolean;
 }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -993,12 +1023,15 @@ function SearchModal({ allPages, onNavigate, onClose }: {
   return (
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.55)",
-      backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-start",
-      justifyContent: "center", paddingTop: "12vh",
+      backdropFilter: "blur(6px)", display: "flex",
+      alignItems: mobile ? "stretch" : "flex-start",
+      justifyContent: "center", paddingTop: mobile ? 0 : "12vh",
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
-        width: "100%", maxWidth: 520, boxShadow: "0 24px 80px rgba(0,0,0,0.4)", overflow: "hidden",
+        background: "var(--sf)", border: mobile ? "none" : "1px solid var(--bd)", borderRadius: mobile ? 0 : 2,
+        width: "100%", maxWidth: mobile ? "100%" : 520, boxShadow: mobile ? "none" : "0 24px 80px rgba(0,0,0,0.4)",
+        overflow: "hidden", display: "flex", flexDirection: "column" as const,
+        ...(mobile ? { height: "100%" } : {}),
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", borderBottom: "1px solid var(--bd)" }}>
           <SearchIcon />
@@ -1009,7 +1042,7 @@ function SearchModal({ allPages, onNavigate, onClose }: {
           />
           <kbd style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)", background: "var(--cdBg)", padding: "2px 6px", borderRadius: 2, border: "1px solid var(--bd)" }}>ESC</kbd>
         </div>
-        {results.length > 0 && <div style={{ padding: 6, maxHeight: 360, overflow: "auto" }}>
+        {results.length > 0 && <div style={{ padding: 6, maxHeight: mobile ? "none" : 360, overflow: "auto", flex: mobile ? 1 : undefined }}>
           {results.map((r, i) => (
             <button key={r.id + i} onClick={() => onNavigate(r.id)} style={{
               display: "block", width: "100%", textAlign: "left",

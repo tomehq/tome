@@ -59,6 +59,15 @@ const contentStyles = `
   .tome-content img { max-width: 100%; border-radius: 2px; }
   .tome-content hr { border: none; border-top: 1px solid var(--bd); margin: 2em 0; }
 
+  /* Mobile responsive content */
+  @media (max-width: 767px) {
+    .tome-content h2 { font-size: 1.2em; margin-top: 1.5em; }
+    .tome-content h3 { font-size: 1.05em; }
+    .tome-content pre code { font-size: 12px; padding: 0.8em 1em; }
+    .tome-content table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tome-content blockquote { margin: 0.8em 0; }
+  }
+
   /* Selection style */
   ::selection { background: var(--acD); color: var(--ac); }
 
