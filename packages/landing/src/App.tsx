@@ -38,7 +38,7 @@ const THEMES = {
     "--bg": "#080c1f", "--sf": "#0e1333", "--sfH": "#141940",
     "--bd": "#1a2050", "--bdA": "#252d66",
     "--tx": "#e8e6f0", "--tx2": "#b5b1c8", "--txM": "#9490ae",
-    "--coral": "#ff6b4a", "--coralD": "rgba(255,107,74,0.1)", "--coralT": "#ff8a70",
+    "--coral": "#ff6b4a", "--coralBtn": "#d9472a", "--coralD": "rgba(255,107,74,0.1)", "--coralT": "#ff8a70",
     "--cdBg": "#0a0e27", "--cdTx": "#b8b4cc", "--cdBd": "#1a2050",
     "--sbBg": "#0a0e27", "--hdBg": "rgba(8,12,31,0.9)",
     "--glow1": "rgba(255,107,74,0.07)", "--glow2": "rgba(100,80,255,0.05)",
@@ -47,7 +47,7 @@ const THEMES = {
     "--bg": "#f6f4f0", "--sf": "#ffffff", "--sfH": "#eeece6",
     "--bd": "#ddd9d0", "--bdA": "#c8c3b8",
     "--tx": "#1a1716", "--tx2": "#4a443e", "--txM": "#706960",
-    "--coral": "#b83d22", "--coralD": "rgba(184,61,34,0.07)", "--coralT": "#9c3019",
+    "--coral": "#b83d22", "--coralBtn": "#b83d22", "--coralD": "rgba(184,61,34,0.07)", "--coralT": "#9c3019",
     "--cdBg": "#edeae4", "--cdTx": "#3a3530", "--cdBd": "#ddd9d0",
     "--sbBg": "#f0ede8", "--hdBg": "rgba(246,244,240,0.92)",
     "--glow1": "rgba(217,74,43,0.04)", "--glow2": "rgba(100,80,180,0.03)",
@@ -257,7 +257,7 @@ function Nav({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
         <a className="nav-link" href="https://github.com/vxcozy/tome" style={navLinkStyle}>
           GitHub
         </a>
-        <button className="theme-toggle" onClick={toggle} style={{
+        <button className="theme-toggle" onClick={toggle} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} style={{
           background: "none", border: "none", color: "var(--txM)",
           cursor: "pointer", display: "flex",
         }}>
@@ -307,7 +307,7 @@ function Hero() {
 
       <div className="rv rv4" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         <a className="btn-primary" href="/dashboard" style={{
-          background: "var(--coral)", color: "#fff", border: "none", borderRadius: 2,
+          background: "var(--coralBtn)", color: "#fff", border: "none", borderRadius: 2,
           padding: "14px 32px", fontSize: 13, fontWeight: 600,
           fontFamily: '"Bricolage Grotesque", sans-serif', cursor: "pointer",
           letterSpacing: ".03em", textTransform: "uppercase", textDecoration: "none",
@@ -355,7 +355,7 @@ function Features() {
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
               <span className="feature-num" style={{
                 fontFamily: '"Cormorant Garamond", serif', fontSize: 28,
-                fontWeight: 300, fontStyle: "italic", color: "var(--coral)", opacity: 0.5,
+                fontWeight: 300, fontStyle: "italic", color: "var(--coral)", opacity: 0.75,
               }}>
                 {f.num}
               </span>
@@ -502,7 +502,7 @@ function Pricing() {
               {tier.price}
               <span style={{
                 fontSize: 14, fontFamily: '"Bricolage Grotesque", sans-serif',
-                fontWeight: 400, color: "var(--txM)", fontStyle: "normal",
+                fontWeight: 400, color: "var(--tx2)", fontStyle: "normal",
               }}>
                 {tier.period}
               </span>
@@ -528,7 +528,7 @@ function Pricing() {
               fontSize: 12, fontWeight: 600, textDecoration: "none",
               fontFamily: '"Bricolage Grotesque", sans-serif',
               letterSpacing: ".03em", textTransform: "uppercase",
-              background: tier.highlighted ? "var(--coral)" : "transparent",
+              background: tier.highlighted ? "var(--coralBtn)" : "transparent",
               color: tier.highlighted ? "#fff" : "var(--tx2)",
               border: tier.highlighted ? "none" : "1px solid var(--bd)",
             }}>
@@ -566,7 +566,7 @@ function Footer() {
         <p style={{
           fontSize: 12, color: "var(--txM)",
           fontFamily: '"Bricolage Grotesque", sans-serif',
-          margin: 0, opacity: 0.6,
+          margin: 0, opacity: 0.85,
         }}>
           Built with Tome
         </p>
