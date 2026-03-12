@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 // ── Editorial Brutalist Design ──────────────────────────
 // Swiss poster meets literary magazine meets dev docs
@@ -618,6 +619,7 @@ export function App() {
         </main>
         <Footer />
       </div>
+      <Analytics />
     </div>
   );
 }
