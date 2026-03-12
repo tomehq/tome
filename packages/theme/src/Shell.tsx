@@ -567,7 +567,7 @@ export function Shell({
           <div style={{ padding: "12px 16px", borderTop: "1px solid var(--bd)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* TOM-12: Only show toggle when mode is "auto" */}
             {themeMode === "auto" ? (
-              <button onClick={() => setDark(d => !d)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
+              <button aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setDark(d => !d)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </button>
             ) : <div />}
@@ -583,7 +583,7 @@ export function Shell({
             display: "flex", alignItems: "center", gap: 12, padding: "10px 24px",
             borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
           }}>
-            <button onClick={() => setSb(!sbOpen)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
+            <button aria-label={sbOpen ? "Close sidebar" : "Open sidebar"} onClick={() => setSb(!sbOpen)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
               {sbOpen ? <XIcon /> : <MenuIcon />}
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-code)", fontSize: 11, color: "var(--txM)", letterSpacing: ".03em", flex: 1 }}>
