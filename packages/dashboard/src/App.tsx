@@ -139,7 +139,7 @@ const THEMES = {
     "--tx": "#1a1716", "--tx2": "#4a443e", "--txM": "#706960",
     "--coral": "#a33520", "--coralD": "rgba(184,61,34,0.07)", "--coralT": "#8a2c18",
     "--coralBtn": "#a33520",
-    "--green": "#15803d", "--yellow": "#a16207", "--red": "#dc2626",
+    "--green": "#15803d", "--yellow": "#a16207", "--red": "#b91c1c",
     "--cdBg": "#edeae4", "--cdTx": "#3a3530", "--cdBd": "#ddd9d0",
   },
 } as const;
