@@ -38,7 +38,7 @@ const THEMES = {
     "--bg": "#080c1f", "--sf": "#0e1333", "--sfH": "#141940",
     "--bd": "#1a2050", "--bdA": "#252d66",
     "--tx": "#e8e6f0", "--tx2": "#b5b1c8", "--txM": "#9490ae",
-    "--coral": "#ff6b4a", "--coralBtn": "#d9472a", "--coralD": "rgba(255,107,74,0.1)", "--coralT": "#ff8a70",
+    "--coral": "#ff6b4a", "--coralBtn": "#bf3618", "--coralD": "rgba(255,107,74,0.1)", "--coralT": "#ff8a70",
     "--cdBg": "#0a0e27", "--cdTx": "#b8b4cc", "--cdBd": "#1a2050",
     "--sbBg": "#0a0e27", "--hdBg": "rgba(8,12,31,0.9)",
     "--glow1": "rgba(255,107,74,0.07)", "--glow2": "rgba(100,80,255,0.05)",
