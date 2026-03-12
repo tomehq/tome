@@ -47,8 +47,8 @@ const THEMES = {
   light: {
     "--bg": "#f6f4f0", "--sf": "#ffffff", "--sfH": "#eeece6",
     "--bd": "#ddd9d0", "--bdA": "#c8c3b8",
-    "--tx": "#1a1716", "--tx2": "#4a443e", "--txM": "#706960",
-    "--coral": "#b83d22", "--coralBtn": "#b83d22", "--coralD": "rgba(184,61,34,0.07)", "--coralT": "#9c3019",
+    "--tx": "#1a1716", "--tx2": "#4a443e", "--txM": "#5c5550",
+    "--coral": "#a33520", "--coralBtn": "#a33520", "--coralD": "rgba(184,61,34,0.07)", "--coralT": "#9c3019",
     "--cdBg": "#edeae4", "--cdTx": "#3a3530", "--cdBd": "#ddd9d0",
     "--sbBg": "#f0ede8", "--hdBg": "rgba(246,244,240,0.92)",
     "--glow1": "rgba(217,74,43,0.04)", "--glow2": "rgba(100,80,180,0.03)",
@@ -567,7 +567,7 @@ function Footer() {
         <p style={{
           fontSize: 12, color: "var(--txM)",
           fontFamily: '"Bricolage Grotesque", sans-serif',
-          margin: 0, opacity: 0.85,
+          margin: 0,
         }}>
           Built with Tome
         </p>

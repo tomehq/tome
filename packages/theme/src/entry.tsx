@@ -97,6 +97,14 @@ const contentStyles = `
   html.dark .shiki span[style*="--shiki-dark:#6A737D"] {
     --shiki-dark: #a0aab5 !important;
   }
+
+  /* Light mode: darken low-contrast github-light tokens for WCAG AA on --cdBg backgrounds */
+  html:not(.dark) .shiki span[style*="color:#6A737D"] { color: #57606a !important; }
+  html:not(.dark) .shiki span[style*="color:#E36209"] { color: #b35405 !important; }
+  html:not(.dark) .shiki span[style*="color:#6F42C1"] { color: #5a32a3 !important; }
+  html:not(.dark) .shiki span[style*="color:#22863A"] { color: #1a6e2e !important; }
+  html:not(.dark) .shiki span[style*="color:#D73A49"] { color: #b62324 !important; }
+  html:not(.dark) .shiki span[style*="color:#005CC5"] { color: #0349b4 !important; }
 `;
 
 // ── PAGE TYPES ────────────────────────────────────────────
