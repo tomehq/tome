@@ -41,7 +41,7 @@ const CheckIcon = () => <Icon d="M20 6L9 17l-5-5" size={14} />;
 const MenuIcon = () => <Icon d="M3 12h18M3 6h18M3 18h18" size={20} />;
 const XIcon = () => <Icon d="M18 6L6 18M6 6l12 12" size={18} />;
 const MoonIcon = () => <Icon d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />;
-const SunIcon = () => <Icon d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z" />;
+const SunIcon = () => <Icon d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0-4a1 1 0 0 1 1-1v-1a1 1 0 0 1-2 0v1a1 1 0 0 1 1 1Zm0 16a1 1 0 0 1 1 1v1a1 1 0 0 1-2 0v-1a1 1 0 0 1 1-1ZM4 12a1 1 0 0 1-1 1H2a1 1 0 0 1 0-2h1a1 1 0 0 1 1 1Zm18-1h-1a1 1 0 0 1 0 2h1a1 1 0 0 1 0-2ZM6.34 6.34a1 1 0 0 1-1.41 0l-.71-.71a1 1 0 0 1 1.41-1.41l.71.71a1 1 0 0 1 0 1.41Zm12.73-2.12-.71.71a1 1 0 0 1-1.41-1.41l.71-.71a1 1 0 1 1 1.41 1.41ZM6.34 17.66l-.71.71a1 1 0 0 1-1.41-1.41l.71-.71a1 1 0 0 1 1.41 1.41Zm12.73 2.12-.71-.71a1 1 0 0 1 1.41-1.41l.71.71a1 1 0 0 1-1.41 1.41Z" />;
 const ArrowLeft = () => <Icon d="M19 12H5M12 19l-7-7 7-7" size={14} />;
 const ArrowRight = () => <Icon d="M5 12h14M12 5l7 7-7 7" size={14} />;
 const PencilIcon = () => <Icon d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" size={13} />;
@@ -571,6 +571,7 @@ export function Shell({
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </button>
             ) : <div />}
+            <span style={{ fontSize: 11, color: "var(--txM)", letterSpacing: 0.2 }}>Built with {"\u2661"} by Tome</span>
             <span style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)" }}>{typeof __TOME_VERSION__ !== "undefined" && __TOME_VERSION__ ? `v${__TOME_VERSION__}` : "v0.1.0"}</span>
           </div>
         </aside>

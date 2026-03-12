@@ -204,8 +204,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       // Inject version at build time
       let tomeVersion = "0.0.0";
       try {
-        const corePkg = _require.resolve("@tomehq/core/package.json");
-        tomeVersion = JSON.parse(readFileSync(corePkg, "utf-8")).version ?? "0.0.0";
+        const pluginDir = new URL(".", import.meta.url);
+        // Walk up from src/ or dist/ to find package.json
+        const corePkgPath = new URL("../package.json", pluginDir);
+        tomeVersion = JSON.parse(readFileSync(corePkgPath, "utf-8")).version ?? "0.0.0";
       } catch { /* fallback */ }
       const defines: Record<string, string> = {
         "__TOME_VERSION__": JSON.stringify(tomeVersion),

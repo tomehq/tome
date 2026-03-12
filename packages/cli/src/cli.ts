@@ -496,6 +496,9 @@ program
           tomePlugin({ root }),
           react(),
         ],
+        optimizeDeps: {
+          include: ["react-dom/client"],
+        },
         resolve: {
           alias: {
             "~tome": root,
@@ -553,6 +556,9 @@ program
           tomePlugin({ root }),
           react(),
         ],
+        optimizeDeps: {
+          include: ["react-dom/client"],
+        },
         resolve: {
           alias: {
             "~tome": root,

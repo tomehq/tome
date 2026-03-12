@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/docs/assets/(.*)", "destination": "/docs/assets/$1" },
+    { "source": "/docs/(.*)", "destination": "/docs/index.html" },
+    { "source": "/docs", "destination": "/docs/index.html" },
+    { "source": "/dashboard/assets/(.*)", "destination": "/dashboard/assets/$1" },
+    { "source": "/dashboard/(.*)", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard", "destination": "/dashboard/index.html" }
+  ]
+}
