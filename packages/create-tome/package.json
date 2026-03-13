@@ -1,6 +1,6 @@
 {
   "name": "create-tome",
-  "version": "0.2.4",
+  "version": "0.2.8",
   "description": "Create a new Tome documentation project",
   "type": "module",
   "bin": {
