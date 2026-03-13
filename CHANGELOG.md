@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.2.8
+
+### New Features
+
+- **History API routing** — docs theme now uses `pushState`/`popstate` instead of hash fragments, enabling clean URLs (`/docs/quickstart` instead of `/#quickstart`), proper SEO, and heading anchor links
+- **Per-page HTML generation** — build emits individual HTML files per route with `data-pagefind-body` content, enabling Pagefind search indexing and static host compatibility
+- **Redirects** — config-level `redirects` array and frontmatter `redirect_from` field with `_redirects` file generation for Netlify/Vercel/Cloudflare
+- **MDX sandbox** — `recma-sandbox` plugin blocks dangerous JavaScript patterns (eval, fetch, DOM access) in MDX content at compile time; enable with `sandbox.enabled: true`
+- **GitBook migration** — `tome migrate:gitbook` converts GitBook projects (SUMMARY.md, .gitbook.yaml) to Tome structure
+- **Mintlify migration** — `tome migrate:mintlify` converts Mintlify projects (mint.json, MDX components) to Tome equivalents
+- **Content-Security-Policy** — auto-injects CSP meta tag when sandbox is enabled, with dynamic `connect-src` for AI providers
+- **GitHub Actions workflow** — `tome init` now scaffolds a `.github/workflows/deploy.yml` for automated preview + production deploys
+
+### Improvements
+
+- SPA content link interception — in-content markdown links navigate via pushState instead of full page reloads
+- Algolia search now strips `basePath` when extracting page IDs from result URLs
+- Banner links support internal navigation (not just external URLs)
+- Pagefind output is cleaner — suppresses noisy indexing logs, shows summary only
+- Dashboard responsive layout for mobile and tablet viewports
+- Hex HTML entity decoding in code blocks (`&#x26;`, `&#x3C;`, etc.) for proper Shiki highlighting
+- Multi-version docs structure with v1/v2 directories
+- Extracted routing and entry helpers into testable pure-function modules
+- 986 tests across 44 files with 90%+ coverage per package
+
+### Bug Fixes
+
+- Fixed content link clicks causing full page reloads instead of SPA navigation
+- Fixed Algolia search results navigating to wrong pages when `basePath` is set
+
 ## 0.2.4
 
 ### Bug Fixes

@@ -1,5 +1,12 @@
 # @tomehq/components
 
+## 0.2.8
+
+### Patch Changes
+
+- Sync version with other packages
+- Added comprehensive ChangelogTimeline test coverage
+
 ## 0.2.0
 
 ### Minor Changes

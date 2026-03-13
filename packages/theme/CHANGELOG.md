@@ -1,5 +1,20 @@
 # @tomehq/theme
 
+## 0.2.8
+
+### Minor Changes
+
+- Replace hash-based SPA routing with History API (pushState + popstate + pathname parsing)
+- Content link interception: in-content markdown links navigate via SPA instead of full page reload
+- Banner link internal navigation support
+- Algolia search basePath stripping for correct page ID extraction
+- Extract routing helpers (`pathnameToPageId`, `pageIdToPath`) into testable `routing.ts` module
+- Extract entry helpers (`loadPage`, `computeEditUrl`, `resolveInitialPageId`, `detectCurrentVersion`) into testable `entry-helpers.ts` module
+- Pass `basePath` prop through Shell for correct URL construction
+- Updated dependencies
+  - @tomehq/core@0.2.8
+  - @tomehq/components@0.2.8
+
 ## 0.2.0
 
 ### Minor Changes

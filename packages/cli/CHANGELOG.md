@@ -1,5 +1,17 @@
 # @tomehq/cli
 
+## 0.2.8
+
+### Minor Changes
+
+- `tome init` now scaffolds GitHub Actions deploy workflow (`.github/workflows/deploy.yml`)
+- `tome migrate:gitbook` command for converting GitBook projects
+- `tome migrate:mintlify` command for converting Mintlify projects
+- Cleaner Pagefind output: suppress noisy logs, show summary only
+- Updated Node.js requirement to 20+
+- Updated dependencies
+  - @tomehq/core@0.2.8
+
 ## 0.2.0
 
 ### Minor Changes
