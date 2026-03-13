@@ -84,6 +84,16 @@ export const WebhookSchema = z.object({
   secret: z.string().optional(),
 });
 
+export const RedirectSchema = z.object({
+  from: z.string(),
+  to: z.string(),
+}).strict();
+
+export const SandboxSchema = z.object({
+  enabled: z.boolean().default(false),
+  allowedExpressions: z.array(z.string()).default([]),
+}).optional();
+
 export const BannerSchema = z.object({
   text: z.string(),
   link: z.string().optional(),
@@ -137,6 +147,8 @@ export const TomeConfigSchema = z.object({
     href: z.string(),
   })).optional(),
   webhooks: z.array(WebhookSchema).optional(),
+  redirects: z.array(RedirectSchema).default([]),
+  sandbox: SandboxSchema,
 });
 
 export type TomeConfig = z.infer<typeof TomeConfigSchema>;

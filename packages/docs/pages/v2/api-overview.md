@@ -1,0 +1,62 @@
+---
+title: Overview
+description: Generate interactive API documentation from OpenAPI specs with Tome.
+icon: code
+---
+
+Tome generates a complete API reference from an OpenAPI 3.x specification. Point it at a spec file and get rendered endpoint documentation with an interactive playground — no manual writing required.
+
+## Setup
+
+Add the `api` section to your `tome.config.js`:
+
+```javascript
+export default {
+  name: "My API Docs",
+  api: {
+    spec: "./openapi.yaml",   // Path to your OpenAPI spec
+    playground: {
+      enabled: true,          // Enable interactive playground
+    },
+  },
+};
+```
+
+Tome parses the spec at build time and generates:
+
+- Endpoint listing organized by tags
+- Request/response schema documentation
+- Parameter tables with types and descriptions
+- An interactive playground for testing endpoints
+
+## Supported formats
+
+| Format | Extension |
+|--------|-----------|
+| OpenAPI 3.0 | `.json`, `.yaml`, `.yml` |
+| OpenAPI 3.1 | `.json`, `.yaml`, `.yml` |
+
+Swagger 2.x specs are not directly supported. Convert them first using tools like `swagger2openapi`.
+
+## What gets generated
+
+From a single spec file, Tome creates:
+
+- **Endpoint pages** — Each operation (GET, POST, PUT, DELETE) gets its own section with method, path, description, and parameters.
+- **Schema documentation** — Request bodies and response objects are rendered with type information.
+- **Tag grouping** — Operations are organized by their OpenAPI tags.
+- **Try it** — The playground lets users send real requests with custom parameters and see responses.
+
+## Spec organization
+
+For the best results, make sure your OpenAPI spec includes:
+
+- Descriptive `summary` and `description` fields on each operation
+- Tags to group related endpoints
+- Schema definitions with `description` fields
+- Example values for parameters and request bodies
+
+## Next steps
+
+- **[Endpoints](#api-endpoints)** for details on how endpoints are rendered
+- **[Authentication](#api-auth)** for configuring auth in the playground

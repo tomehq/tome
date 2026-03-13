@@ -111,6 +111,12 @@ export type {
   WebhookResult,
 } from "./webhooks.js";
 
+export { migrateFromGitbook, parseSummaryNavigation, convertGitbookContent, parseGitbookConfig } from "./migrate-gitbook.js";
+export type { MigrationResult as GitbookMigrationResult } from "./migrate-gitbook.js";
+
+export { migrateFromMintlify, parseMintConfig, convertMintNavigation, convertMintConfig, convertMintlifyContent } from "./migrate-mintlify.js";
+export type { MigrationResult as MintlifyMigrationResult } from "./migrate-mintlify.js";
+
 export { generateAnalyticsScript, aggregateEvents, generateSessionId } from "./analytics.js";
 export type {
   PageViewEvent,

@@ -1,0 +1,71 @@
+---
+title: API Reference Setup
+description: How to generate an interactive API reference from an OpenAPI specification in Tome.
+icon: code
+---
+
+Tome can generate a full API reference from an OpenAPI 3.x specification. The reference includes endpoint documentation, request/response schemas, and an interactive playground for testing endpoints.
+
+## 1. Add your OpenAPI spec
+
+Place your OpenAPI spec file (JSON or YAML) in your project:
+
+```text
+my-docs/
+├── openapi.yaml      # Your API spec
+├── tome.config.js
+└── pages/
+```
+
+## 2. Configure Tome
+
+Add the `api` section to your config:
+
+```javascript
+export default {
+  name: "My API Docs",
+  api: {
+    spec: "./openapi.yaml",
+    playground: true,
+    baseUrl: "https://api.example.com",
+    auth: {
+      type: "bearer",
+      header: "Authorization",
+    },
+  },
+};
+```
+
+### Options
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `spec` | string | — | Path to your OpenAPI spec file (required) |
+| `playground` | boolean | `true` | Enable the interactive API playground |
+| `baseUrl` | string | — | Base URL for playground requests |
+| `auth.type` | string | — | Auth type: `"bearer"`, `"apiKey"`, or `"oauth2"` |
+| `auth.header` | string | — | Header name for the auth token |
+
+## 3. View the reference
+
+Start the dev server and navigate to `/api`. Tome parses the spec and renders:
+
+- **Endpoint groups** organized by OpenAPI tags
+- **Request parameters** with types, descriptions, and required markers
+- **Response schemas** with expandable nested objects
+- **Code examples** for `curl`, JavaScript, and Python
+
+## 4. Interactive playground
+
+When `playground: true`, each endpoint includes a "Try It" panel where users can:
+
+- Set path parameters and query strings
+- Edit the request body with JSON validation
+- Add authentication headers
+- Send requests and view formatted responses
+
+The playground sends requests directly from the browser, so CORS must be configured on your API server.
+
+## Supported spec formats
+
+Tome supports OpenAPI 3.0 and 3.1 specifications in JSON or YAML format. Swagger 2.x specs are not supported — convert them with tools like `swagger2openapi`.

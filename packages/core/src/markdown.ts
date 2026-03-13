@@ -69,6 +69,7 @@ const FrontmatterSchema = z.object({
   lastUpdated: z.string().optional(),
   type: z.enum(["page", "changelog"]).optional(),
   ogImage: z.string().optional(),
+  redirect_from: z.array(z.string()).optional(),
 });
 
 export type PageFrontmatter = {
@@ -82,6 +83,7 @@ export type PageFrontmatter = {
   lastUpdated?: string;
   type?: "page" | "changelog";
   ogImage?: string;
+  redirect_from?: string[];
 };
 
 function validateFrontmatter(
@@ -174,7 +176,13 @@ function createCodeBlockTransformer(highlighter: Highlighter) {
       /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g,
       (_match, lang: string, code: string) => {
         // Decode HTML entities back to raw text for Shiki
+        // Handles both named entities (&amp;) and hex entities (&#x26;)
         const decoded = code
+          .replace(/&#x26;/g, "&")
+          .replace(/&#x3C;/g, "<")
+          .replace(/&#x3E;/g, ">")
+          .replace(/&#x27;/g, "'")
+          .replace(/&#x22;/g, '"')
           .replace(/&amp;/g, "&")
           .replace(/&lt;/g, "<")
           .replace(/&gt;/g, ">")
@@ -245,6 +253,7 @@ export async function processMarkdown(
     lastUpdated: validated.lastUpdated,
     type: validated.type,
     ogImage: validated.ogImage,
+    redirect_from: validated.redirect_from,
   };
 
   // Process Markdown → HTML

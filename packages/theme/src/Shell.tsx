@@ -96,12 +96,14 @@ function AlgoliaSearchModal({
   indexName,
   onNavigate,
   onClose,
+  basePath = "",
 }: {
   appId: string;
   apiKey: string;
   indexName: string;
   onNavigate: (id: string) => void;
   onClose: () => void;
+  basePath?: string;
 }) {
   const [DocSearchComponent, setDocSearchComponent] = useState<React.ComponentType<any> | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -122,7 +124,12 @@ function AlgoliaSearchModal({
   const extractPageId = useCallback((url: string): string => {
     try {
       const parsed = new URL(url, "http://localhost");
-      const pathname = parsed.pathname;
+      let pathname = parsed.pathname;
+      // Strip basePath prefix
+      if (basePath) {
+        const bp = basePath.replace(/\/$/, "");
+        if (pathname.startsWith(bp)) pathname = pathname.slice(bp.length);
+      }
       return pathname
         .replace(/^\//, "")
         .replace(/\/index\.html$/, "")
@@ -131,7 +138,7 @@ function AlgoliaSearchModal({
     } catch {
       return "index";
     }
-  }, []);
+  }, [basePath]);
 
   if (loadFailed) {
     return (
@@ -316,12 +323,13 @@ interface ShellProps {
   i18n?: I18nInfo;
   currentLocale?: string;
   docContext?: Array<{ id: string; title: string; content: string }>;
+  basePath?: string;
 }
 
 export function Shell({
   config, navigation, currentPageId, pageHtml, pageComponent, mdxComponents,
   pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries, onNavigate, allPages,
-  versioning, currentVersion, i18n, currentLocale, docContext,
+  versioning, currentVersion, i18n, currentLocale, docContext, basePath = "",
 }: ShellProps) {
   const themeMode = config.theme?.mode || "auto";
 
@@ -421,6 +429,40 @@ export function Shell({
     el.addEventListener("click", handler);
     return () => el.removeEventListener("click", handler);
   }, []);
+
+  // ── Content link interception: delegate click on .tome-content a ──
+  // Intercepts internal links in rendered markdown so they navigate via pushState
+  // instead of triggering a full page reload.
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const handler = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      // Skip external links, mailto, tel, pure anchors
+      if (href.startsWith("http://") || href.startsWith("https://") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("//")) return;
+      // Pure heading anchor — let default scrolling work
+      if (href.startsWith("#")) return;
+      // Internal link — resolve page ID by stripping basePath
+      e.preventDefault();
+      let pageId = href.replace(/^\.\//, "").replace(/^\//, "").replace(/\.mdx?$/, "").replace(/\/$/, "");
+      // Strip basePath prefix (e.g. "docs/" from "/docs/quickstart")
+      if (basePath) {
+        const normalized = basePath.replace(/^\//, "").replace(/\/$/, "");
+        if (normalized && pageId.startsWith(normalized + "/")) {
+          pageId = pageId.slice(normalized.length + 1);
+        } else if (normalized && pageId === normalized) {
+          pageId = "index";
+        }
+      }
+      if (!pageId) pageId = "index";
+      onNavigate(pageId);
+    };
+    el.addEventListener("click", handler);
+    return () => el.removeEventListener("click", handler);
+  }, [onNavigate, basePath]);
 
   // ── Image zoom: Escape to dismiss ──
   useEffect(() => {
@@ -530,17 +572,32 @@ export function Shell({
 
   const PageComponent = pageComponent;
 
+  // Compute banner link properties
+  const bannerLink = config.banner?.link;
+  const bannerIsInternal = bannerLink ? (bannerLink.startsWith("#") || (basePath && bannerLink.startsWith(basePath + "/"))) : false;
+
   return (
-    <div className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", minHeight: "100vh" }}>
+    <div className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", minHeight: "100vh", overflow: "hidden" }}>
       {/* Banner */}
       {config.banner?.text && !bannerDismissed && (
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
           background: "var(--ac)", color: "#fff", padding: "8px 16px",
           fontSize: 13, fontFamily: "var(--font-body)", fontWeight: 500, textAlign: "center",
+          width: "100%", boxSizing: "border-box",
         }}>
           {config.banner.link ? (
-            <a href={config.banner.link} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline" }}>
+            <a
+              href={bannerIsInternal && bannerLink!.startsWith("#") ? (basePath + "/" + bannerLink!.slice(1)) : bannerLink!}
+              {...(bannerIsInternal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+              style={{ color: "#fff", textDecoration: "underline" }}
+              onClick={bannerIsInternal ? (e: React.MouseEvent) => {
+                e.preventDefault();
+                const bp = basePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                const pageId = bannerLink!.startsWith("#") ? bannerLink!.slice(1) : bannerLink!.replace(new RegExp("^" + bp + "/?"), "");
+                onNavigate(pageId || "index");
+              } : undefined}
+            >
               {config.banner.text}
             </a>
           ) : (
@@ -572,6 +629,7 @@ export function Shell({
           indexName={config.search.indexName}
           onNavigate={(id) => { onNavigate(id); setSearch(false); }}
           onClose={() => setSearch(false)}
+          basePath={basePath}
         />
       ) : searchOpen ? (
         <SearchModal
@@ -582,7 +640,7 @@ export function Shell({
         />
       ) : null}
 
-      <div style={{ display: "flex", height: "100vh" }}>
+      <div style={{ display: "flex", flex: 1, height: config.banner?.text && !bannerDismissed ? "calc(100vh - 32px)" : "100vh" }}>
         {/* Mobile sidebar backdrop */}
         {mobile && sbOpen && (
           <div onClick={() => setSb(false)} style={{
@@ -651,6 +709,31 @@ export function Shell({
             ))}
           </nav>
 
+          {/* Mobile version switcher in sidebar footer */}
+          {versioning && mobile && (
+            <div style={{ padding: "8px 16px", borderTop: "1px solid var(--bd)", display: "flex", gap: 6 }}>
+              {versioning.versions.map(v => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    // Navigate to the version's index page via hash routing
+                    const targetId = v === versioning.current ? "index" : `${v}/index`;
+                    onNavigate(targetId);
+                  }}
+                  style={{
+                    flex: 1, padding: "6px 0", textAlign: "center",
+                    background: v === (currentVersion || versioning.current) ? "var(--acD)" : "var(--sf)",
+                    border: "1px solid var(--bd)", borderRadius: 2, cursor: "pointer",
+                    color: v === (currentVersion || versioning.current) ? "var(--ac)" : "var(--tx2)",
+                    fontSize: 12, fontFamily: "var(--font-code)",
+                    fontWeight: v === versioning.current ? 600 : 400,
+                  }}
+                >
+                  {v}{v === versioning.current ? " (latest)" : ""}
+                </button>
+              ))}
+            </div>
+          )}
           <div style={{ padding: "12px 16px", borderTop: "1px solid var(--bd)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* TOM-12: Only show toggle when mode is "auto" */}
             {themeMode === "auto" ? (
@@ -669,7 +752,7 @@ export function Shell({
           <header style={{
             display: "flex", alignItems: "center", gap: mobile ? 8 : 12, padding: mobile ? "8px 12px" : "10px 24px",
             borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
-            maxWidth: "100vw", overflow: "hidden",
+            maxWidth: "100vw", overflow: "visible", position: "relative", zIndex: 200,
           }}>
             <button aria-label={sbOpen ? "Close sidebar" : "Open sidebar"} onClick={() => setSb(!sbOpen)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
               {sbOpen ? <XIcon /> : <MenuIcon />}
@@ -694,12 +777,18 @@ export function Shell({
             {config.topNav && config.topNav.length > 0 && !mobile && (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {config.topNav.map((link) => {
-                  const isExternal = link.href.startsWith("http") || !link.href.startsWith("#");
+                  const isInternal = link.href.startsWith("#") || (basePath && link.href.startsWith(basePath + "/"));
+                  const isExternal = !isInternal;
                   return (
                     <a
                       key={link.label}
-                      href={link.href}
+                      href={isInternal && link.href.startsWith("#") ? (basePath + "/" + link.href.slice(1)) : link.href}
                       {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      onClick={isInternal ? (e: React.MouseEvent) => {
+                        e.preventDefault();
+                        const pageId = link.href.startsWith("#") ? link.href.slice(1) : link.href.replace(new RegExp("^" + basePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "/?"), "");
+                        onNavigate(pageId);
+                      } : undefined}
                       style={{
                         display: "flex", alignItems: "center", gap: 4,
                         color: "var(--txM)", textDecoration: "none", fontSize: 12,
@@ -757,9 +846,9 @@ export function Shell({
                         key={v}
                         onClick={() => {
                           setVersionDropdown(false);
-                          // Navigate to the version's root page
-                          const targetUrl = v === versioning.current ? "/" : `/${v}`;
-                          window.location.href = targetUrl;
+                          // Navigate to the version's index page via hash routing
+                          const targetId = v === versioning.current ? "index" : `${v}/index`;
+                          onNavigate(targetId);
                         }}
                         style={{
                           display: "block", width: "100%", textAlign: "left",
@@ -858,7 +947,7 @@ export function Shell({
             >
               <span>You're viewing docs for {currentVersion}.</span>
               <button
-                onClick={() => { window.location.href = "/"; }}
+                onClick={() => { onNavigate("index"); }}
                 style={{
                   background: "none", border: "none", color: "var(--ac)",
                   cursor: "pointer", fontWeight: 600, fontSize: 13,

@@ -8,6 +8,7 @@ import { loadConfig, type TomeConfig } from "./config.js";
 import { discoverPages, buildNavigation, type PageRoute, type NavigationGroup, type I18nConfig } from "./routes.js";
 import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions, type MarkdownMathOptions } from "./markdown.js";
 import { parseOpenApiSpec, type ApiManifest } from "./openapi.js";
+import { recmaSandbox } from "./recma-sandbox.js";
 import { generateAnalyticsScript } from "./analytics.js";
 import { getGitLastUpdated } from "./git-dates.js";
 import { parseChangelog } from "./changelog.js";
@@ -229,8 +230,61 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       await loadAll();
     },
 
+    // Sandbox CSP: inject Content-Security-Policy meta tag when sandbox is enabled
+    transformIndexHtml(html) {
+      if (!config?.sandbox?.enabled) return html;
+      // Build connect-src dynamically: always allow self + mermaid/KaTeX CDN
+      const connectSrc = ["'self'", "https://cdn.jsdelivr.net"];
+      // If AI chat is enabled, allow the provider's API endpoint
+      if (config.ai?.enabled) {
+        if (config.ai.provider === "openai") connectSrc.push("https://api.openai.com");
+        else if (config.ai.provider === "anthropic") connectSrc.push("https://api.anthropic.com");
+      }
+      const csp = [
+        `default-src 'self'`,
+        `script-src 'self' 'unsafe-inline'`,
+        `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net`,
+        `font-src 'self' https://fonts.gstatic.com`,
+        `img-src 'self' data: https:`,
+        `connect-src ${connectSrc.join(" ")}`,
+      ].join("; ");
+      return html.replace(
+        "<head>",
+        `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}">`
+      );
+    },
+
     configureServer(srv) {
       server = srv;
+
+      // Redirect middleware — matches config-level and frontmatter-level redirects
+      srv.middlewares.use((req, res, next) => {
+        if (!req.url || !config) return next();
+        const urlPath = req.url.split("?")[0];
+
+        // Check config-level redirects
+        const configRedirect = config.redirects?.find((r) => r.from === urlPath);
+        if (configRedirect) {
+          res.writeHead(301, { Location: configRedirect.to });
+          res.end();
+          return;
+        }
+
+        // Check frontmatter-level redirect_from
+        for (const route of routes) {
+          if (route.frontmatter.redirect_from) {
+            for (const from of route.frontmatter.redirect_from) {
+              if (from === urlPath) {
+                res.writeHead(301, { Location: route.urlPath });
+                res.end();
+                return;
+              }
+            }
+          }
+        }
+
+        next();
+      });
 
       // Watch pages directory for changes
       srv.watcher.add(pagesDir);
@@ -530,6 +584,112 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         fileName: "llms-full.txt",
         source: fullParts.join("\n---\n\n"),
       });
+
+      // ── Redirect generation ───────────────────────────────
+      const allRedirects: Array<{ from: string; to: string }> = [
+        ...(config.redirects || []),
+      ];
+
+      // Collect frontmatter-level redirect_from
+      for (const r of routes) {
+        if (r.frontmatter.redirect_from) {
+          for (const from of r.frontmatter.redirect_from) {
+            allRedirects.push({ from, to: r.urlPath });
+          }
+        }
+      }
+
+      if (allRedirects.length > 0) {
+        // _redirects file (Netlify/Vercel/Cloudflare-compatible)
+        const redirectLines = allRedirects.map((r) => `${r.from}  ${r.to}  301`);
+        this.emitFile({
+          type: "asset",
+          fileName: "_redirects",
+          source: redirectLines.join("\n"),
+        });
+
+        // Emit meta-refresh HTML files for each redirect source path
+        // (ensures redirects work on any static hosting platform)
+        for (const r of allRedirects) {
+          const filePath = r.from.replace(/^\//, "") || "index";
+          this.emitFile({
+            type: "asset",
+            fileName: `${filePath}.html`,
+            source: `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${r.to}"><link rel="canonical" href="${r.to}"></head><body><a href="${r.to}">Moved here</a></body></html>`,
+          });
+        }
+      }
+
+      // ── Per-page HTML shells for Pagefind indexing + static hosting ──
+      // Each page gets a lightweight HTML file that:
+      // 1. Contains page text in data-pagefind-body for search indexing
+      // 2. Loads the SPA entry point so client-side routing takes over
+      const bp = (config.basePath || "/").replace(/\/$/, "");
+
+      // Find the main entry JS + CSS assets from the bundle
+      let entryJs = "";
+      let entryCss = "";
+      if (bundle) {
+        for (const fileName of Object.keys(bundle)) {
+          const chunk = bundle[fileName];
+          if (chunk.type === "chunk" && chunk.isEntry) {
+            entryJs = fileName;
+          }
+          if (chunk.type === "asset" && fileName.endsWith(".css")) {
+            entryCss = fileName;
+          }
+        }
+      }
+
+      for (const route of routes) {
+        if (route.frontmatter.hidden) continue;
+        // Skip root index — Vite already generates it
+        if (route.urlPath === "/" || route.urlPath === "") continue;
+
+        const title = route.frontmatter.title || "Untitled";
+        const description = route.frontmatter.description || "";
+        const canonical = `${bp}${route.urlPath}`;
+
+        // Get page text content for Pagefind indexing
+        let textContent = "";
+        if (!route.isMdx) {
+          try {
+            const page = await getPage(route.id);
+            if (page?.raw) {
+              // Use raw markdown (strip frontmatter) — plain text for search
+              textContent = page.raw.trim();
+            }
+          } catch {}
+        }
+
+        // Build the HTML shell
+        const htmlParts = [
+          `<!DOCTYPE html>`,
+          `<html lang="en">`,
+          `<head>`,
+          `<meta charset="utf-8">`,
+          `<meta name="viewport" content="width=device-width, initial-scale=1.0">`,
+          `<title>${title} | ${config.name}</title>`,
+          description ? `<meta name="description" content="${description.replace(/"/g, "&quot;")}">` : "",
+          `<link rel="canonical" href="${canonical}">`,
+          entryCss ? `<link rel="stylesheet" href="${bp}/${entryCss}">` : "",
+          entryJs ? `<script type="module" src="${bp}/${entryJs}"></script>` : "",
+          `</head>`,
+          `<body>`,
+          `<div id="tome-root"></div>`,
+          textContent ? `<div data-pagefind-body style="display:none"><h1>${title}</h1>\n${textContent}</div>` : "",
+          `</body>`,
+          `</html>`,
+        ].filter(Boolean).join("\n");
+
+        // Emit at urlPath as directory index (e.g., "quickstart/index.html")
+        const filePath = route.urlPath.replace(/^\//, "");
+        this.emitFile({
+          type: "asset",
+          fileName: `${filePath}/index.html`,
+          source: htmlParts,
+        });
+      }
     },
   };
 
@@ -540,9 +700,18 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     const { default: createMdxPlugin } = _require("@mdx-js/rollup");
     const remarkGfm = _require("remark-gfm").default;
     const remarkFrontmatter = _require("remark-frontmatter").default;
+    // Sandbox: recma plugin that blocks dangerous JS patterns in MDX.
+    // We wrap the plugin so it reads config lazily at transform time
+    // (config is assigned in configResolved, after plugin construction).
+    const lazySandbox = () => (tree: any, file: any) => {
+      if (!(config as any)?.sandbox?.enabled) return;
+      return recmaSandbox({ allowedExpressions: (config as any).sandbox.allowedExpressions ?? [] })(tree, file);
+    };
+    const recmaPlugins: any[] = [[lazySandbox]];
     mdxPlugin = createMdxPlugin({
       remarkPlugins: [remarkGfm, [remarkFrontmatter, ["yaml"]]],
       rehypePlugins: [],
+      recmaPlugins,
     }) as Plugin;
   } catch {
     // @mdx-js/rollup not available — MDX files will fall back to HTML processing

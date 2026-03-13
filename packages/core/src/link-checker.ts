@@ -123,8 +123,9 @@ function extractNavigationPageIds(
  *  - "./getting-started" → "getting-started"
  *  - "../api/endpoints" → "api/endpoints"
  *  - "quickstart#section" → page "quickstart", anchor "section"
+ *  - "/docs/quickstart" → "quickstart" (strips basePath)
  */
-function resolveLink(href: string): { pageId: string; anchor?: string } {
+function resolveLink(href: string, basePath?: string): { pageId: string; anchor?: string } {
   // Split off anchor
   const [path, anchor] = href.split("#", 2);
 
@@ -135,6 +136,16 @@ function resolveLink(href: string): { pageId: string; anchor?: string } {
     .replace(/\.mdx?$/, "")      // strip .md / .mdx extension
     .replace(/\/index$/, "")     // /index → root
     .replace(/\/$/, "");         // trailing slash
+
+  // Strip basePath prefix (e.g. "docs/" from "/docs/quickstart")
+  if (basePath) {
+    const normalized = basePath.replace(/^\//, "").replace(/\/$/, "");
+    if (normalized && pageId.startsWith(normalized + "/")) {
+      pageId = pageId.slice(normalized.length + 1);
+    } else if (normalized && pageId === normalized) {
+      pageId = "index";
+    }
+  }
 
   // Handle relative paths with ../ — simplistic but works for flat structures
   pageId = pageId.replace(/^(\.\.\/)+/, "");
@@ -182,7 +193,7 @@ export function checkLinks(
 
       for (const link of links) {
         totalLinks++;
-        const { pageId, anchor } = resolveLink(link.href);
+        const { pageId, anchor } = resolveLink(link.href, config.basePath);
 
         // Check if page exists
         if (!knownPageIds.has(pageId)) {

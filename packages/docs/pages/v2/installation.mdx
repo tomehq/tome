@@ -1,0 +1,119 @@
+---
+title: Installation
+description: System requirements and detailed installation instructions for Tome.
+icon: download
+---
+
+Tome requires Node.js and works with npm, pnpm, yarn, or bun.
+
+## Prerequisites
+
+| Requirement | Minimum |
+|-------------|---------|
+| Node.js | 20.0 or higher |
+| Package manager | npm, pnpm, yarn, or bun |
+
+## Create a new project
+
+The fastest way to start is with the CLI:
+
+```bash
+npx @tomehq/cli init my-docs
+```
+
+This creates a new directory with everything you need:
+
+<FileTree>
+  <FileTree.Folder name="my-docs" defaultOpen>
+    <FileTree.Folder name="pages" defaultOpen>
+      <FileTree.File name="index.md" />
+      <FileTree.File name="quickstart.md" />
+      <FileTree.File name="components.mdx" />
+    </FileTree.Folder>
+    <FileTree.Folder name=".tome">
+      <FileTree.File name="entry.tsx" />
+    </FileTree.Folder>
+    <FileTree.File name="tome.config.js" />
+    <FileTree.File name="index.html" />
+    <FileTree.File name="package.json" />
+    <FileTree.File name=".gitignore" />
+  </FileTree.Folder>
+</FileTree>
+
+## Install dependencies
+
+<PackageManager command="install" />
+
+## Start the dev server
+
+```bash
+npm run dev
+```
+
+The dev server starts at `http://localhost:3000` with hot reload enabled. Changes to any `.md` or `.mdx` file in `pages/` trigger an instant refresh. Config changes in `tome.config.js` trigger a full reload.
+
+## Add to an existing project
+
+If you already have a project and want to add Tome documentation:
+
+<PackageManager command="install @tomehq/cli @tomehq/theme react react-dom" />
+
+Create the required files:
+
+**`tome.config.js`**
+```javascript
+export default {
+  name: "My Project Docs",
+  navigation: [
+    { group: "Docs", pages: ["index"] },
+  ],
+};
+```
+
+**`pages/index.md`**
+```markdown
+---
+title: Introduction
+---
+
+# Welcome
+
+Your documentation starts here.
+```
+
+**`index.html`**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docs</title>
+</head>
+<body>
+  <div id="tome-root"></div>
+  <script type="module" src=".tome/entry.tsx"></script>
+</body>
+</html>
+```
+
+**`.tome/entry.tsx`**
+```tsx
+import "@tomehq/theme/entry";
+```
+
+Add scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "tome dev",
+    "build": "tome build"
+  }
+}
+```
+
+## Next steps
+
+- **[Project Structure](#project-structure)** to understand how files are organized
+- **[Configuration](#configuration)** to customize your site

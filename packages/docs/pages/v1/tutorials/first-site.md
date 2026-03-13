@@ -8,7 +8,7 @@ This tutorial walks you through creating a Tome documentation site from scratch.
 
 ## Prerequisites
 
-You need **Node.js 18+** and a package manager (`npm`, `yarn`, or `pnpm`).
+You need **Node.js 20+** and a package manager (`npm`, `yarn`, or `pnpm`).
 
 ## 1. Scaffold the project
 

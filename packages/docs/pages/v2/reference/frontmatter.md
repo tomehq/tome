@@ -1,0 +1,83 @@
+---
+title: Frontmatter
+description: Reference for all YAML frontmatter fields supported in Tome documentation pages.
+icon: file-text
+---
+
+Every Tome page can include YAML frontmatter at the top of the file. Frontmatter controls metadata like the page title, description, sidebar behavior, and search tags.
+
+## Syntax
+
+```markdown
+---
+title: My Page Title
+description: A brief summary of the page content.
+---
+
+# My Page Title
+
+Page content starts here.
+```
+
+## Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `title` | `string` | First `#` heading | Page title for sidebar, browser tab, and search |
+| `description` | `string` | — | Short summary for SEO and search results |
+| `icon` | `string` | — | Icon identifier shown in the sidebar |
+| `sidebarTitle` | `string` | `title` | Override the title shown in sidebar navigation |
+| `hidden` | `boolean` | `false` | Hide this page from sidebar navigation |
+| `tags` | `string[]` | — | Tags for search indexing and categorization |
+| `ogImage` | `string` | auto-generated | Custom OpenGraph image URL or path |
+
+## Title resolution
+
+If `title` is not set in frontmatter, Tome uses the first `# Heading` in the page content. If neither exists, the page is titled "Untitled".
+
+The `sidebarTitle` field lets you show a shorter name in the sidebar:
+
+```markdown
+---
+title: Configuring Authentication with OAuth 2.0
+sidebarTitle: Authentication
+---
+```
+
+## Hidden pages
+
+Pages with `hidden: true` are excluded from sidebar navigation but remain accessible at their URL. Useful for:
+
+- Landing pages that shouldn't appear in the sidebar
+- Draft pages shared via direct link
+- Internal reference pages linked from other content
+
+## Tags
+
+Tags improve search results by adding keywords that may not appear in the page content:
+
+```markdown
+---
+title: Deployment
+tags: [hosting, vercel, netlify, cloudflare, static]
+---
+```
+
+Tags are indexed by both Pagefind and Algolia (when configured) and appear in MCP manifest output.
+
+## Icons
+
+The `icon` field accepts identifiers displayed in the sidebar. Common values: `rocket`, `gear`, `code`, `terminal`, `puzzle`, `search`, `layers`, `cloud`, `file-text`, `palette`.
+
+## OpenGraph images
+
+By default, Tome auto-generates OG images for every page at build time. Use `ogImage` to override with a custom image:
+
+```markdown
+---
+title: Getting Started
+ogImage: /images/custom-og.png
+---
+```
+
+The value can be a relative path (resolved from your site root) or a full URL. Pages with a custom `ogImage` skip auto-generation.

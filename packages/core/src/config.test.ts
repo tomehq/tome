@@ -232,3 +232,55 @@ describe("Math config", () => {
     expect(result.math).toBe(true);
   });
 });
+
+describe("SandboxSchema", () => {
+  it("is undefined by default when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.sandbox).toBeUndefined();
+  });
+
+  it("parses sandbox with defaults", () => {
+    const result = TomeConfigSchema.parse({ sandbox: { enabled: true } });
+    expect(result.sandbox?.enabled).toBe(true);
+    expect(result.sandbox?.allowedExpressions).toEqual([]);
+  });
+
+  it("accepts custom allowedExpressions", () => {
+    const result = TomeConfigSchema.parse({
+      sandbox: { enabled: true, allowedExpressions: ["console", "Math"] },
+    });
+    expect(result.sandbox?.enabled).toBe(true);
+    expect(result.sandbox?.allowedExpressions).toEqual(["console", "Math"]);
+  });
+});
+
+describe("RedirectSchema", () => {
+  it("defaults redirects to empty array", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.redirects).toEqual([]);
+  });
+
+  it("accepts valid redirect entries", () => {
+    const result = TomeConfigSchema.parse({
+      redirects: [
+        { from: "/old-page", to: "/new-page" },
+        { from: "/legacy/docs", to: "/docs" },
+      ],
+    });
+    expect(result.redirects).toHaveLength(2);
+    expect(result.redirects[0].from).toBe("/old-page");
+    expect(result.redirects[0].to).toBe("/new-page");
+  });
+
+  it("rejects redirect missing required fields", () => {
+    expect(() => TomeConfigSchema.parse({
+      redirects: [{ from: "/old" }],
+    })).toThrow();
+  });
+
+  it("rejects redirect with extra fields (strict mode)", () => {
+    expect(() => TomeConfigSchema.parse({
+      redirects: [{ from: "/old", to: "/new", status: 302 }],
+    })).toThrow();
+  });
+});

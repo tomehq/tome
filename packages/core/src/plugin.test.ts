@@ -422,3 +422,135 @@ describe("generateBundle — llms.txt", () => {
     expect(llmsTxt.source).not.toContain("Secret Page");
   });
 });
+
+// ── CSP META TAG (SANDBOX) ──────────────────────────────
+
+describe("sandbox CSP meta tag", () => {
+  beforeEach(() => {
+    setupPluginEnv();
+  });
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("injects CSP meta tag when sandbox is enabled", async () => {
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test", sandbox: { enabled: true } };`
+    );
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const html = '<html><head><title>Test</title></head><body></body></html>';
+    const result = (corePlugin.transformIndexHtml as Function)(html);
+    expect(result).toContain('Content-Security-Policy');
+    expect(result).toContain("default-src 'self'");
+    expect(result).toContain("connect-src");
+  });
+
+  it("does NOT inject CSP when sandbox is disabled", async () => {
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test" };`
+    );
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const html = '<html><head><title>Test</title></head><body></body></html>';
+    const result = (corePlugin.transformIndexHtml as Function)(html);
+    expect(result).not.toContain('Content-Security-Policy');
+  });
+
+  it("includes AI provider endpoint in CSP when AI is enabled", async () => {
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test", sandbox: { enabled: true }, ai: { enabled: true, provider: "openai" } };`
+    );
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const html = '<html><head><title>Test</title></head><body></body></html>';
+    const result = (corePlugin.transformIndexHtml as Function)(html);
+    expect(result).toContain('api.openai.com');
+  });
+});
+
+describe("redirect handling", () => {
+  beforeEach(() => {
+    setupPluginEnv();
+  });
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("generateBundle emits _redirects file when config has redirects", async () => {
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test", redirects: [{ from: "/old", to: "/new" }] };`
+    );
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emittedFiles: Array<{ fileName: string; source: string }> = [];
+    const ctx = { emitFile: (f: any) => emittedFiles.push(f) };
+    await (corePlugin.generateBundle as Function).call(ctx);
+
+    const redirectsFile = emittedFiles.find((f) => f.fileName === "_redirects");
+    expect(redirectsFile).toBeDefined();
+    expect(redirectsFile!.source).toContain("/old  /new  301");
+  });
+
+  it("generateBundle emits meta-refresh HTML for redirect sources", async () => {
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test", redirects: [{ from: "/old-page", to: "/new-page" }] };`
+    );
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emittedFiles: Array<{ fileName: string; source: string }> = [];
+    const ctx = { emitFile: (f: any) => emittedFiles.push(f) };
+    await (corePlugin.generateBundle as Function).call(ctx);
+
+    const htmlFile = emittedFiles.find((f) => f.fileName === "old-page.html");
+    expect(htmlFile).toBeDefined();
+    expect(htmlFile!.source).toContain('url=/new-page');
+  });
+
+  it("does not emit _redirects when no redirects configured", async () => {
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emittedFiles: Array<{ fileName: string; source: string }> = [];
+    const ctx = { emitFile: (f: any) => emittedFiles.push(f) };
+    await (corePlugin.generateBundle as Function).call(ctx);
+
+    const redirectsFile = emittedFiles.find((f) => f.fileName === "_redirects");
+    expect(redirectsFile).toBeUndefined();
+  });
+
+  it("collects frontmatter redirect_from into _redirects file", async () => {
+    writeFileSync(
+      join(tmpDir, "pages", "intro.md"),
+      `---\ntitle: Introduction\nredirect_from:\n  - /old-intro\n  - /legacy/intro\n---\n\n# Introduction\n\nHello world.`
+    );
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emittedFiles: Array<{ fileName: string; source: string }> = [];
+    const ctx = { emitFile: (f: any) => emittedFiles.push(f) };
+    await (corePlugin.generateBundle as Function).call(ctx);
+
+    const redirectsFile = emittedFiles.find((f) => f.fileName === "_redirects");
+    expect(redirectsFile).toBeDefined();
+    expect(redirectsFile!.source).toContain("/old-intro");
+    expect(redirectsFile!.source).toContain("/legacy/intro");
+  });
+});

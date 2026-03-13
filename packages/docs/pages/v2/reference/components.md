@@ -1,0 +1,135 @@
+---
+title: Components
+description: Reference for all built-in MDX components — Callout, Tabs, Card, Steps, Accordion, and more.
+icon: puzzle
+---
+
+Tome includes built-in components available in any `.mdx` file without imports.
+
+## Callout
+
+Draw attention to important information.
+
+```mdx
+<Callout type="info" title="Note">
+  This is an informational callout.
+</Callout>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `"info" \| "tip" \| "warning" \| "danger"` | `"info"` | Visual style and icon |
+| `title` | `string` | — | Optional heading text |
+
+Types: `info` (blue), `tip` (green), `warning` (amber), `danger` (red).
+
+---
+
+## Tabs
+
+Present content variants — useful for multiple languages or platform-specific instructions.
+
+```mdx
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <div>npm install @tomehq/cli</div>
+  <div>yarn add @tomehq/cli</div>
+  <div>pnpm add @tomehq/cli</div>
+</Tabs>
+```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `items` | `string[]` | Tab labels (required) |
+
+Each child `<div>` maps to a tab in order.
+
+---
+
+## Card
+
+A linked or static content card.
+
+```mdx
+<Card title="Getting Started" icon="rocket" href="/quickstart">
+  Set up your first project in minutes.
+</Card>
+```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `title` | `string` | Card heading (required) |
+| `icon` | `string` | Emoji or icon name |
+| `href` | `string` | Link URL (makes the card clickable) |
+
+---
+
+## CardGroup
+
+Arranges cards in a responsive grid.
+
+```mdx
+<CardGroup cols={3}>
+  <Card title="Install">Step 1</Card>
+  <Card title="Configure">Step 2</Card>
+  <Card title="Deploy">Step 3</Card>
+</CardGroup>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `cols` | `number` | `2` | Number of columns |
+
+---
+
+## Steps
+
+Sequential instructions with numbered indicators.
+
+```mdx
+<Steps>
+  <div>
+    **Create a project**
+    Run `tome init my-docs`.
+  </div>
+  <div>
+    **Install dependencies**
+    Run `npm install`.
+  </div>
+</Steps>
+```
+
+Each child `<div>` becomes a numbered step. Use bold text on the first line for the step title.
+
+---
+
+## Accordion
+
+Collapsible content sections for FAQs or optional details.
+
+```mdx
+<Accordion title="How do I deploy?">
+  Run `tome build` then upload the `out/` directory.
+</Accordion>
+```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `title` | `string` | Clickable header text (required) |
+
+---
+
+## API components
+
+When an OpenAPI spec is configured, additional components are auto-generated:
+
+- **ApiEndpoint** — Renders an API endpoint with parameters and responses
+- **ApiPlayground** — Interactive request builder
+- **ApiResponse** — Formatted response viewer
+
+See the [API reference guide](/docs/guides/api-reference) for setup.
+
+---
+
+## `.md` vs `.mdx`
+
+Components are only available in `.mdx` files. Rename `.md` to `.mdx` to use them — no other changes needed.

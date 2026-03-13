@@ -1,0 +1,108 @@
+---
+title: Theme Presets
+description: Detailed reference for Tome's built-in theme presets — color tokens, CSS variables, and font stacks.
+icon: swatches
+---
+
+Tome ships with two theme presets. Each defines color tokens for dark and light modes plus font families.
+
+## Amber
+
+The default preset. Warm, approachable tones with a golden accent.
+
+### Dark mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#1a1a1a` | Page background |
+| `--sf` | `#242424` | Surface (cards, sidebar) |
+| `--sfH` | `#2e2e2e` | Surface hover |
+| `--bd` | `#333333` | Border |
+| `--tx` | `#e5e5e5` | Primary text |
+| `--tx2` | `#999999` | Secondary text |
+| `--txM` | `#666666` | Muted text |
+| `--ac` | `#e8a845` | Accent |
+| `--acD` | `#d4922e` | Accent dark |
+| `--acT` | `#2a2318` | Accent tint |
+
+### Light mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#fafaf9` | Page background |
+| `--sf` | `#f5f5f4` | Surface |
+| `--sfH` | `#e7e5e4` | Surface hover |
+| `--bd` | `#d6d3d1` | Border |
+| `--tx` | `#1c1917` | Primary text |
+| `--tx2` | `#57534e` | Secondary text |
+| `--txM` | `#a8a29e` | Muted text |
+| `--ac` | `#d97706` | Accent |
+| `--acD` | `#b45309` | Accent dark |
+| `--acT` | `#fef3c7` | Accent tint |
+
+### Fonts
+
+| Variable | Value |
+|----------|-------|
+| `--font-heading` | `'Instrument Serif', serif` |
+| `--font-body` | `'DM Sans', sans-serif` |
+| `--font-code` | `'JetBrains Mono', monospace` |
+
+---
+
+## Editorial
+
+A refined, high-contrast preset inspired by Swiss poster design.
+
+### Dark mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#0f0f0f` | Page background |
+| `--sf` | `#1a1a1a` | Surface |
+| `--sfH` | `#252525` | Surface hover |
+| `--bd` | `#2a2a2a` | Border |
+| `--tx` | `#f0f0f0` | Primary text |
+| `--tx2` | `#888888` | Secondary text |
+| `--txM` | `#555555` | Muted text |
+| `--ac` | `#ff6b4a` | Accent (coral) |
+| `--acD` | `#e85a3a` | Accent dark |
+| `--acT` | `#1f1512` | Accent tint |
+
+### Light mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#faf9f7` | Page background |
+| `--sf` | `#f2f0ed` | Surface |
+| `--sfH` | `#e8e5e1` | Surface hover |
+| `--bd` | `#d8d4cf` | Border |
+| `--tx` | `#1a1a1a` | Primary text |
+| `--tx2` | `#6b6560` | Secondary text |
+| `--txM` | `#a09890` | Muted text |
+| `--ac` | `#e85a3a` | Accent (coral) |
+| `--acD` | `#d04a2a` | Accent dark |
+| `--acT` | `#fef0ec` | Accent tint |
+
+### Fonts
+
+| Variable | Value |
+|----------|-------|
+| `--font-heading` | `'Cormorant Garamond', serif` |
+| `--font-body` | `'Bricolage Grotesque', sans-serif` |
+| `--font-code` | `'Fira Code', monospace` |
+
+---
+
+## Additional variables
+
+Both presets also define:
+
+| Variable | Description |
+|----------|-------------|
+| `--cdBg` | Code block background |
+| `--cdTx` | Code block text |
+| `--sbBg` | Sidebar background |
+| `--hdBg` | Header background |
+
+Override any variable in custom CSS to fine-tune the theme.

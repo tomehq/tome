@@ -287,6 +287,29 @@ describe("checkLinks", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("strips basePath from links before resolving", async () => {
+    const { readFileSync } = await import("fs");
+    const routes: PageRoute[] = [
+      makeRoute("index", "index.md", ""),
+      makeRoute("reference/config", "reference/config.md", ""),
+    ];
+
+    const configWithBase: TomeConfig = {
+      ...mockConfig,
+      basePath: "/docs/",
+    } as TomeConfig;
+
+    (readFileSync as any)
+      .mockReturnValueOnce("---\ntitle: Index\n---\nContent")
+      .mockReturnValueOnce("---\ntitle: Config\n---\nContent")
+      .mockReturnValueOnce("---\ntitle: Index\n---\nSee [config](/docs/reference/config)")
+      .mockReturnValueOnce("---\ntitle: Config\n---\nContent");
+
+    const result = checkLinks(routes, configWithBase);
+    expect(result.ok).toBe(true);
+    expect(result.broken).toHaveLength(0);
+  });
+
   it("counts total links checked", async () => {
     const { readFileSync } = await import("fs");
     const routes: PageRoute[] = [

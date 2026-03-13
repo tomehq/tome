@@ -160,7 +160,7 @@ This guide walks you through setting up a Tome documentation site from scratch, 
 
 Before you begin, make sure you have:
 
-- **Node.js 18** or later installed ([download](https://nodejs.org))
+- **Node.js 20** or later installed ([download](https://nodejs.org))
 - A package manager: \`npm\`, \`yarn\`, or \`pnpm\`
 - A terminal and a code editor
 
@@ -450,6 +450,46 @@ Accordions let you hide content behind a collapsible header — useful for FAQs,
       `// Bootstraps the Tome documentation shell.\n// Configure your site in tome.config.js instead.\nimport "@tomehq/theme/entry";\n`
     );
 
+    // Write GitHub Actions deploy workflow
+    mkdirSync(join(targetDir, ".github", "workflows"), { recursive: true });
+    writeFileSync(
+      join(targetDir, ".github", "workflows", "deploy.yml"),
+      `name: Deploy Docs
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Preview deploy on PRs
+      - name: Deploy Preview
+        if: github.event_name == 'pull_request'
+        run: npx tome deploy --preview
+        env:
+          TOME_TOKEN: \${{ secrets.TOME_TOKEN }}
+
+      # Production deploy on push to main
+      - name: Deploy
+        if: github.event_name == 'push'
+        run: npx tome deploy
+        env:
+          TOME_TOKEN: \${{ secrets.TOME_TOKEN }}
+`
+    );
+
     // Write .gitignore
     writeFileSync(
       join(targetDir, ".gitignore"),
@@ -570,15 +610,21 @@ program
       console.log(`\n  ${pc.green("✓")} Built in ${pc.bold(elapsed + "s")}`);
       console.log(`  ${pc.dim("Output:")} ${pc.cyan(resolve(root, opts.outDir))}\n`);
 
-      // Run Pagefind to build search index
+      // Run Pagefind to build search index (suppress noisy output, show summary only)
       try {
         const { execSync } = await import("child_process");
         const outDirAbs = resolve(root, opts.outDir);
-        execSync(`npx pagefind --site ${outDirAbs} --output-subdir _pagefind`, {
-          stdio: "inherit",
+        const pagefindOut = execSync(`npx pagefind --site ${outDirAbs} --output-subdir _pagefind 2>&1`, {
+          stdio: "pipe",
           cwd: root,
+          encoding: "utf-8",
         });
-        console.log(pc.green("  ✓ Search index built\n"));
+        // Check if indexing was meaningful
+        if (pagefindOut && pagefindOut.includes("Indexed 0 pages")) {
+          console.log(pc.yellow("  ⚠ Search index skipped (no indexable pages found)\n"));
+        } else {
+          console.log(pc.green("  ✓ Search index built\n"));
+        }
       } catch {
         console.log(pc.yellow("  ⚠ Search index skipped (pagefind not available)\n"));
       }
@@ -600,7 +646,7 @@ program
         const { loadConfig, discoverPages, checkLinks, formatLinkCheckResults } = await import("@tomehq/core");
         const cfg = await loadConfig(root);
         const pagesDir = resolve(root, "pages");
-        const discoveredRoutes = await discoverPages(pagesDir);
+        const discoveredRoutes = await discoverPages(pagesDir, cfg.versioning ?? undefined, cfg.i18n ?? undefined);
         const result = checkLinks(discoveredRoutes, cfg);
 
         if (result.ok) {
@@ -1174,6 +1220,91 @@ program
       }
     } catch (err) {
       console.error(pc.red("\n  Failed to remove domain:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+// ── MIGRATE ─────────────────────────────────────────────
+const migrate = program
+  .command("migrate")
+  .description("Migrate from another documentation platform");
+
+migrate
+  .command("gitbook <source-dir>")
+  .description("Migrate a GitBook project to Tome")
+  .option("--out <dir>", "Output directory", ".")
+  .option("--dry-run", "Preview migration without writing files")
+  .action(async (sourceDir: string, opts: { out: string; dryRun?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Migrating from GitBook...\n"));
+
+    try {
+      const { migrateFromGitbook } = await import("@tomehq/core/migrate-gitbook");
+      const resolvedSource = resolve(process.cwd(), sourceDir);
+      const resolvedOut = resolve(process.cwd(), opts.out);
+
+      const result = await migrateFromGitbook(resolvedSource, resolvedOut, {
+        dryRun: opts.dryRun,
+      });
+
+      if (opts.dryRun) {
+        console.log(pc.yellow("  Dry run — no files written.\n"));
+      }
+
+      console.log(pc.green("  ✓ ") + `Migrated ${pc.bold(String(result.pages))} pages`);
+      if (result.redirects > 0) {
+        console.log(pc.green("  ✓ ") + `${result.redirects} redirects preserved`);
+      }
+      if (result.warnings.length > 0) {
+        console.log(pc.yellow(`\n  ⚠ ${result.warnings.length} warning(s):`));
+        for (const w of result.warnings) {
+          console.log(pc.dim(`    - ${w}`));
+        }
+      }
+      console.log();
+    } catch (err) {
+      console.error(pc.red("\n  Migration failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+migrate
+  .command("mintlify <source-dir>")
+  .description("Migrate a Mintlify project to Tome")
+  .option("--out <dir>", "Output directory", ".")
+  .option("--dry-run", "Preview migration without writing files")
+  .action(async (sourceDir: string, opts: { out: string; dryRun?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Migrating from Mintlify...\n"));
+
+    try {
+      const { migrateFromMintlify } = await import("@tomehq/core/migrate-mintlify");
+      const resolvedSource = resolve(process.cwd(), sourceDir);
+      const resolvedOut = resolve(process.cwd(), opts.out);
+
+      const result = await migrateFromMintlify(resolvedSource, resolvedOut, {
+        dryRun: opts.dryRun,
+      });
+
+      if (opts.dryRun) {
+        console.log(pc.yellow("  Dry run — no files written.\n"));
+      }
+
+      console.log(pc.green("  ✓ ") + `Migrated ${pc.bold(String(result.pages))} pages`);
+      if (result.redirects > 0) {
+        console.log(pc.green("  ✓ ") + `${result.redirects} redirects preserved`);
+      }
+      if (result.warnings.length > 0) {
+        console.log(pc.yellow(`\n  ⚠ ${result.warnings.length} warning(s):`));
+        for (const w of result.warnings) {
+          console.log(pc.dim(`    - ${w}`));
+        }
+      }
+      console.log();
+    } catch (err) {
+      console.error(pc.red("\n  Migration failed:\n"));
       console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
       process.exit(1);
     }

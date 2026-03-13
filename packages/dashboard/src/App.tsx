@@ -289,6 +289,26 @@ const CSS = `
   border:6px solid transparent;border-top-color:var(--bd);
 }
 .upgrade-wrap:hover .upgrade-tooltip{display:block}
+
+/* ── Responsive ────────────────────────────────── */
+@media (max-width: 767px) {
+  .dash-header { padding: 0 16px !important; }
+  .dash-header-left { gap: 16px !important; }
+  .dash-header-right .nav-link-external { display: none !important; }
+  .dash-header-right .dash-separator { display: none !important; }
+  .dash-header-right .dash-user-name { display: none !important; }
+  .dash-main { padding: 24px 16px !important; }
+  .step-buttons { flex-wrap: wrap !important; }
+  .step-buttons button { flex: 1 1 45% !important; min-width: 0 !important; }
+  .table-header, .table-row { font-size: 11px !important; }
+  .deploy-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .token-box { flex-wrap: wrap; }
+  .section-title { font-size: 20px !important; }
+}
+
+@media (max-width: 480px) {
+  .step-buttons button { flex: 1 1 100% !important; }
+}
 `;
 
 // ── Utilities ──────────────────────────────────────────────
@@ -467,12 +487,12 @@ function Shell({
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      <header style={{
+      <header className="dash-header" style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px", height: 56, borderBottom: "1px solid var(--bd)",
         background: "var(--sf)", position: "sticky", top: 0, zIndex: 100,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+        <div className="dash-header-left" style={{ display: "flex", alignItems: "center", gap: 32 }}>
           <a href={`${BASE}/`} onClick={(e) => { e.preventDefault(); navigate("/"); }} style={{ textDecoration: "none" }}>
             <span style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic", fontSize: 22, color: "var(--tx)", fontWeight: 300 }}>
               Tome<span style={{ color: "var(--coral)" }}>.</span>
@@ -484,14 +504,14 @@ function Shell({
             <a className="nav-link" href={`${BASE}/settings`} onClick={(e) => { e.preventDefault(); navigate("/settings"); }} data-active={page === "settings"}>Settings</a>
           </nav>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <a href="/docs/" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="dash-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <a href="/docs/" className="nav-link nav-link-external" style={{ display: "flex", alignItems: "center", gap: 4 }}>
             Docs <ExternalLinkIcon />
           </a>
-          <a href="/" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <a href="/" className="nav-link nav-link-external" style={{ display: "flex", alignItems: "center", gap: 4 }}>
             Home <ExternalLinkIcon />
           </a>
-          <span style={{ width: 1, height: 20, background: "var(--bd)" }} />
+          <span className="dash-separator" style={{ width: 1, height: 20, background: "var(--bd)" }} />
           <a href={`${BASE}/settings`} onClick={(e) => { e.preventDefault(); navigate("/settings"); }} style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             {user.avatarUrl ? (
               <img
@@ -508,7 +528,7 @@ function Shell({
                 {(user.name || user.email).charAt(0).toUpperCase()}
               </div>
             )}
-            <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
+            <span className="dash-user-name" style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
               {user.name || user.email}
             </span>
           </a>
@@ -521,7 +541,7 @@ function Shell({
           </button>
         </div>
       </header>
-      <main style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px" }}>
+      <main className="dash-main" style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px" }}>
         {children}
       </main>
     </div>
@@ -566,7 +586,7 @@ function GettingStartedCard() {
       </p>
 
       {/* Step indicators */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+      <div className="step-buttons" style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         {steps.map((s, i) => (
           <button
             key={i}
@@ -823,7 +843,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
         {deployments.length === 0 ? (
           <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)" }}>No deployments yet.</p>
         ) : (
-          <div>
+          <div className="deploy-table-wrap">
             <div className="table-header" style={{ gridTemplateColumns: gridCols }}>
               <span>ID</span><span>Status</span><span>Files</span><span>Size</span><span>Created</span><span></span>
             </div>

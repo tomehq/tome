@@ -32,6 +32,9 @@ function defaultConfigDir(): string {
  * Read auth token from ~/.tome/config (or a custom configDir for testing)
  */
 export function readAuthToken(configDir?: string): string | null {
+  // CI/CD: check TOME_TOKEN env var first (for GitHub Actions, GitLab CI, etc.)
+  if (process.env.TOME_TOKEN) return process.env.TOME_TOKEN;
+
   try {
     const dir = configDir ?? defaultConfigDir();
     const configFile = join(dir, "config");

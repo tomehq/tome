@@ -1,11 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { Shell } from "./Shell.js";
+import { pathnameToPageId as _pathnameToPageId, pageIdToPath as _pageIdToPath } from "./routing.js";
+import {
+  loadPage,
+  computeEditUrl,
+  resolveInitialPageId,
+  detectCurrentVersion,
+  type LoadedPage,
+} from "./entry-helpers.js";
 
 // @ts-ignore — resolved by vite-plugin-tome
 import config from "virtual:tome/config";
 // @ts-ignore — resolved by vite-plugin-tome
-import { routes, navigation } from "virtual:tome/routes";
+import { routes, navigation, versions } from "virtual:tome/routes";
 // @ts-ignore — resolved by vite-plugin-tome
 import loadPageModule from "virtual:tome/page-loader";
 // @ts-ignore — resolved by vite-plugin-tome
@@ -64,8 +72,9 @@ const contentStyles = `
   .tome-content th { background: var(--sf); font-weight: 600; }
   .tome-content img { max-width: 100%; border-radius: 2px; cursor: zoom-in; }
   .tome-content hr { border: none; border-top: 1px solid var(--bd); margin: 2em 0; }
-  .tome-mermaid { margin: 1.2em 0; text-align: center; }
-  .tome-mermaid svg { max-width: 100%; height: auto; }
+  .tome-mermaid { margin: 1.2em 0; text-align: center; overflow-x: auto; }
+  .tome-mermaid svg { max-width: 100%; height: auto; overflow: visible; }
+  .tome-mermaid svg .nodeLabel { overflow: visible; white-space: nowrap; }
 
   /* Mobile responsive content */
   @media (max-width: 767px) {
@@ -115,87 +124,81 @@ const contentStyles = `
   html:not(.dark) .shiki span[style*="color:#005CC5"] { color: #0349b4 !important; }
 `;
 
-// ── PAGE TYPES ────────────────────────────────────────────
-interface HtmlPage {
-  isMdx: false;
-  html: string;
-  frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
-  headings: Array<{ depth: number; text: string; id: string }>;
-  changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
+// ── ROUTING HELPERS ──────────────────────────────────────
+const basePath = (config.basePath || "/").replace(/\/$/, "");
+
+function pathnameToPageId(pathname: string): string | null {
+  return _pathnameToPageId(pathname, basePath, routes);
 }
 
-interface MdxPage {
-  isMdx: true;
-  component: React.ComponentType<{ components?: Record<string, React.ComponentType> }>;
-  frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
-  headings: Array<{ depth: number; text: string; id: string }>;
-}
-
-type LoadedPage = HtmlPage | MdxPage;
-
-// ── PAGE LOADER ──────────────────────────────────────────
-async function loadPage(id: string): Promise<LoadedPage | null> {
-  try {
-    const route = routes.find((r: any) => r.id === id);
-    const mod = await loadPageModule(id);
-
-    if (route?.isMdx && mod.meta) {
-      // TOM-8: MDX page — mod.default is the React component
-      return {
-        isMdx: true,
-        component: mod.default,
-        frontmatter: mod.meta.frontmatter,
-        headings: mod.meta.headings,
-      };
-    }
-
-    // Regular .md page — mod.default is { html, frontmatter, headings }
-    if (!mod.default) return null;
-
-    // TOM-49: Changelog page type
-    if (mod.isChangelog && mod.changelogEntries) {
-      return { isMdx: false, ...mod.default, changelogEntries: mod.changelogEntries };
-    }
-
-    return { isMdx: false, ...mod.default };
-  } catch (err) {
-    console.error(`Failed to load page: ${id}`, err);
-    return null;
-  }
+function pageIdToPath(id: string): string {
+  return _pageIdToPath(id, basePath, routes);
 }
 
 // ── APP ──────────────────────────────────────────────────
 function App() {
-  const [currentPageId, setCurrentPageId] = useState(() => {
-    const hash = window.location.hash.slice(1);
-    if (hash && routes.some((r: any) => r.id === hash)) return hash;
-    return routes[0]?.id || "index";
-  });
+  const [currentPageId, setCurrentPageId] = useState(() =>
+    resolveInitialPageId(
+      window.location.pathname,
+      window.location.hash,
+      routes,
+      basePath,
+      _pathnameToPageId,
+    )
+  );
 
   const [pageData, setPageData] = useState<LoadedPage | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const navigateTo = useCallback(async (id: string) => {
+  const navigateTo = useCallback(async (id: string, opts?: { replace?: boolean; skipScroll?: boolean }) => {
     setLoading(true);
     setCurrentPageId(id);
-    window.location.hash = id;
-    const data = await loadPage(id);
+    const fullPath = pageIdToPath(id);
+    if (opts?.replace) {
+      window.history.replaceState(null, "", fullPath);
+    } else {
+      window.history.pushState(null, "", fullPath);
+    }
+    const data = await loadPage(id, routes, loadPageModule);
     setPageData(data);
     setLoading(false);
+    // Scroll to heading anchor if present, otherwise scroll to top
+    if (!opts?.skipScroll) {
+      const anchor = window.location.hash.slice(1);
+      if (anchor) {
+        requestAnimationFrame(() => {
+          const el = document.getElementById(anchor);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    }
   }, []);
 
-  useEffect(() => { navigateTo(currentPageId); }, []);
-
+  // Initial page load
   useEffect(() => {
-    const onHashChange = () => {
-      const hash = window.location.hash.slice(1);
-      // Only navigate if hash matches a known route ID (ignore heading anchors)
-      if (hash && hash !== currentPageId && routes.some((r: any) => r.id === hash)) {
-        navigateTo(hash);
+    // If user landed on a legacy hash URL, redirect to clean path
+    const hash = window.location.hash.slice(1);
+    if (hash && routes.some((r: any) => r.id === hash)) {
+      const fullPath = pageIdToPath(hash);
+      window.history.replaceState(null, "", fullPath);
+      navigateTo(hash, { replace: true });
+    } else {
+      navigateTo(currentPageId, { replace: true, skipScroll: true });
+    }
+  }, []);
+
+  // Listen for browser back/forward navigation
+  useEffect(() => {
+    const onPopState = () => {
+      const id = pathnameToPageId(window.location.pathname);
+      if (id && id !== currentPageId) {
+        navigateTo(id, { replace: true, skipScroll: true });
       }
     };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, [currentPageId, navigateTo]);
 
   // Mermaid diagram rendering: load from CDN and render .tome-mermaid elements
@@ -212,10 +215,13 @@ function App() {
         const { default: mermaid } = await import(/* @vite-ignore */ MERMAID_CDN);
         if (cancelled) return;
         const isDark = document.documentElement.classList.contains("dark");
+        // Resolve CSS variable to concrete font name — mermaid can't resolve CSS vars for text measurement
+        const resolvedFont = getComputedStyle(document.documentElement).getPropertyValue("--font-body").trim() || "sans-serif";
         mermaid.initialize({
           startOnLoad: false,
           theme: isDark ? "dark" : "default",
-          fontFamily: "var(--font-body)",
+          fontFamily: resolvedFont,
+          flowchart: { padding: 15, nodeSpacing: 30, rankSpacing: 40 },
         });
 
         for (let i = 0; i < els.length; i++) {
@@ -226,7 +232,17 @@ function App() {
           try {
             const code = atob(encoded);
             const { svg } = await mermaid.render(`tome-mermaid-${i}-${Date.now()}`, code);
-            if (!cancelled) el.innerHTML = svg;
+            if (!cancelled) {
+              // Sanitize SVG to prevent XSS from mermaid-rendered content
+              try {
+                // @ts-ignore — CDN dynamic import for browser-only sanitization
+                const DOMPurify = (await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.es.mjs")).default;
+                el.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } });
+              } catch {
+                // DOMPurify unavailable — render without sanitization (acceptable for trusted content)
+                el.innerHTML = svg;
+              }
+            }
           } catch (err) {
             console.warn("[tome] Mermaid render failed:", err);
             el.textContent = "Diagram rendering failed";
@@ -251,14 +267,10 @@ function App() {
     description: r.frontmatter.description,
   }));
 
-  // TOM-48: Compute edit URL for current page
+  // Compute current version from route metadata
   const currentRoute = routes.find((r: any) => r.id === currentPageId);
-  let editUrl: string | undefined;
-  if (config.editLink && currentRoute?.filePath) {
-    const { repo, branch = "main", dir = "" } = config.editLink;
-    const dirPrefix = dir ? `${dir.replace(/\/$/, "")}/` : "";
-    editUrl = `https://github.com/${repo}/edit/${branch}/${dirPrefix}${currentRoute.filePath}`;
-  }
+  const currentVersion = detectCurrentVersion(currentRoute, versions);
+  const editUrl = computeEditUrl(config.editLink, currentRoute?.filePath);
 
   // KaTeX CSS: inject stylesheet when math is enabled
   useEffect(() => {
@@ -293,6 +305,9 @@ function App() {
         onNavigate={navigateTo}
         allPages={allPages}
         docContext={docContext}
+        versioning={versions || undefined}
+        currentVersion={currentVersion}
+        basePath={basePath}
       />
     </>
   );

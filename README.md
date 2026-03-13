@@ -49,8 +49,12 @@ That's it. Open [localhost:3000](http://localhost:3000) to see your docs.
 - **Versioning** — Multi-version docs with version switcher
 - **Analytics** — Privacy-first, no cookies, <1KB script
 - **Custom domains** — Full DNS management with SSL
+- **CI/CD auto-deploy** — Scaffolded GitHub Actions workflow, preview deploys on PRs
+- **Migrate from GitBook / Mintlify** — One-command migration with syntax conversion
+- **Redirects** — Config-level and per-page frontmatter redirects
 - **Preview deployments** — Branch-based preview URLs for PR review
 - **Webhooks** — Slack, Discord, and HTTP notifications for deploy events
+- **MDX sandbox** — Build-time AST analysis blocks dangerous JS patterns in MDX
 - **OG images** — Auto-generated social preview cards at build time
 - **Content linting** — Validate heading structure, alt text, paragraph length, and more
 - **Broken link checker** — Catch dead internal links during build
@@ -61,19 +65,21 @@ That's it. Open [localhost:3000](http://localhost:3000) to see your docs.
 ## CLI
 
 ```
-tome init [name]        Scaffold a new docs project
-tome dev                Start the dev server
-tome build              Build static site for production
-tome deploy             Deploy to Tome Cloud
-tome deploy --preview   Deploy a branch preview
-tome lint               Lint content for common issues
-tome login              Authenticate with Tome Cloud
-tome mcp                Start MCP server for AI tools
-tome algolia:init       Generate Algolia DocSearch config
-tome domains:add        Add a custom domain
-tome domains:remove     Remove a custom domain
-tome domains:list       List configured domains
-tome domains:check      Check DNS status
+tome init [name]              Scaffold a new docs project (includes CI/CD workflow)
+tome dev                      Start the dev server
+tome build                    Build static site for production
+tome deploy                   Deploy to Tome Cloud
+tome deploy --preview         Deploy a branch preview
+tome migrate gitbook <dir>    Migrate from GitBook
+tome migrate mintlify <dir>   Migrate from Mintlify
+tome lint                     Lint content for common issues
+tome login                    Authenticate with Tome Cloud
+tome mcp                      Start MCP server for AI tools
+tome algolia:init             Generate Algolia DocSearch config
+tome domains:add              Add a custom domain
+tome domains:remove           Remove a custom domain
+tome domains:list             List configured domains
+tome domains:check            Check DNS status
 ```
 
 ## Configuration
@@ -88,6 +94,9 @@ export default defineConfig({
   theme: { preset: "amber" },
   search: { provider: "local" },
   // Optional
+  redirects: [
+    { from: "/old-page", to: "/new-page" },
+  ],
   webhooks: [
     { url: "https://hooks.slack.com/...", channel: "slack" },
   ],

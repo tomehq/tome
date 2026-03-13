@@ -1,0 +1,218 @@
+---
+title: CLI Reference
+description: Complete reference for every command and flag in the Tome CLI.
+icon: terminal
+---
+
+The `tome` CLI is the primary interface for creating, developing, building, and deploying documentation sites.
+
+## Installation
+
+```bash
+npm install -D @tomehq/cli
+# or globally
+npm install -g @tomehq/cli
+```
+
+## Commands
+
+### `tome init [name]`
+
+Create a new Tome documentation project.
+
+```bash
+tome init my-docs
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `name` | `my-docs` | Project directory name |
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-t, --template <name>` | `default` | Starter template |
+
+Creates `tome.config.js`, `package.json`, `index.html`, `.tome/entry.tsx`, starter pages in `pages/`, `public/` and `styles/` directories, and a `.github/workflows/deploy.yml` GitHub Actions workflow for automatic deploys.
+
+---
+
+### `tome dev`
+
+Start the development server with hot reloading.
+
+```bash
+tome dev
+tome dev -p 4000
+tome dev --host
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port <number>` | `3000` | Server port |
+| `--host` | `false` | Expose to network (bind `0.0.0.0`) |
+
+Watches `pages/` for file changes and reloads automatically. Config changes trigger a full reload.
+
+---
+
+### `tome build`
+
+Build the documentation site for production.
+
+```bash
+tome build
+tome build -o dist
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-o, --outDir <dir>` | `out` | Output directory |
+
+Produces a static site and runs Pagefind to build the search index.
+
+---
+
+### `tome deploy`
+
+Deploy the site to Tome Cloud. Requires `tome login` first.
+
+```bash
+tome deploy
+tome deploy --preview --branch feature/auth
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--preview` | `false` | Deploy as a preview (branch-based URL) |
+| `--branch <name>` | auto-detect | Git branch name for preview |
+| `--expires <days>` | `7` | Preview expiry in days |
+
+Builds, collects output files, and uploads using hash-based deduplication. With `--preview`, deploys to a branch-specific URL (e.g., `feature-auth.preview.my-docs.tome.center`) and injects a preview banner.
+
+---
+
+### `tome lint`
+
+Lint documentation content for common issues.
+
+```bash
+tome lint
+tome lint --strict
+tome lint --banned-words "simply,obviously"
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--max-paragraph <n>` | `300` | Max words per paragraph |
+| `--no-heading-increment` | — | Disable heading increment check |
+| `--no-image-alt` | — | Disable missing alt text check |
+| `--no-single-h1` | — | Disable single H1 check |
+| `--no-empty-links` | — | Disable empty link check |
+| `--banned-words <words>` | — | Comma-separated list of banned words |
+| `--strict` | `false` | Treat warnings as errors |
+
+Checks all pages for heading hierarchy issues, missing image alt text, overly long paragraphs, duplicate H1 tags, empty links, and banned words.
+
+---
+
+### `tome login`
+
+Authenticate with Tome Cloud.
+
+```bash
+tome login
+```
+
+Prompts for email and sends a magic link. Stores the API token locally.
+
+---
+
+### `tome domains:add <domain>`
+
+Add a custom domain. Returns DNS records to configure.
+
+```bash
+tome domains:add docs.example.com
+```
+
+### `tome domains:verify <domain>`
+
+Verify DNS configuration for a custom domain.
+
+```bash
+tome domains:verify docs.example.com
+```
+
+### `tome domains:list`
+
+List all custom domains for the current project.
+
+### `tome domains:remove <domain>`
+
+Remove a custom domain.
+
+---
+
+### `tome migrate gitbook <source-dir>`
+
+Migrate a GitBook documentation project to Tome.
+
+```bash
+tome migrate gitbook ./my-gitbook-docs
+tome migrate gitbook ./my-gitbook-docs --out ./converted
+tome migrate gitbook ./my-gitbook-docs --dry-run
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--out <dir>` | `.` (current directory) | Output directory for converted project |
+| `--dry-run` | `false` | Preview changes without writing files |
+
+Reads `SUMMARY.md` for navigation structure and `.gitbook.yaml` for configuration. Converts GitBook-specific syntax to Tome components:
+
+- `{% hint %}` blocks → `<Callout>` components
+- `{% tabs %}` blocks → `<Tabs>` / `<Tab>` components
+- `{% code title="..." %}` → fenced code blocks with titles
+- `{% embed %}` → plain links
+- Redirects from `.gitbook.yaml` → Tome `redirects` config
+
+Files are copied to `pages/` preserving directory structure. Files containing converted JSX components are renamed from `.md` to `.mdx`. Static assets are copied to `public/`.
+
+---
+
+### `tome migrate mintlify <source-dir>`
+
+Migrate a Mintlify documentation project to Tome.
+
+```bash
+tome migrate mintlify ./my-mintlify-docs
+tome migrate mintlify ./my-mintlify-docs --out ./converted
+tome migrate mintlify ./my-mintlify-docs --dry-run
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--out <dir>` | `.` (current directory) | Output directory for converted project |
+| `--dry-run` | `false` | Preview changes without writing files |
+
+Reads `mint.json` for configuration and navigation. Converts Mintlify-specific syntax to Tome components:
+
+- `<Note>`, `<Warning>`, `<Info>`, `<Tip>`, `<Check>` → `<Callout>` components
+- `<CodeGroup>` → `<Tabs>` wrapper
+- `<AccordionGroup>` → stripped (individual `<Accordion>` components kept)
+- `<Frame>` → stripped (content preserved)
+- `<Snippet file="..." />` → inlined file content
+
+Maps `mint.json` settings to `tome.config.js`: colors, logo, favicon, navigation, redirects, topbar links, and OpenAPI configuration.
+
+---
+
+### `tome algolia:init`
+
+Initialize an Algolia DocSearch index. Prompts for credentials and creates a crawler configuration.
+
+---
+
+### `tome mcp`
+
+Start the MCP (Model Context Protocol) stdio server for AI tool integration. Exposes documentation content as MCP resources and tools.

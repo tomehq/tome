@@ -160,6 +160,47 @@ describe("processMarkdown", () => {
     const result = await processMarkdown(source);
     expect(result.frontmatter.ogImage).toBeUndefined();
   }, 15000);
+
+  it("parses redirect_from as string array", async () => {
+    const source = "---\ntitle: New Page\nredirect_from:\n  - /old-path\n  - /legacy/path\n---\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.redirect_from).toEqual(["/old-path", "/legacy/path"]);
+  }, 15000);
+
+  it("defaults redirect_from to undefined when not set", async () => {
+    const source = "---\ntitle: Normal Page\n---\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.redirect_from).toBeUndefined();
+  }, 15000);
+});
+
+// ── Entity decoding in code blocks ──────────────────────
+
+describe("code block entity decoding", () => {
+  it("renders && correctly without double-encoding", async () => {
+    const source = "# T\n\n```bash\ncd my-docs && npm install && npm run dev\n```";
+    const result = await processMarkdown(source);
+    // The highlighted HTML should not contain raw &#x26; entities
+    expect(result.html).not.toContain("&#x26;&#x26;");
+    // The raw text should preserve &&
+    expect(result.raw).toContain("&&");
+  }, 15000);
+
+  it("renders <script> in code blocks as escaped text (no XSS)", async () => {
+    const source = "# T\n\n```html\n<script>alert('xss')</script>\n```";
+    const result = await processMarkdown(source);
+    // Should not contain an actual <script> tag outside of code context
+    expect(result.html).not.toMatch(/<script>alert/);
+  }, 15000);
+
+  it("decodes mixed named and hex entities in code blocks", async () => {
+    const source = "# T\n\n```js\nconst x = a && b;\nif (a < b && c > d) {}\n```";
+    const result = await processMarkdown(source);
+    // Should not contain raw hex entities
+    expect(result.html).not.toContain("&#x26;");
+    expect(result.html).not.toContain("&#x3C;");
+    expect(result.html).not.toContain("&#x3E;");
+  }, 15000);
 });
 
 // ── Plugin system (TOM-57) ──────────────────────────────

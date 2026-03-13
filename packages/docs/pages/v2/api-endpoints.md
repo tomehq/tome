@@ -1,0 +1,90 @@
+---
+title: Endpoints
+description: How Tome renders API endpoints from your OpenAPI spec — methods, parameters, schemas, and the interactive playground.
+icon: globe
+---
+
+Tome renders each API operation from your OpenAPI spec as a structured endpoint section with method badges, parameter tables, request/response schemas, and an optional interactive playground.
+
+## Endpoint layout
+
+Each endpoint displays:
+
+1. **Method badge** — Color-coded (GET, POST, PUT, DELETE, PATCH)
+2. **Path** — The endpoint URL with path parameters highlighted
+3. **Description** — From the operation's `summary` and `description` fields
+4. **Parameters** — Path, query, and header parameters in a table
+5. **Request body** — Schema rendered with types and descriptions
+6. **Responses** — Status codes with response schemas
+
+## Tag grouping
+
+Endpoints are organized by their OpenAPI tags. Each tag becomes a section heading:
+
+```yaml
+paths:
+  /users:
+    get:
+      tags: [Users]
+      summary: List all users
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+```
+
+This generates two groups: "Users" with two endpoints and "Projects" with one.
+
+## Parameter rendering
+
+Parameters are rendered in a table with type information:
+
+| Name | Type | In | Required | Description |
+|------|------|----|----------|-------------|
+| `id` | string | path | yes | The user ID |
+| `limit` | integer | query | no | Max results (default: 20) |
+| `offset` | integer | query | no | Pagination offset |
+
+## Schema display
+
+Request and response schemas are rendered recursively. Nested objects show their properties with types:
+
+```
+UserResponse {
+  id: string          — Unique identifier
+  name: string        — Display name
+  email: string       — Email address
+  created_at: string  — ISO 8601 timestamp
+  settings: {
+    theme: string     — "light" or "dark"
+    locale: string    — Language code
+  }
+}
+```
+
+Arrays, enums, and `oneOf`/`anyOf` unions are all supported.
+
+## Interactive playground
+
+When `playground.enabled` is true in your config, each endpoint gets a "Try it" section where users can:
+
+- Fill in path and query parameters
+- Edit the request body as JSON
+- Set authentication headers
+- Send the request and view the response
+
+```javascript
+api: {
+  spec: "./openapi.yaml",
+  playground: {
+    enabled: true,
+    baseUrl: "https://api.example.com",  // Override base URL
+  },
+},
+```
+
+The playground uses `fetch` directly from the browser. CORS must be enabled on your API for cross-origin requests.

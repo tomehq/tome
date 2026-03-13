@@ -1,0 +1,132 @@
+---
+title: Theming
+description: Customize the look of your Tome site — presets, colors, fonts, dark mode, and CSS variables.
+icon: palette
+---
+
+Tome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.
+
+## Presets
+
+### Amber (default)
+
+A warm, golden aesthetic with serif headings. Clean and approachable.
+
+```javascript
+theme: {
+  preset: "amber",
+}
+```
+
+### Editorial
+
+Swiss poster-inspired design with a brutalist edge. Coral accent color, grotesque typography.
+
+```javascript
+theme: {
+  preset: "editorial",
+}
+```
+
+## Custom accent color
+
+Override the default accent color with any hex value:
+
+```javascript
+theme: {
+  preset: "amber",
+  accent: "#2563eb",  // Blue accent
+}
+```
+
+Tome derives tint and dim variants automatically from your accent color.
+
+## Dark mode
+
+Control the color scheme:
+
+```javascript
+theme: {
+  mode: "auto",   // Follows system preference
+  // mode: "light",  // Always light
+  // mode: "dark",   // Always dark
+}
+```
+
+When set to `auto`, a theme toggle appears in the header.
+
+## Custom fonts
+
+Override any of the three font families:
+
+```javascript
+theme: {
+  fonts: {
+    heading: "Playfair Display",
+    body: "Inter",
+    code: "JetBrains Mono",
+  },
+}
+```
+
+Load your fonts via Google Fonts in `index.html` or self-host them.
+
+## Border radius
+
+Control the roundness of UI elements:
+
+```javascript
+theme: {
+  radius: 8,  // pixels, default varies by preset
+}
+```
+
+## CSS variables
+
+For fine-grained control, override CSS variables directly. Add a `<style>` block in your `index.html`:
+
+```html
+<style>
+  :root {
+    --ac: #2563eb;      /* Accent */
+    --acD: #dbeafe;     /* Accent dim */
+    --acT: #1e40af;     /* Accent dark */
+    --bg: #ffffff;      /* Background */
+    --sf: #f8f8f6;      /* Surface */
+    --sfH: #f0efe8;     /* Surface hover */
+    --tx: #1a1a1a;      /* Text primary */
+    --tx2: #666;        /* Text secondary */
+    --txM: #999;        /* Text muted */
+    --bd: #e5e5e0;      /* Border */
+    --cdBg: #f5f5f0;    /* Code background */
+    --cdTx: #333;       /* Code text */
+    --sbBg: #fafaf8;    /* Sidebar background */
+    --hdBg: #ffffff;    /* Header background */
+  }
+
+  html.dark {
+    --bg: #1a1a1a;
+    --sf: #222;
+    --tx: #e5e5e5;
+    /* ... dark mode overrides */
+  }
+</style>
+```
+
+### Variable reference
+
+| Variable | Purpose |
+|----------|---------|
+| `--ac` | Accent color (links, highlights) |
+| `--acD` | Accent dim (callout backgrounds) |
+| `--acT` | Accent dark (hover states) |
+| `--bg` | Page background |
+| `--sf` / `--sfH` | Surface and surface hover |
+| `--tx` / `--tx2` / `--txM` | Text primary, secondary, muted |
+| `--bd` | Borders |
+| `--cdBg` / `--cdTx` | Code block background and text |
+| `--sbBg` | Sidebar background |
+| `--hdBg` | Header background |
+| `--font-heading` | Heading font family |
+| `--font-body` | Body font family |
+| `--font-code` | Code font family |
