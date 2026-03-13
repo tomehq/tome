@@ -84,6 +84,12 @@ export const WebhookSchema = z.object({
   secret: z.string().optional(),
 });
 
+export const BannerSchema = z.object({
+  text: z.string(),
+  link: z.string().optional(),
+  dismissible: z.boolean().default(true),
+}).optional();
+
 export const TocSchema = z.object({
   enabled: z.boolean().default(true),
   depth: z.number().min(2).max(4).default(3),
@@ -110,7 +116,9 @@ export const TomeConfigSchema = z.object({
   i18n: I18nSchema,
   versioning: VersioningSchema,
   toc: TocSchema,
+  banner: BannerSchema,
   editLink: EditLinkSchema,
+  math: z.boolean().default(false),
   strictLinks: z.boolean().default(false),
   lastUpdated: z.boolean().default(true),
   plugins: z.object({

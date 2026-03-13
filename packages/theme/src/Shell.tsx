@@ -291,6 +291,7 @@ interface ShellProps {
     ai?: { enabled?: boolean; provider?: "openai" | "anthropic" | "custom"; model?: string; apiKeyEnv?: string };
     toc?: { enabled?: boolean; depth?: number };
     topNav?: Array<{ label: string; href: string }>;
+    banner?: { text: string; link?: string; dismissible?: boolean };
     [key: string]: unknown;
   };
   navigation: Array<{
@@ -336,6 +337,15 @@ export function Shell({
   const [searchOpen, setSearch] = useState(false);
   const [versionDropdownOpen, setVersionDropdown] = useState(false);
   const [localeDropdownOpen, setLocaleDropdown] = useState(false);
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({});
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    if (!config.banner?.text) return true;
+    try {
+      const hash = Array.from(config.banner.text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
+      return localStorage.getItem("tome-banner-dismissed") === hash;
+    } catch { return false; }
+  });
 
   // TOM-30: Determine if viewing an old version
   const isOldVersion = versioning && currentVersion && currentVersion !== versioning.current;
@@ -397,6 +407,28 @@ export function Shell({
   }, [mobile, sbOpen]);
 
   useEffect(() => { contentRef.current?.scrollTo(0, 0); }, [currentPageId]);
+
+  // ── Image zoom: delegate click on .tome-content img ──
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG" && target.closest(".tome-content")) {
+        setZoomSrc((target as HTMLImageElement).src);
+      }
+    };
+    el.addEventListener("click", handler);
+    return () => el.removeEventListener("click", handler);
+  }, []);
+
+  // ── Image zoom: Escape to dismiss ──
+  useEffect(() => {
+    if (!zoomSrc) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setZoomSrc(null); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [zoomSrc]);
 
   // ── TOC: Config-based depth filtering + frontmatter opt-out ──
   const tocConfig = config.toc;
@@ -500,6 +532,38 @@ export function Shell({
 
   return (
     <div className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", minHeight: "100vh" }}>
+      {/* Banner */}
+      {config.banner?.text && !bannerDismissed && (
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+          background: "var(--ac)", color: "#fff", padding: "8px 16px",
+          fontSize: 13, fontFamily: "var(--font-body)", fontWeight: 500, textAlign: "center",
+        }}>
+          {config.banner.link ? (
+            <a href={config.banner.link} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline" }}>
+              {config.banner.text}
+            </a>
+          ) : (
+            <span>{config.banner.text}</span>
+          )}
+          {config.banner.dismissible !== false && (
+            <button
+              onClick={() => {
+                setBannerDismissed(true);
+                try {
+                  const hash = Array.from(config.banner!.text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
+                  localStorage.setItem("tome-banner-dismissed", hash);
+                } catch {}
+              }}
+              aria-label="Dismiss banner"
+              style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, lineHeight: 1, padding: 0, opacity: 0.8 }}
+            >
+              &times;
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Search Modal (TOM-16: branch on provider) */}
       {searchOpen && config.search?.provider === "algolia" && config.search.appId && config.search.apiKey && config.search.indexName ? (
         <AlgoliaSearchModal
@@ -605,6 +669,7 @@ export function Shell({
           <header style={{
             display: "flex", alignItems: "center", gap: mobile ? 8 : 12, padding: mobile ? "8px 12px" : "10px 24px",
             borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
+            maxWidth: "100vw", overflow: "hidden",
           }}>
             <button aria-label={sbOpen ? "Close sidebar" : "Open sidebar"} onClick={() => setSb(!sbOpen)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
               {sbOpen ? <XIcon /> : <MenuIcon />}
@@ -653,8 +718,15 @@ export function Shell({
               </div>
             )}
 
-            {/* TOM-30: Version Switcher */}
-            {versioning && (
+            {/* Theme toggle in header on mobile */}
+            {mobile && themeMode === "auto" && (
+              <button aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setDark(d => !d)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex", flexShrink: 0 }}>
+                {isDark ? <SunIcon /> : <MoonIcon />}
+              </button>
+            )}
+
+            {/* TOM-30: Version Switcher — hidden on mobile */}
+            {versioning && !mobile && (
               <div style={{ position: "relative" }}>
                 <button
                   data-testid="version-switcher"
@@ -706,8 +778,8 @@ export function Shell({
               </div>
             )}
 
-            {/* TOM-34: Language Switcher */}
-            {i18n && i18n.locales.length > 1 && (
+            {/* TOM-34: Language Switcher — hidden on mobile */}
+            {i18n && i18n.locales.length > 1 && !mobile && (
               <div style={{ position: "relative" }}>
                 <button
                   data-testid="language-switcher"
@@ -850,8 +922,25 @@ export function Shell({
                 </div>
               )}
 
+              {/* Feedback widget */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24, padding: "12px 0" }}>
+                {feedbackGiven[currentPageId] ? (
+                  <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Thanks for your feedback!</span>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Was this helpful?</span>
+                    <button onClick={() => { setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true })); try { localStorage.setItem(`tome-feedback-${currentPageId}`, "up"); } catch {} }} style={{
+                      background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "4px 10px", cursor: "pointer", fontSize: 13, color: "var(--txM)", transition: "border-color .15s",
+                    }}>👍</button>
+                    <button onClick={() => { setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true })); try { localStorage.setItem(`tome-feedback-${currentPageId}`, "down"); } catch {} }} style={{
+                      background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "4px 10px", cursor: "pointer", fontSize: 13, color: "var(--txM)", transition: "border-color .15s",
+                    }}>👎</button>
+                  </>
+                )}
+              </div>
+
               {/* Prev / Next */}
-              <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "space-between", marginTop: (editUrl || lastUpdated) ? 16 : 48, paddingTop: 24, borderTop: "1px solid var(--bd)", gap: mobile ? 12 : 16 }}>
+              <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "space-between", marginTop: 16, paddingTop: 24, borderTop: "1px solid var(--bd)", gap: mobile ? 12 : 16 }}>
                 {prev ? (
                   <button onClick={() => onNavigate(prev.id)} style={{
                     display: "flex", alignItems: "center", gap: 8, background: "none",
@@ -914,6 +1003,16 @@ export function Shell({
           apiKey={typeof __TOME_AI_API_KEY__ !== "undefined" && __TOME_AI_API_KEY__ ? __TOME_AI_API_KEY__ : undefined}
           context={docContext?.map((d) => `## ${d.title}\n${d.content}`).join("\n\n") ?? allPages.map((p) => `- ${p.title}${p.description ? ": " + p.description : ""}`).join("\n")}
         />
+      )}
+
+      {/* Image zoom overlay */}
+      {zoomSrc && (
+        <div onClick={() => setZoomSrc(null)} style={{
+          position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", cursor: "zoom-out",
+        }}>
+          <img src={zoomSrc} alt="" style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain", borderRadius: 4, boxShadow: "0 16px 64px rgba(0,0,0,0.4)" }} />
+        </div>
       )}
     </div>
   );

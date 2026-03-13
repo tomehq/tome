@@ -9,6 +9,53 @@ import rehypeStringify from "rehype-stringify";
 import matter from "gray-matter";
 import { createHighlighter, type Highlighter } from "shiki";
 import { z } from "zod";
+import DOMPurify from "isomorphic-dompurify";
+
+// ── HTML SANITIZATION ────────────────────────────────────
+// Whitelist safe tags/attrs while blocking script injection, event handlers, etc.
+const SANITIZE_CONFIG = {
+  // Allow all standard HTML + Shiki output + heading anchors
+  ALLOWED_TAGS: [
+    // Block-level
+    "h1", "h2", "h3", "h4", "h5", "h6", "p", "div", "section", "article",
+    "blockquote", "pre", "code", "ul", "ol", "li", "dl", "dt", "dd",
+    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+    "hr", "br", "figure", "figcaption", "details", "summary",
+    // Inline
+    "a", "span", "strong", "em", "b", "i", "u", "s", "del", "ins",
+    "sub", "sup", "small", "mark", "abbr", "kbd", "var", "samp",
+    // Media (src validated by DOMPurify)
+    "img", "picture", "source", "video", "audio",
+    // Shiki output
+    "style",
+  ],
+  ALLOWED_ATTR: [
+    // Standard
+    "id", "class", "className", "href", "src", "alt", "title", "target",
+    "rel", "width", "height", "loading", "decoding",
+    // Table
+    "colspan", "rowspan", "scope",
+    // Heading anchors
+    "aria-hidden", "tabindex",
+    // Shiki inline styles
+    "style",
+    // Data attributes (used by components)
+    "data-*",
+    // Media
+    "controls", "autoplay", "loop", "muted", "poster", "type",
+  ],
+  // Block all event handlers (onclick, onerror, onload, etc.)
+  FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur"],
+  // Block dangerous tags entirely
+  FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "input", "textarea", "select", "button"],
+  // Allow data: URIs for images only, block javascript: URIs everywhere
+  ALLOW_DATA_ATTR: true,
+  ADD_URI_SAFE_ATTR: ["style"],
+};
+
+export function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html, SANITIZE_CONFIG) as string;
+}
 
 // ── FRONTMATTER SCHEMA (TOM-10) ───────────────────────────
 const FrontmatterSchema = z.object({
@@ -134,6 +181,12 @@ function createCodeBlockTransformer(highlighter: Highlighter) {
           .replace(/&quot;/g, '"')
           .replace(/&#39;/g, "'");
 
+        // Mermaid: emit a placeholder div for client-side rendering
+        if (lang === "mermaid") {
+          const encoded = Buffer.from(decoded.trim()).toString("base64");
+          return `<div class="tome-mermaid" data-mermaid="${encoded}"></div>`;
+        }
+
         try {
           return highlighter.codeToHtml(decoded.trim(), {
             lang: lang || "text",
@@ -157,10 +210,16 @@ export interface MarkdownPluginOptions {
 }
 
 // ── MAIN PROCESSOR ───────────────────────────────────────
+export interface MarkdownMathOptions {
+  /** Enable remark-math + rehype-katex for LaTeX math rendering */
+  math?: boolean;
+}
+
 export async function processMarkdown(
   source: string,
   filePath?: string,
-  pluginOptions?: MarkdownPluginOptions
+  pluginOptions?: MarkdownPluginOptions,
+  mathOptions?: MarkdownMathOptions
 ): Promise<ProcessedPage> {
   // Extract frontmatter
   const { data, content } = matter(source);
@@ -203,10 +262,32 @@ export async function processMarkdown(
     }
   }
 
+  // Math support: add remark-math before remarkRehype
+  if (mathOptions?.math) {
+    try {
+      // @ts-ignore — optional peer dependency
+      const remarkMath = (await import("remark-math")).default;
+      processor = processor.use(remarkMath);
+    } catch {
+      console.warn("[tome] remark-math not installed — math blocks will not be processed. Install with: pnpm add remark-math rehype-katex katex");
+    }
+  }
+
   processor = processor
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: "prepend", properties: { className: ["heading-anchor"], ariaHidden: true, tabIndex: -1 } });
+
+  // Math support: add rehype-katex after rehypeAutolinkHeadings
+  if (mathOptions?.math) {
+    try {
+      // @ts-ignore — optional peer dependency
+      const rehypeKatex = (await import("rehype-katex")).default;
+      processor = processor.use(rehypeKatex);
+    } catch {
+      // Already warned above
+    }
+  }
 
   // TOM-57: Apply custom rehype plugins (after built-in rehype plugins)
   if (pluginOptions?.rehypePlugins) {
@@ -225,6 +306,9 @@ export async function processMarkdown(
   const highlighter = await getHighlighter();
   const transformCodeBlocks = createCodeBlockTransformer(highlighter);
   html = transformCodeBlocks(html);
+
+  // Sanitize HTML to prevent XSS (blocks script, iframe, event handlers, etc.)
+  html = sanitizeHtml(html);
 
   // Extract headings for TOC
   const headings = extractHeadings(html);

@@ -6,7 +6,7 @@ import type { Plugin, ViteDevServer } from "vite";
 const _require = createRequire(import.meta.url);
 import { loadConfig, type TomeConfig } from "./config.js";
 import { discoverPages, buildNavigation, type PageRoute, type NavigationGroup, type I18nConfig } from "./routes.js";
-import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions } from "./markdown.js";
+import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions, type MarkdownMathOptions } from "./markdown.js";
 import { parseOpenApiSpec, type ApiManifest } from "./openapi.js";
 import { generateAnalyticsScript } from "./analytics.js";
 import { getGitLastUpdated } from "./git-dates.js";
@@ -154,7 +154,8 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     if (!route) return null;
 
     const source = readFileSync(route.absolutePath, "utf-8");
-    const processed = await processMarkdown(source, route.absolutePath, resolvedPlugins);
+    const mathOpts: MarkdownMathOptions = { math: config.math === true };
+    const processed = await processMarkdown(source, route.absolutePath, resolvedPlugins, mathOpts);
     pageCache.set(id, processed);
     return processed;
   }
@@ -488,6 +489,47 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
           source: JSON.stringify(manifest, null, 2),
         });
       }
+
+      // ── llms.txt generation ─────────────────────────────────
+      const visibleRoutes = routes.filter((r) => !r.frontmatter.hidden);
+      const baseUrl = config.baseUrl || "";
+
+      // llms.txt — page index with titles, descriptions, URLs
+      const llmsTxtLines = [
+        `# ${config.name}`,
+        "",
+        "> Documentation site powered by Tome",
+        "",
+        ...visibleRoutes.map((r) => {
+          const url = baseUrl ? `${baseUrl.replace(/\/$/, "")}${r.urlPath}` : r.urlPath;
+          const desc = r.frontmatter.description ? ` - ${r.frontmatter.description}` : "";
+          return `- [${r.frontmatter.title}](${url})${desc}`;
+        }),
+      ];
+
+      this.emitFile({
+        type: "asset",
+        fileName: "llms.txt",
+        source: llmsTxtLines.join("\n"),
+      });
+
+      // llms-full.txt — full raw markdown of all non-hidden pages
+      const fullParts: string[] = [`# ${config.name}\n`];
+      for (const r of visibleRoutes) {
+        if (r.isMdx || r.filePath === "__api-reference__") continue;
+        try {
+          const page = await getPage(r.id);
+          if (page?.raw) {
+            fullParts.push(`## ${r.frontmatter.title}\n\n${page.raw.trim()}\n`);
+          }
+        } catch {}
+      }
+
+      this.emitFile({
+        type: "asset",
+        fileName: "llms-full.txt",
+        source: fullParts.join("\n---\n\n"),
+      });
     },
   };
 

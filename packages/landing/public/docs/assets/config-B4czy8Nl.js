@@ -1,5 +1,5 @@
 const n={frontmatter:{title:"Config Reference",description:"Complete reference for every field in tome.config.js — types, defaults, and descriptions.",icon:"file-text",hidden:!1,toc:!0},html:`<p>The config file (<code>tome.config.js</code>, <code>.mjs</code>, or <code>.ts</code>) is validated at startup. Invalid values produce clear error messages with the field path and expected type.</p>
-<h2 id="top-level-fields"><a class="heading-anchor" aria-hidden tabindex="-1" href="#top-level-fields"><span class="icon icon-link"></span></a>Top-level fields</h2>
+<h2 id="top-level-fields"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#top-level-fields"><span class="icon icon-link"></span></a>Top-level fields</h2>
 <table>
 <thead>
 <tr>
@@ -108,7 +108,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="themeconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#themeconfig"><span class="icon icon-link"></span></a>ThemeConfig</h2>
+<h2 id="themeconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#themeconfig"><span class="icon icon-link"></span></a>ThemeConfig</h2>
 <table>
 <thead>
 <tr>
@@ -163,13 +163,13 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="navigationgroup"><a class="heading-anchor" aria-hidden tabindex="-1" href="#navigationgroup"><span class="icon icon-link"></span></a>NavigationGroup</h2>
+<h2 id="navigationgroup"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#navigationgroup"><span class="icon icon-link"></span></a>NavigationGroup</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  group</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: string;</span></span>
-<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  pages</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: Array</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">#x3C;string </span><span style="color:#D73A49;--shiki-dark:#F97583">|</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> NavigationGroup</span><span style="color:#D73A49;--shiki-dark:#F97583">></span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  pages</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: Array</span><span style="color:#D73A49;--shiki-dark:#F97583">&amp;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">#x3C;string </span><span style="color:#D73A49;--shiki-dark:#F97583">|</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> NavigationGroup</span><span style="color:#D73A49;--shiki-dark:#F97583">&gt;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
 <p>Page IDs are filenames without extensions, relative to <code>pages/</code>. Nested groups are supported.</p>
-<h2 id="searchconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#searchconfig"><span class="icon icon-link"></span></a>SearchConfig</h2>
+<h2 id="searchconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#searchconfig"><span class="icon icon-link"></span></a>SearchConfig</h2>
 <table>
 <thead>
 <tr>
@@ -206,7 +206,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="apiconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#apiconfig"><span class="icon icon-link"></span></a>ApiConfig</h2>
+<h2 id="apiconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#apiconfig"><span class="icon icon-link"></span></a>ApiConfig</h2>
 <table>
 <thead>
 <tr>
@@ -249,7 +249,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="aiconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#aiconfig"><span class="icon icon-link"></span></a>AiConfig</h2>
+<h2 id="aiconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#aiconfig"><span class="icon icon-link"></span></a>AiConfig</h2>
 <table>
 <thead>
 <tr>
@@ -286,7 +286,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="mcpconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#mcpconfig"><span class="icon icon-link"></span></a>McpConfig</h2>
+<h2 id="mcpconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#mcpconfig"><span class="icon icon-link"></span></a>McpConfig</h2>
 <table>
 <thead>
 <tr>
@@ -323,7 +323,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="i18nconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#i18nconfig"><span class="icon icon-link"></span></a>I18nConfig</h2>
+<h2 id="i18nconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#i18nconfig"><span class="icon icon-link"></span></a>I18nConfig</h2>
 <table>
 <thead>
 <tr>
@@ -348,7 +348,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 <tr>
 <td><code>localeNames</code></td>
-<td><code>Record&#x3C;string, string></code></td>
+<td><code>Record&lt;string, string&gt;</code></td>
 <td>—</td>
 <td>Display names (e.g., <code>{ en: "English" }</code>)</td>
 </tr>
@@ -360,7 +360,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="versioningconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#versioningconfig"><span class="icon icon-link"></span></a>VersioningConfig</h2>
+<h2 id="versioningconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#versioningconfig"><span class="icon icon-link"></span></a>VersioningConfig</h2>
 <table>
 <thead>
 <tr>
@@ -385,7 +385,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="analyticsconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#analyticsconfig"><span class="icon icon-link"></span></a>AnalyticsConfig</h2>
+<h2 id="analyticsconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#analyticsconfig"><span class="icon icon-link"></span></a>AnalyticsConfig</h2>
 <table>
 <thead>
 <tr>
@@ -410,7 +410,7 @@ const n={frontmatter:{title:"Config Reference",description:"Complete reference f
 </tr>
 </tbody>
 </table>
-<h2 id="webhookconfig"><a class="heading-anchor" aria-hidden tabindex="-1" href="#webhookconfig"><span class="icon icon-link"></span></a>WebhookConfig</h2>
+<h2 id="webhookconfig"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#webhookconfig"><span class="icon icon-link"></span></a>WebhookConfig</h2>
 <p>Send notifications to Slack, Discord, or generic HTTP endpoints when deploy events occur.</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">webhooks</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: [</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>

@@ -295,9 +295,12 @@ describe("generateBundle — MCP manifest", () => {
       emitFile: (f: any) => emitted.push(f),
     });
 
-    expect(emitted).toHaveLength(1);
-    expect(emitted[0].type).toBe("asset");
-    expect(emitted[0].fileName).toBe("mcp.json");
+    const mcpFile = emitted.find((f: any) => f.fileName === "mcp.json");
+    expect(mcpFile).toBeDefined();
+    expect(mcpFile.type).toBe("asset");
+    // Also emits llms.txt and llms-full.txt
+    expect(emitted.find((f: any) => f.fileName === "llms.txt")).toBeDefined();
+    expect(emitted.find((f: any) => f.fileName === "llms-full.txt")).toBeDefined();
   });
 
   it("manifest contains page URLs and titles", async () => {
@@ -311,7 +314,7 @@ describe("generateBundle — MCP manifest", () => {
       emitFile: (f: any) => emitted.push(f),
     });
 
-    const manifest = JSON.parse(emitted[0].source);
+    const manifest = JSON.parse(emitted.find((f: any) => f.fileName === "mcp.json").source);
     expect(manifest.name).toBe("Test Site");
     expect(manifest.pages).toBeInstanceOf(Array);
     expect(manifest.pages.length).toBeGreaterThanOrEqual(2);
@@ -343,6 +346,79 @@ describe("generateBundle — MCP manifest", () => {
       emitFile: (f: any) => emitted.push(f),
     });
 
-    expect(emitted).toHaveLength(0);
+    // llms.txt and llms-full.txt are always emitted, mcp.json should not be
+    expect(emitted.find((f: any) => f.fileName === "mcp.json")).toBeUndefined();
+    expect(emitted.find((f: any) => f.fileName === "llms.txt")).toBeDefined();
+  });
+});
+
+// ── generateBundle() — llms.txt generation ───────────────
+
+describe("generateBundle — llms.txt", () => {
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("emits llms.txt with page titles and URLs", async () => {
+    setupPluginEnv();
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emitted: any[] = [];
+    await (corePlugin.generateBundle as Function).call({
+      emitFile: (f: any) => emitted.push(f),
+    });
+
+    const llmsTxt = emitted.find((f: any) => f.fileName === "llms.txt");
+    expect(llmsTxt).toBeDefined();
+    expect(llmsTxt.type).toBe("asset");
+    expect(llmsTxt.source).toContain("# Test Site");
+    expect(llmsTxt.source).toContain("Introduction");
+    expect(llmsTxt.source).toContain("Getting Started");
+    expect(llmsTxt.source).toContain("/intro");
+    expect(llmsTxt.source).toContain("/getting-started");
+  });
+
+  it("emits llms-full.txt with raw page content", async () => {
+    setupPluginEnv();
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emitted: any[] = [];
+    await (corePlugin.generateBundle as Function).call({
+      emitFile: (f: any) => emitted.push(f),
+    });
+
+    const llmsFull = emitted.find((f: any) => f.fileName === "llms-full.txt");
+    expect(llmsFull).toBeDefined();
+    expect(llmsFull.type).toBe("asset");
+    expect(llmsFull.source).toContain("# Test Site");
+    // Should contain raw markdown content from pages
+    expect(llmsFull.source).toContain("Introduction");
+    expect(llmsFull.source).toContain("Getting Started");
+  });
+
+  it("excludes hidden pages from llms.txt", async () => {
+    setupPluginEnv();
+
+    // Add a hidden page
+    writeFileSync(
+      join(tmpDir, "pages", "secret.md"),
+      `---\ntitle: Secret Page\nhidden: true\n---\n\n# Secret\n\nHidden content.`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const emitted: any[] = [];
+    await (corePlugin.generateBundle as Function).call({
+      emitFile: (f: any) => emitted.push(f),
+    });
+
+    const llmsTxt = emitted.find((f: any) => f.fileName === "llms.txt");
+    expect(llmsTxt.source).not.toContain("Secret Page");
   });
 });

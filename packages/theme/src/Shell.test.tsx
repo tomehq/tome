@@ -797,3 +797,75 @@ describe("Shell AI chat integration", () => {
     expect(screen.getByTestId("ai-chat-button")).toBeInTheDocument();
   });
 });
+
+// ── Banner (Shell banner) ────────────────────────────────
+
+describe("Shell banner", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("renders banner text when banner config is provided", () => {
+    renderShell({ config: { ...baseConfig, banner: { text: "New version available!" } } });
+    expect(screen.getByText("New version available!")).toBeInTheDocument();
+  });
+
+  it("renders banner as a link when link is provided", () => {
+    renderShell({
+      config: { ...baseConfig, banner: { text: "Click here", link: "https://example.com" } },
+    });
+    const link = screen.getByText("Click here");
+    expect(link.tagName).toBe("A");
+    expect(link).toHaveAttribute("href", "https://example.com");
+  });
+
+  it("does not render banner when banner config is not provided", () => {
+    renderShell();
+    expect(screen.queryByText("New version available!")).not.toBeInTheDocument();
+  });
+
+  it("dismisses banner when X button is clicked", () => {
+    renderShell({ config: { ...baseConfig, banner: { text: "Dismiss me" } } });
+    expect(screen.getByText("Dismiss me")).toBeInTheDocument();
+    const dismissBtn = screen.getByLabelText("Dismiss banner");
+    fireEvent.click(dismissBtn);
+    expect(screen.queryByText("Dismiss me")).not.toBeInTheDocument();
+  });
+});
+
+// ── Feedback widget ──────────────────────────────────────
+
+describe("Shell feedback widget", () => {
+  it("renders 'Was this helpful?' text", () => {
+    renderShell();
+    expect(screen.getByText("Was this helpful?")).toBeInTheDocument();
+  });
+
+  it("renders thumbs up and thumbs down buttons", () => {
+    renderShell();
+    expect(screen.getByText("\uD83D\uDC4D")).toBeInTheDocument();
+    expect(screen.getByText("\uD83D\uDC4E")).toBeInTheDocument();
+  });
+
+  it("shows 'Thanks for your feedback!' after clicking thumbs up", () => {
+    renderShell();
+    fireEvent.click(screen.getByText("\uD83D\uDC4D"));
+    expect(screen.getByText("Thanks for your feedback!")).toBeInTheDocument();
+  });
+
+  it("shows 'Thanks for your feedback!' after clicking thumbs down", () => {
+    renderShell();
+    fireEvent.click(screen.getByText("\uD83D\uDC4E"));
+    expect(screen.getByText("Thanks for your feedback!")).toBeInTheDocument();
+  });
+});
+
+// ── Image zoom ───────────────────────────────────────────
+
+describe("Shell image zoom", () => {
+  it("does not show zoom overlay initially", () => {
+    const { container } = renderShell();
+    const zoomOverlay = container.querySelector('[style*="cursor: zoom-out"]');
+    expect(zoomOverlay).toBeNull();
+  });
+});

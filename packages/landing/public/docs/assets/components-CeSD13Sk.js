@@ -1,9 +1,9 @@
 const n={frontmatter:{title:"Components",description:"Built-in MDX components — Callout, Tabs, Card, Steps, Accordion, and more.",icon:"puzzle",hidden:!1,toc:!0},html:`<p>Tome includes a set of built-in components available in any <code>.mdx</code> file. No imports needed — they're injected automatically.</p>
-<h2 id="callout"><a class="heading-anchor" aria-hidden tabindex="-1" href="#callout"><span class="icon icon-link"></span></a>Callout</h2>
+<h2 id="callout"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#callout"><span class="icon icon-link"></span></a>Callout</h2>
 <p>Highlight important information with a styled callout:</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Callout title="Important">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Callout title="Important"&gt;
   This is critical information that users should not miss.
-&#x3C;/Callout>
+&lt;/Callout&gt;
 </code></pre>
 <p>Callouts support a <code>type</code> prop for different styles:</p>
 <table>
@@ -32,56 +32,56 @@ const n={frontmatter:{title:"Components",description:"Built-in MDX components �
 </tr>
 </tbody>
 </table>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Callout type="warning" title="Deprecation Notice">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Callout type="warning" title="Deprecation Notice"&gt;
   This API endpoint will be removed in v3.0.
-&#x3C;/Callout>
+&lt;/Callout&gt;
 </code></pre>
-<h2 id="tabs"><a class="heading-anchor" aria-hidden tabindex="-1" href="#tabs"><span class="icon icon-link"></span></a>Tabs</h2>
+<h2 id="tabs"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#tabs"><span class="icon icon-link"></span></a>Tabs</h2>
 <p>Present content variants — useful for multiple languages or platform-specific instructions:</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Tabs items={["npm", "pnpm", "yarn"]}>
-  &#x3C;Tab>npm install @tomehq/cli&#x3C;/Tab>
-  &#x3C;Tab>pnpm add @tomehq/cli&#x3C;/Tab>
-  &#x3C;Tab>yarn add @tomehq/cli&#x3C;/Tab>
-&#x3C;/Tabs>
+<pre class="tome-code" data-lang="mdx"><code>&lt;Tabs items={["npm", "pnpm", "yarn"]}&gt;
+  &lt;Tab&gt;npm install @tomehq/cli&lt;/Tab&gt;
+  &lt;Tab&gt;pnpm add @tomehq/cli&lt;/Tab&gt;
+  &lt;Tab&gt;yarn add @tomehq/cli&lt;/Tab&gt;
+&lt;/Tabs&gt;
 </code></pre>
 <p>The active tab persists across page navigations within the same session.</p>
-<h2 id="card"><a class="heading-anchor" aria-hidden tabindex="-1" href="#card"><span class="icon icon-link"></span></a>Card</h2>
+<h2 id="card"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#card"><span class="icon icon-link"></span></a>Card</h2>
 <p>Link to related pages or external resources:</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Card title="Quickstart" href="#quickstart">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Card title="Quickstart" href="#quickstart"&gt;
   Get up and running in under a minute.
-&#x3C;/Card>
+&lt;/Card&gt;
 </code></pre>
-<h3 id="card-group"><a class="heading-anchor" aria-hidden tabindex="-1" href="#card-group"><span class="icon icon-link"></span></a>Card group</h3>
+<h3 id="card-group"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#card-group"><span class="icon icon-link"></span></a>Card group</h3>
 <p>Arrange cards in a responsive grid:</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;CardGroup cols={3}>
-  &#x3C;Card title="Setup">Step 1&#x3C;/Card>
-  &#x3C;Card title="Configure">Step 2&#x3C;/Card>
-  &#x3C;Card title="Deploy">Step 3&#x3C;/Card>
-&#x3C;/CardGroup>
+<pre class="tome-code" data-lang="mdx"><code>&lt;CardGroup cols={3}&gt;
+  &lt;Card title="Setup"&gt;Step 1&lt;/Card&gt;
+  &lt;Card title="Configure"&gt;Step 2&lt;/Card&gt;
+  &lt;Card title="Deploy"&gt;Step 3&lt;/Card&gt;
+&lt;/CardGroup&gt;
 </code></pre>
 <p>The <code>cols</code> prop accepts <code>2</code>, <code>3</code>, or <code>4</code>. Defaults to <code>2</code>.</p>
-<h2 id="steps"><a class="heading-anchor" aria-hidden tabindex="-1" href="#steps"><span class="icon icon-link"></span></a>Steps</h2>
+<h2 id="steps"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#steps"><span class="icon icon-link"></span></a>Steps</h2>
 <p>Ordered procedural instructions with visual step indicators:</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Steps>
-  &#x3C;Step title="Install dependencies">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Steps&gt;
+  &lt;Step title="Install dependencies"&gt;
     Run \`npm install\` in your project directory.
-  &#x3C;/Step>
-  &#x3C;Step title="Configure">
+  &lt;/Step&gt;
+  &lt;Step title="Configure"&gt;
     Edit \`tome.config.js\` with your settings.
-  &#x3C;/Step>
-  &#x3C;Step title="Deploy">
+  &lt;/Step&gt;
+  &lt;Step title="Deploy"&gt;
     Run \`tome deploy\` to publish your site.
-  &#x3C;/Step>
-&#x3C;/Steps>
+  &lt;/Step&gt;
+&lt;/Steps&gt;
 </code></pre>
-<h2 id="accordion"><a class="heading-anchor" aria-hidden tabindex="-1" href="#accordion"><span class="icon icon-link"></span></a>Accordion</h2>
+<h2 id="accordion"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#accordion"><span class="icon icon-link"></span></a>Accordion</h2>
 <p>Collapsible content sections for FAQs or optional details:</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Accordion title="How do I deploy?">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Accordion title="How do I deploy?"&gt;
   Run \`npx tome deploy\` from your project directory. See the deployment guide for details.
-&#x3C;/Accordion>
+&lt;/Accordion&gt;
 </code></pre>
 <p>Multiple accordions stack vertically. Only one opens at a time by default.</p>
-<h2 id="using-components"><a class="heading-anchor" aria-hidden tabindex="-1" href="#using-components"><span class="icon icon-link"></span></a>Using components</h2>
+<h2 id="using-components"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#using-components"><span class="icon icon-link"></span></a>Using components</h2>
 <p>Components are only available in <code>.mdx</code> files. If your file uses the <code>.md</code> extension, rename it to <code>.mdx</code> to enable component support.</p>
 <pre><code>pages/
 ├── index.md          # Standard Markdown only
@@ -94,18 +94,18 @@ title: Getting Started
 
 # Getting Started
 
-&#x3C;Callout type="tip" title="Prerequisites">
+&lt;Callout type="tip" title="Prerequisites"&gt;
   Make sure you have Node.js 18+ installed.
-&#x3C;/Callout>
+&lt;/Callout&gt;
 
-&#x3C;Steps>
-  &#x3C;Step title="Create project">
+&lt;Steps&gt;
+  &lt;Step title="Create project"&gt;
     Run \`npx @tomehq/cli init my-docs\`
-  &#x3C;/Step>
-  &#x3C;Step title="Start dev server">
+  &lt;/Step&gt;
+  &lt;Step title="Start dev server"&gt;
     Run \`npm run dev\`
-  &#x3C;/Step>
-&#x3C;/Steps>
+  &lt;/Step&gt;
+&lt;/Steps&gt;
 </code></pre>`,headings:[{depth:2,text:"Callout",id:"callout"},{depth:2,text:"Tabs",id:"tabs"},{depth:2,text:"Card",id:"card"},{depth:3,text:"Card group",id:"card-group"},{depth:2,text:"Steps",id:"steps"},{depth:2,text:"Accordion",id:"accordion"},{depth:2,text:"Using components",id:"using-components"}],raw:`
 Tome includes a set of built-in components available in any \`.mdx\` file. No imports needed — they're injected automatically.
 

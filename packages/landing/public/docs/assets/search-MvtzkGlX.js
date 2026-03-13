@@ -1,18 +1,18 @@
 const e={frontmatter:{title:"Search",description:"How to set up search in your Tome documentation site — built-in Pagefind and optional Algolia DocSearch.",icon:"search",hidden:!1,toc:!0},html:`<p>Tome includes search out of the box. No configuration is needed for the default experience — Pagefind indexes your site at build time and provides fast, client-side search with zero external dependencies.</p>
-<h2 id="built-in-search-pagefind"><a class="heading-anchor" aria-hidden tabindex="-1" href="#built-in-search-pagefind"><span class="icon icon-link"></span></a>Built-in search (Pagefind)</h2>
+<h2 id="built-in-search-pagefind"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#built-in-search-pagefind"><span class="icon icon-link"></span></a>Built-in search (Pagefind)</h2>
 <p>Pagefind is the default search provider. It runs automatically during <code>tome build</code>:</p>
 <ol>
 <li>Tome builds your static site to <code>out/</code></li>
 <li>Pagefind indexes all HTML pages</li>
 <li>The search index is placed in <code>out/_pagefind/</code></li>
-<li>The search UI loads the index on demand (&#x3C; 1KB initial JS)</li>
+<li>The search UI loads the index on demand (&lt; 1KB initial JS)</li>
 </ol>
 <p>No configuration required. Search is available on every page via the header search bar or the <code>Ctrl+K</code> / <code>Cmd+K</code> keyboard shortcut.</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">// Default — can be omitted entirely</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">search</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  provider</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"local"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
-<h2 id="algolia-docsearch"><a class="heading-anchor" aria-hidden tabindex="-1" href="#algolia-docsearch"><span class="icon icon-link"></span></a>Algolia DocSearch</h2>
+<h2 id="algolia-docsearch"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#algolia-docsearch"><span class="icon icon-link"></span></a>Algolia DocSearch</h2>
 <p>For larger documentation sites, you can use Algolia DocSearch as an alternative:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">search</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  provider</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"algolia"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
@@ -20,11 +20,11 @@ const e={frontmatter:{title:"Search",description:"How to set up search in your T
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  apiKey</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"YOUR_SEARCH_API_KEY"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  indexName</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"your-index-name"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
-<h3 id="initialize-the-algolia-index"><a class="heading-anchor" aria-hidden tabindex="-1" href="#initialize-the-algolia-index"><span class="icon icon-link"></span></a>Initialize the Algolia index</h3>
+<h3 id="initialize-the-algolia-index"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#initialize-the-algolia-index"><span class="icon icon-link"></span></a>Initialize the Algolia index</h3>
 <p>Tome includes a helper command to set up your Algolia index:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npx</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> tome</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> algolia:init</span></span></code></pre>
 <p>This creates a crawler configuration optimized for Tome's HTML structure.</p>
-<h3 id="when-to-use-algolia"><a class="heading-anchor" aria-hidden tabindex="-1" href="#when-to-use-algolia"><span class="icon icon-link"></span></a>When to use Algolia</h3>
+<h3 id="when-to-use-algolia"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#when-to-use-algolia"><span class="icon icon-link"></span></a>When to use Algolia</h3>
 <table>
 <thead>
 <tr>

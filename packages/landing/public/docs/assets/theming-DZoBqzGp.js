@@ -1,23 +1,23 @@
-const s={frontmatter:{title:"Theming",description:"Customize the look of your Tome site — presets, colors, fonts, dark mode, and CSS variables.",icon:"palette",hidden:!1,toc:!0},html:`<p>Tome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.</p>
-<h2 id="presets"><a class="heading-anchor" aria-hidden tabindex="-1" href="#presets"><span class="icon icon-link"></span></a>Presets</h2>
-<h3 id="amber-default"><a class="heading-anchor" aria-hidden tabindex="-1" href="#amber-default"><span class="icon icon-link"></span></a>Amber (default)</h3>
+const a={frontmatter:{title:"Theming",description:"Customize the look of your Tome site — presets, colors, fonts, dark mode, and CSS variables.",icon:"palette",hidden:!1,toc:!0},html:`<p>Tome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.</p>
+<h2 id="presets"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#presets"><span class="icon icon-link"></span></a>Presets</h2>
+<h3 id="amber-default"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#amber-default"><span class="icon icon-link"></span></a>Amber (default)</h3>
 <p>A warm, golden aesthetic with serif headings. Clean and approachable.</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  preset</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"amber"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
-<h3 id="editorial"><a class="heading-anchor" aria-hidden tabindex="-1" href="#editorial"><span class="icon icon-link"></span></a>Editorial</h3>
+<h3 id="editorial"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#editorial"><span class="icon icon-link"></span></a>Editorial</h3>
 <p>Swiss poster-inspired design with a brutalist edge. Coral accent color, grotesque typography.</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  preset</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"editorial"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
-<h2 id="custom-accent-color"><a class="heading-anchor" aria-hidden tabindex="-1" href="#custom-accent-color"><span class="icon icon-link"></span></a>Custom accent color</h2>
+<h2 id="custom-accent-color"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#custom-accent-color"><span class="icon icon-link"></span></a>Custom accent color</h2>
 <p>Override the default accent color with any hex value:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  preset</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"amber"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  accent</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"#2563eb"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,  </span><span style="color:#6A737D;--shiki-dark:#6A737D">// Blue accent</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
 <p>Tome derives tint and dim variants automatically from your accent color.</p>
-<h2 id="dark-mode"><a class="heading-anchor" aria-hidden tabindex="-1" href="#dark-mode"><span class="icon icon-link"></span></a>Dark mode</h2>
+<h2 id="dark-mode"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#dark-mode"><span class="icon icon-link"></span></a>Dark mode</h2>
 <p>Control the color scheme:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  mode</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"auto"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,   </span><span style="color:#6A737D;--shiki-dark:#6A737D">// Follows system preference</span></span>
@@ -25,7 +25,7 @@ const s={frontmatter:{title:"Theming",description:"Customize the look of your To
 <span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // mode: "dark",   // Always dark</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
 <p>When set to <code>auto</code>, a theme toggle appears in the header.</p>
-<h2 id="custom-fonts"><a class="heading-anchor" aria-hidden tabindex="-1" href="#custom-fonts"><span class="icon icon-link"></span></a>Custom fonts</h2>
+<h2 id="custom-fonts"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#custom-fonts"><span class="icon icon-link"></span></a>Custom fonts</h2>
 <p>Override any of the three font families:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  fonts</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
@@ -35,14 +35,14 @@ const s={frontmatter:{title:"Theming",description:"Customize the look of your To
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
 <p>Load your fonts via Google Fonts in <code>index.html</code> or self-host them.</p>
-<h2 id="border-radius"><a class="heading-anchor" aria-hidden tabindex="-1" href="#border-radius"><span class="icon icon-link"></span></a>Border radius</h2>
+<h2 id="border-radius"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#border-radius"><span class="icon icon-link"></span></a>Border radius</h2>
 <p>Control the roundness of UI elements:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  radius</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">8</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,  </span><span style="color:#6A737D;--shiki-dark:#6A737D">// pixels, default varies by preset</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
-<h2 id="css-variables"><a class="heading-anchor" aria-hidden tabindex="-1" href="#css-variables"><span class="icon icon-link"></span></a>CSS variables</h2>
-<p>For fine-grained control, override CSS variables directly. Add a <code>&#x3C;style></code> block in your <code>index.html</code>:</p>
-<pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">style></span></span>
+<h2 id="css-variables"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#css-variables"><span class="icon icon-link"></span></a>CSS variables</h2>
+<p>For fine-grained control, override CSS variables directly. Add a <code>&lt;style&gt;</code> block in your <code>index.html</code>:</p>
+<pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">style&gt;</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  :root {</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    --ac: #2563eb;      /* Accent */</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    --acD: #dbeafe;     /* Accent dim */</span></span>
@@ -66,8 +66,8 @@ const s={frontmatter:{title:"Theming",description:"Customize the look of your To
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    --tx: #e5e5e5;</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    /* ... dark mode overrides */</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/style></span></span></code></pre>
-<h3 id="variable-reference"><a class="heading-anchor" aria-hidden tabindex="-1" href="#variable-reference"><span class="icon icon-link"></span></a>Variable reference</h3>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/style&gt;</span></span></code></pre>
+<h3 id="variable-reference"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#variable-reference"><span class="icon icon-link"></span></a>Variable reference</h3>
 <table>
 <thead>
 <tr>
@@ -256,4 +256,4 @@ For fine-grained control, override CSS variables directly. Add a \`<style>\` blo
 | \`--font-heading\` | Heading font family |
 | \`--font-body\` | Body font family |
 | \`--font-code\` | Code font family |
-`};export{s as default};
+`};export{a as default};

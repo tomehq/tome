@@ -1,7 +1,7 @@
 const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step tutorial that walks you through creating a documentation site with Tome, from installation to running the dev server.",icon:"rocket",hidden:!1,toc:!0},html:`<p>This tutorial walks you through creating a Tome documentation site from scratch. By the end, you'll have a working docs site running locally with custom pages and navigation.</p>
-<h2 id="prerequisites"><a class="heading-anchor" aria-hidden tabindex="-1" href="#prerequisites"><span class="icon icon-link"></span></a>Prerequisites</h2>
+<h2 id="prerequisites"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#prerequisites"><span class="icon icon-link"></span></a>Prerequisites</h2>
 <p>You need <strong>Node.js 18+</strong> and a package manager (<code>npm</code>, <code>yarn</code>, or <code>pnpm</code>).</p>
-<h2 id="1-scaffold-the-project"><a class="heading-anchor" aria-hidden tabindex="-1" href="#1-scaffold-the-project"><span class="icon icon-link"></span></a>1. Scaffold the project</h2>
+<h2 id="1-scaffold-the-project"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#1-scaffold-the-project"><span class="icon icon-link"></span></a>1. Scaffold the project</h2>
 <p>Run the init command to create a new project:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npx</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> @tomehq/cli</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> init</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> my-docs</span></span></code></pre>
 <p>This creates a directory with the following structure:</p>
@@ -16,13 +16,13 @@ const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step
 <span class="line"><span>│   └── components.mdx</span></span>
 <span class="line"><span>├── public/            # Static assets</span></span>
 <span class="line"><span>└── styles/            # Custom CSS (optional)</span></span></code></pre>
-<h2 id="2-install-dependencies"><a class="heading-anchor" aria-hidden tabindex="-1" href="#2-install-dependencies"><span class="icon icon-link"></span></a>2. Install dependencies</h2>
+<h2 id="2-install-dependencies"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#2-install-dependencies"><span class="icon icon-link"></span></a>2. Install dependencies</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">cd</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> my-docs</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> install</span></span></code></pre>
-<h2 id="3-start-the-dev-server"><a class="heading-anchor" aria-hidden tabindex="-1" href="#3-start-the-dev-server"><span class="icon icon-link"></span></a>3. Start the dev server</h2>
+<h2 id="3-start-the-dev-server"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#3-start-the-dev-server"><span class="icon icon-link"></span></a>3. Start the dev server</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> run</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> dev</span></span></code></pre>
 <p>Open <code>http://localhost:3000</code>. You should see the starter documentation site. Every time you save a file, the page reloads automatically.</p>
-<h2 id="4-add-a-new-page"><a class="heading-anchor" aria-hidden tabindex="-1" href="#4-add-a-new-page"><span class="icon icon-link"></span></a>4. Add a new page</h2>
+<h2 id="4-add-a-new-page"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#4-add-a-new-page"><span class="icon icon-link"></span></a>4. Add a new page</h2>
 <p>Create <code>pages/guides/deployment.md</code>:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">title</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">Deployment Guide</span></span>
@@ -34,7 +34,7 @@ const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">Run </span><span style="color:#005CC5;--shiki-dark:#79B8FF">\`npm run build\`</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> to produce static files in the </span><span style="color:#005CC5;--shiki-dark:#79B8FF">\`out/\`</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> directory.</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">Upload this directory to any static hosting provider.</span></span></code></pre>
 <p>The page is immediately available at <code>/guides/deployment</code> in the dev server.</p>
-<h2 id="5-configure-navigation"><a class="heading-anchor" aria-hidden tabindex="-1" href="#5-configure-navigation"><span class="icon icon-link"></span></a>5. Configure navigation</h2>
+<h2 id="5-configure-navigation"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#5-configure-navigation"><span class="icon icon-link"></span></a>5. Configure navigation</h2>
 <p>Open <code>tome.config.js</code> and add your new page to the sidebar:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">export</span><span style="color:#D73A49;--shiki-dark:#F97583"> default</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  name: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"my-docs"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
@@ -58,7 +58,7 @@ const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  ],</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">};</span></span></code></pre>
 <p>The sidebar updates to reflect the new structure.</p>
-<h2 id="6-customize-the-theme"><a class="heading-anchor" aria-hidden tabindex="-1" href="#6-customize-the-theme"><span class="icon icon-link"></span></a>6. Customize the theme</h2>
+<h2 id="6-customize-the-theme"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#6-customize-the-theme"><span class="icon icon-link"></span></a>6. Customize the theme</h2>
 <p>Change the preset to <code>editorial</code> and set a custom accent color:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">theme</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: {</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  preset</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"editorial"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
@@ -66,10 +66,10 @@ const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  mode</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"auto"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">},</span></span></code></pre>
 <p>The entire site switches to the editorial aesthetic with your accent color.</p>
-<h2 id="7-build-for-production"><a class="heading-anchor" aria-hidden tabindex="-1" href="#7-build-for-production"><span class="icon icon-link"></span></a>7. Build for production</h2>
+<h2 id="7-build-for-production"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#7-build-for-production"><span class="icon icon-link"></span></a>7. Build for production</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> run</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> build</span></span></code></pre>
 <p>This outputs a static site to <code>out/</code> with a pre-built search index. The output is ready to deploy to any hosting provider.</p>
-<h2 id="next-steps"><a class="heading-anchor" aria-hidden tabindex="-1" href="#next-steps"><span class="icon icon-link"></span></a>Next steps</h2>
+<h2 id="next-steps"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#next-steps"><span class="icon icon-link"></span></a>Next steps</h2>
 <ul>
 <li><strong><a href="/docs/tutorials/deploy-to-cloud">Deploy to Tome Cloud</a></strong> to publish with a single command</li>
 <li><strong><a href="/docs/guides/configuration">Configuration guide</a></strong> for all available options</li>

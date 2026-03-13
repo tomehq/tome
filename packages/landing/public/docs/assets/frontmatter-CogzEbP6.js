@@ -1,5 +1,5 @@
 const e={frontmatter:{title:"Frontmatter",description:"Reference for all YAML frontmatter fields supported in Tome documentation pages.",icon:"file-text",hidden:!1,toc:!0},html:`<p>Every Tome page can include YAML frontmatter at the top of the file. Frontmatter controls metadata like the page title, description, sidebar behavior, and search tags.</p>
-<h2 id="syntax"><a class="heading-anchor" aria-hidden tabindex="-1" href="#syntax"><span class="icon icon-link"></span></a>Syntax</h2>
+<h2 id="syntax"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#syntax"><span class="icon icon-link"></span></a>Syntax</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">title</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">My Page Title</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">description</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">A brief summary of the page content.</span></span>
@@ -8,7 +8,7 @@ const e={frontmatter:{title:"Frontmatter",description:"Reference for all YAML fr
 <span class="line"><span style="color:#005CC5;font-weight:bold;--shiki-dark:#79B8FF;--shiki-dark-font-weight:bold"># My Page Title</span></span>
 <span class="line"></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">Page content starts here.</span></span></code></pre>
-<h2 id="fields"><a class="heading-anchor" aria-hidden tabindex="-1" href="#fields"><span class="icon icon-link"></span></a>Fields</h2>
+<h2 id="fields"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#fields"><span class="icon icon-link"></span></a>Fields</h2>
 <table>
 <thead>
 <tr>
@@ -63,30 +63,30 @@ const e={frontmatter:{title:"Frontmatter",description:"Reference for all YAML fr
 </tr>
 </tbody>
 </table>
-<h2 id="title-resolution"><a class="heading-anchor" aria-hidden tabindex="-1" href="#title-resolution"><span class="icon icon-link"></span></a>Title resolution</h2>
+<h2 id="title-resolution"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#title-resolution"><span class="icon icon-link"></span></a>Title resolution</h2>
 <p>If <code>title</code> is not set in frontmatter, Tome uses the first <code># Heading</code> in the page content. If neither exists, the page is titled "Untitled".</p>
 <p>The <code>sidebarTitle</code> field lets you show a shorter name in the sidebar:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">title</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">Configuring Authentication with OAuth 2.0</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">sidebarTitle</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">Authentication</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span></code></pre>
-<h2 id="hidden-pages"><a class="heading-anchor" aria-hidden tabindex="-1" href="#hidden-pages"><span class="icon icon-link"></span></a>Hidden pages</h2>
+<h2 id="hidden-pages"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#hidden-pages"><span class="icon icon-link"></span></a>Hidden pages</h2>
 <p>Pages with <code>hidden: true</code> are excluded from sidebar navigation but remain accessible at their URL. Useful for:</p>
 <ul>
 <li>Landing pages that shouldn't appear in the sidebar</li>
 <li>Draft pages shared via direct link</li>
 <li>Internal reference pages linked from other content</li>
 </ul>
-<h2 id="tags"><a class="heading-anchor" aria-hidden tabindex="-1" href="#tags"><span class="icon icon-link"></span></a>Tags</h2>
+<h2 id="tags"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#tags"><span class="icon icon-link"></span></a>Tags</h2>
 <p>Tags improve search results by adding keywords that may not appear in the page content:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">title</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">Deployment</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">tags</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">hosting</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">vercel</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">netlify</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">cloudflare</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">static</span><span style="color:#24292E;--shiki-dark:#E1E4E8">]</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span></code></pre>
 <p>Tags are indexed by both Pagefind and Algolia (when configured) and appear in MCP manifest output.</p>
-<h2 id="icons"><a class="heading-anchor" aria-hidden tabindex="-1" href="#icons"><span class="icon icon-link"></span></a>Icons</h2>
+<h2 id="icons"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#icons"><span class="icon icon-link"></span></a>Icons</h2>
 <p>The <code>icon</code> field accepts identifiers displayed in the sidebar. Common values: <code>rocket</code>, <code>gear</code>, <code>code</code>, <code>terminal</code>, <code>puzzle</code>, <code>search</code>, <code>layers</code>, <code>cloud</code>, <code>file-text</code>, <code>palette</code>.</p>
-<h2 id="opengraph-images"><a class="heading-anchor" aria-hidden tabindex="-1" href="#opengraph-images"><span class="icon icon-link"></span></a>OpenGraph images</h2>
+<h2 id="opengraph-images"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#opengraph-images"><span class="icon icon-link"></span></a>OpenGraph images</h2>
 <p>By default, Tome auto-generates OG images for every page at build time. Use <code>ogImage</code> to override with a custom image:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">---</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">title</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">Getting Started</span></span>

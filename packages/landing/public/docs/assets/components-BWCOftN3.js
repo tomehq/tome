@@ -1,9 +1,9 @@
 const n={frontmatter:{title:"Components",description:"Reference for all built-in MDX components — Callout, Tabs, Card, Steps, Accordion, and more.",icon:"puzzle",hidden:!1,toc:!0},html:`<p>Tome includes built-in components available in any <code>.mdx</code> file without imports.</p>
-<h2 id="callout"><a class="heading-anchor" aria-hidden tabindex="-1" href="#callout"><span class="icon icon-link"></span></a>Callout</h2>
+<h2 id="callout"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#callout"><span class="icon icon-link"></span></a>Callout</h2>
 <p>Draw attention to important information.</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Callout type="info" title="Note">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Callout type="info" title="Note"&gt;
   This is an informational callout.
-&#x3C;/Callout>
+&lt;/Callout&gt;
 </code></pre>
 <table>
 <thead>
@@ -31,13 +31,13 @@ const n={frontmatter:{title:"Components",description:"Reference for all built-in
 </table>
 <p>Types: <code>info</code> (blue), <code>tip</code> (green), <code>warning</code> (amber), <code>danger</code> (red).</p>
 <hr>
-<h2 id="tabs"><a class="heading-anchor" aria-hidden tabindex="-1" href="#tabs"><span class="icon icon-link"></span></a>Tabs</h2>
+<h2 id="tabs"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#tabs"><span class="icon icon-link"></span></a>Tabs</h2>
 <p>Present content variants — useful for multiple languages or platform-specific instructions.</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Tabs items={["npm", "yarn", "pnpm"]}>
-  &#x3C;div>npm install @tomehq/cli&#x3C;/div>
-  &#x3C;div>yarn add @tomehq/cli&#x3C;/div>
-  &#x3C;div>pnpm add @tomehq/cli&#x3C;/div>
-&#x3C;/Tabs>
+<pre class="tome-code" data-lang="mdx"><code>&lt;Tabs items={["npm", "yarn", "pnpm"]}&gt;
+  &lt;div&gt;npm install @tomehq/cli&lt;/div&gt;
+  &lt;div&gt;yarn add @tomehq/cli&lt;/div&gt;
+  &lt;div&gt;pnpm add @tomehq/cli&lt;/div&gt;
+&lt;/Tabs&gt;
 </code></pre>
 <table>
 <thead>
@@ -55,13 +55,13 @@ const n={frontmatter:{title:"Components",description:"Reference for all built-in
 </tr>
 </tbody>
 </table>
-<p>Each child <code>&#x3C;div></code> maps to a tab in order.</p>
+<p>Each child <code>&lt;div&gt;</code> maps to a tab in order.</p>
 <hr>
-<h2 id="card"><a class="heading-anchor" aria-hidden tabindex="-1" href="#card"><span class="icon icon-link"></span></a>Card</h2>
+<h2 id="card"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#card"><span class="icon icon-link"></span></a>Card</h2>
 <p>A linked or static content card.</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Card title="Getting Started" icon="rocket" href="/quickstart">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Card title="Getting Started" icon="rocket" href="/quickstart"&gt;
   Set up your first project in minutes.
-&#x3C;/Card>
+&lt;/Card&gt;
 </code></pre>
 <table>
 <thead>
@@ -90,13 +90,13 @@ const n={frontmatter:{title:"Components",description:"Reference for all built-in
 </tbody>
 </table>
 <hr>
-<h2 id="cardgroup"><a class="heading-anchor" aria-hidden tabindex="-1" href="#cardgroup"><span class="icon icon-link"></span></a>CardGroup</h2>
+<h2 id="cardgroup"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#cardgroup"><span class="icon icon-link"></span></a>CardGroup</h2>
 <p>Arranges cards in a responsive grid.</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;CardGroup cols={3}>
-  &#x3C;Card title="Install">Step 1&#x3C;/Card>
-  &#x3C;Card title="Configure">Step 2&#x3C;/Card>
-  &#x3C;Card title="Deploy">Step 3&#x3C;/Card>
-&#x3C;/CardGroup>
+<pre class="tome-code" data-lang="mdx"><code>&lt;CardGroup cols={3}&gt;
+  &lt;Card title="Install"&gt;Step 1&lt;/Card&gt;
+  &lt;Card title="Configure"&gt;Step 2&lt;/Card&gt;
+  &lt;Card title="Deploy"&gt;Step 3&lt;/Card&gt;
+&lt;/CardGroup&gt;
 </code></pre>
 <table>
 <thead>
@@ -117,26 +117,26 @@ const n={frontmatter:{title:"Components",description:"Reference for all built-in
 </tbody>
 </table>
 <hr>
-<h2 id="steps"><a class="heading-anchor" aria-hidden tabindex="-1" href="#steps"><span class="icon icon-link"></span></a>Steps</h2>
+<h2 id="steps"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#steps"><span class="icon icon-link"></span></a>Steps</h2>
 <p>Sequential instructions with numbered indicators.</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Steps>
-  &#x3C;div>
+<pre class="tome-code" data-lang="mdx"><code>&lt;Steps&gt;
+  &lt;div&gt;
     **Create a project**
     Run \`tome init my-docs\`.
-  &#x3C;/div>
-  &#x3C;div>
+  &lt;/div&gt;
+  &lt;div&gt;
     **Install dependencies**
     Run \`npm install\`.
-  &#x3C;/div>
-&#x3C;/Steps>
+  &lt;/div&gt;
+&lt;/Steps&gt;
 </code></pre>
-<p>Each child <code>&#x3C;div></code> becomes a numbered step. Use bold text on the first line for the step title.</p>
+<p>Each child <code>&lt;div&gt;</code> becomes a numbered step. Use bold text on the first line for the step title.</p>
 <hr>
-<h2 id="accordion"><a class="heading-anchor" aria-hidden tabindex="-1" href="#accordion"><span class="icon icon-link"></span></a>Accordion</h2>
+<h2 id="accordion"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#accordion"><span class="icon icon-link"></span></a>Accordion</h2>
 <p>Collapsible content sections for FAQs or optional details.</p>
-<pre class="tome-code" data-lang="mdx"><code>&#x3C;Accordion title="How do I deploy?">
+<pre class="tome-code" data-lang="mdx"><code>&lt;Accordion title="How do I deploy?"&gt;
   Run \`tome build\` then upload the \`out/\` directory.
-&#x3C;/Accordion>
+&lt;/Accordion&gt;
 </code></pre>
 <table>
 <thead>
@@ -155,7 +155,7 @@ const n={frontmatter:{title:"Components",description:"Reference for all built-in
 </tbody>
 </table>
 <hr>
-<h2 id="api-components"><a class="heading-anchor" aria-hidden tabindex="-1" href="#api-components"><span class="icon icon-link"></span></a>API components</h2>
+<h2 id="api-components"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#api-components"><span class="icon icon-link"></span></a>API components</h2>
 <p>When an OpenAPI spec is configured, additional components are auto-generated:</p>
 <ul>
 <li><strong>ApiEndpoint</strong> — Renders an API endpoint with parameters and responses</li>
@@ -164,7 +164,7 @@ const n={frontmatter:{title:"Components",description:"Reference for all built-in
 </ul>
 <p>See the <a href="/docs/guides/api-reference">API reference guide</a> for setup.</p>
 <hr>
-<h2 id="md-vs-mdx"><a class="heading-anchor" aria-hidden tabindex="-1" href="#md-vs-mdx"><span class="icon icon-link"></span></a><code>.md</code> vs <code>.mdx</code></h2>
+<h2 id="md-vs-mdx"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#md-vs-mdx"><span class="icon icon-link"></span></a><code>.md</code> vs <code>.mdx</code></h2>
 <p>Components are only available in <code>.mdx</code> files. Rename <code>.md</code> to <code>.mdx</code> to use them — no other changes needed.</p>`,headings:[{depth:2,text:"Callout",id:"callout"},{depth:2,text:"Tabs",id:"tabs"},{depth:2,text:"Card",id:"card"},{depth:2,text:"CardGroup",id:"cardgroup"},{depth:2,text:"Steps",id:"steps"},{depth:2,text:"Accordion",id:"accordion"},{depth:2,text:"API components",id:"api-components"},{depth:2,text:".md vs .mdx",id:"md-vs-mdx"}],raw:`
 Tome includes built-in components available in any \`.mdx\` file without imports.
 

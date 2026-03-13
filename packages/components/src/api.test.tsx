@@ -218,6 +218,37 @@ describe("CodeExamples", () => {
     expect(pre!.textContent).toContain("import requests");
     expect(pre!.textContent).toContain("requests.get(");
   });
+
+  it("renders Go, Java, and C# tabs in addition to existing tabs", () => {
+    render(<CodeExamples endpoint={sampleEndpoint} />);
+    expect(screen.getByText("Go")).toBeInTheDocument();
+    expect(screen.getByText("Java")).toBeInTheDocument();
+    expect(screen.getByText("C#")).toBeInTheDocument();
+  });
+
+  it("switches to Go tab and shows Go net/http code", () => {
+    const { container } = render(<CodeExamples endpoint={sampleEndpoint} />);
+    fireEvent.click(screen.getByText("Go"));
+    const pre = container.querySelector("pre");
+    expect(pre!.textContent).toContain("http.NewRequest");
+    expect(pre!.textContent).toContain("GET");
+  });
+
+  it("switches to Java tab and shows Java HttpClient code", () => {
+    const { container } = render(<CodeExamples endpoint={sampleEndpoint} />);
+    fireEvent.click(screen.getByText("Java"));
+    const pre = container.querySelector("pre");
+    expect(pre!.textContent).toContain("HttpClient");
+    expect(pre!.textContent).toContain("HttpRequest");
+  });
+
+  it("switches to C# tab and shows C# HttpClient code", () => {
+    const { container } = render(<CodeExamples endpoint={sampleEndpoint} />);
+    fireEvent.click(screen.getByText("C#"));
+    const pre = container.querySelector("pre");
+    expect(pre!.textContent).toContain("HttpClient");
+    expect(pre!.textContent).toContain("HttpRequestMessage");
+  });
 });
 
 // ── EndpointCard ─────────────────────────────────────────

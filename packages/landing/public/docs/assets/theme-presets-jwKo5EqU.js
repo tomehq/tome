@@ -1,7 +1,7 @@
 const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for Tome's built-in theme presets — color tokens, CSS variables, and font stacks.",icon:"swatches",hidden:!1,toc:!0},html:`<p>Tome ships with two theme presets. Each defines color tokens for dark and light modes plus font families.</p>
-<h2 id="amber"><a class="heading-anchor" aria-hidden tabindex="-1" href="#amber"><span class="icon icon-link"></span></a>Amber</h2>
+<h2 id="amber"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#amber"><span class="icon icon-link"></span></a>Amber</h2>
 <p>The default preset. Warm, approachable tones with a golden accent.</p>
-<h3 id="dark-mode"><a class="heading-anchor" aria-hidden tabindex="-1" href="#dark-mode"><span class="icon icon-link"></span></a>Dark mode</h3>
+<h3 id="dark-mode"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#dark-mode"><span class="icon icon-link"></span></a>Dark mode</h3>
 <table>
 <thead>
 <tr>
@@ -63,7 +63,7 @@ const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for 
 </tr>
 </tbody>
 </table>
-<h3 id="light-mode"><a class="heading-anchor" aria-hidden tabindex="-1" href="#light-mode"><span class="icon icon-link"></span></a>Light mode</h3>
+<h3 id="light-mode"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#light-mode"><span class="icon icon-link"></span></a>Light mode</h3>
 <table>
 <thead>
 <tr>
@@ -125,7 +125,7 @@ const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for 
 </tr>
 </tbody>
 </table>
-<h3 id="fonts"><a class="heading-anchor" aria-hidden tabindex="-1" href="#fonts"><span class="icon icon-link"></span></a>Fonts</h3>
+<h3 id="fonts"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#fonts"><span class="icon icon-link"></span></a>Fonts</h3>
 <table>
 <thead>
 <tr>
@@ -149,9 +149,9 @@ const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for 
 </tbody>
 </table>
 <hr>
-<h2 id="editorial"><a class="heading-anchor" aria-hidden tabindex="-1" href="#editorial"><span class="icon icon-link"></span></a>Editorial</h2>
+<h2 id="editorial"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#editorial"><span class="icon icon-link"></span></a>Editorial</h2>
 <p>A refined, high-contrast preset inspired by Swiss poster design.</p>
-<h3 id="dark-mode-1"><a class="heading-anchor" aria-hidden tabindex="-1" href="#dark-mode-1"><span class="icon icon-link"></span></a>Dark mode</h3>
+<h3 id="dark-mode-1"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#dark-mode-1"><span class="icon icon-link"></span></a>Dark mode</h3>
 <table>
 <thead>
 <tr>
@@ -213,7 +213,7 @@ const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for 
 </tr>
 </tbody>
 </table>
-<h3 id="light-mode-1"><a class="heading-anchor" aria-hidden tabindex="-1" href="#light-mode-1"><span class="icon icon-link"></span></a>Light mode</h3>
+<h3 id="light-mode-1"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#light-mode-1"><span class="icon icon-link"></span></a>Light mode</h3>
 <table>
 <thead>
 <tr>
@@ -275,7 +275,7 @@ const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for 
 </tr>
 </tbody>
 </table>
-<h3 id="fonts-1"><a class="heading-anchor" aria-hidden tabindex="-1" href="#fonts-1"><span class="icon icon-link"></span></a>Fonts</h3>
+<h3 id="fonts-1"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#fonts-1"><span class="icon icon-link"></span></a>Fonts</h3>
 <table>
 <thead>
 <tr>
@@ -299,7 +299,7 @@ const t={frontmatter:{title:"Theme Presets",description:"Detailed reference for 
 </tbody>
 </table>
 <hr>
-<h2 id="additional-variables"><a class="heading-anchor" aria-hidden tabindex="-1" href="#additional-variables"><span class="icon icon-link"></span></a>Additional variables</h2>
+<h2 id="additional-variables"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#additional-variables"><span class="icon icon-link"></span></a>Additional variables</h2>
 <p>Both presets also define:</p>
 <table>
 <thead>

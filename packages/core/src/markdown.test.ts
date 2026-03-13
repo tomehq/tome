@@ -214,3 +214,54 @@ describe("processMarkdown with plugins", () => {
     expect(result.html).toContain("Content.");
   }, 15000);
 });
+
+// ── Mermaid support ─────────────────────────────────────
+
+describe("processMarkdown mermaid support", () => {
+  it("transforms mermaid code blocks to tome-mermaid div with base64-encoded data attribute", async () => {
+    const mermaidSrc = "graph LR\n  A-->B";
+    const source = `# Diagrams\n\n\`\`\`mermaid\n${mermaidSrc}\n\`\`\`\n`;
+    const result = await processMarkdown(source);
+
+    expect(result.html).toContain('<div class="tome-mermaid"');
+    expect(result.html).toContain("data-mermaid=");
+
+    const match = result.html.match(/data-mermaid="([^"]+)"/);
+    expect(match).not.toBeNull();
+    const decoded = Buffer.from(match![1], "base64").toString("utf-8");
+    expect(decoded).toBe(mermaidSrc);
+  }, 15000);
+
+  it("does not apply syntax highlighting to mermaid blocks (no shiki output)", async () => {
+    const source = "# T\n\n```mermaid\ngraph TD\n  X-->Y\n```\n";
+    const result = await processMarkdown(source);
+
+    // Shiki wraps highlighted code in <pre> with class "shiki"; mermaid should not have that
+    expect(result.html).not.toMatch(/<pre[^>]*class="[^"]*shiki[^"]*"[^>]*>[\s\S]*graph TD/);
+    expect(result.html).toContain('<div class="tome-mermaid"');
+  }, 15000);
+
+  it("still processes other language code blocks normally alongside mermaid", async () => {
+    const source = [
+      "# Mixed",
+      "",
+      "```javascript",
+      "const x = 1;",
+      "```",
+      "",
+      "```mermaid",
+      "graph LR",
+      "  A-->B",
+      "```",
+    ].join("\n");
+
+    const result = await processMarkdown(source);
+
+    // JS block should be syntax-highlighted (shiki wraps in <pre>)
+    expect(result.html).toContain("const");
+    expect(result.html).toContain("<pre");
+
+    // Mermaid block should be a placeholder div
+    expect(result.html).toContain('<div class="tome-mermaid"');
+  }, 15000);
+});

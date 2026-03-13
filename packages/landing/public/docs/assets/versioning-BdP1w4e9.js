@@ -1,5 +1,5 @@
 const n={frontmatter:{title:"Multi-Version Docs",description:"How to maintain multiple versions of your documentation with Tome's built-in versioning system.",icon:"layers",hidden:!1,toc:!0},html:`<p>Tome supports maintaining multiple versions of your documentation side by side. This is useful for libraries and APIs that need to document breaking changes across major versions.</p>
-<h2 id="directory-structure"><a class="heading-anchor" aria-hidden tabindex="-1" href="#directory-structure"><span class="icon icon-link"></span></a>Directory structure</h2>
+<h2 id="directory-structure"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#directory-structure"><span class="icon icon-link"></span></a>Directory structure</h2>
 <p>Organize your pages by version using subdirectories:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span>pages/</span></span>
 <span class="line"><span>├── current/          # Latest version</span></span>
@@ -13,7 +13,7 @@ const n={frontmatter:{title:"Multi-Version Docs",description:"How to maintain mu
 <span class="line"><span>└── v0.9/             # Older version</span></span>
 <span class="line"><span>    ├── index.md</span></span>
 <span class="line"><span>    └── api.md</span></span></code></pre>
-<h2 id="configuration"><a class="heading-anchor" aria-hidden tabindex="-1" href="#configuration"><span class="icon icon-link"></span></a>Configuration</h2>
+<h2 id="configuration"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#configuration"><span class="icon icon-link"></span></a>Configuration</h2>
 <p>Add the <code>versioning</code> section to your config:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">export</span><span style="color:#D73A49;--shiki-dark:#F97583"> default</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  name: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"My Docs"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
@@ -43,7 +43,7 @@ const n={frontmatter:{title:"Multi-Version Docs",description:"How to maintain mu
 </tr>
 </tbody>
 </table>
-<h2 id="url-mapping"><a class="heading-anchor" aria-hidden tabindex="-1" href="#url-mapping"><span class="icon icon-link"></span></a>URL mapping</h2>
+<h2 id="url-mapping"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#url-mapping"><span class="icon icon-link"></span></a>URL mapping</h2>
 <table>
 <thead>
 <tr>
@@ -71,10 +71,10 @@ const n={frontmatter:{title:"Multi-Version Docs",description:"How to maintain mu
 </tbody>
 </table>
 <p>The <code>current</code> directory always serves at the root — no version prefix. Older versions are prefixed with their version string.</p>
-<h2 id="version-switcher"><a class="heading-anchor" aria-hidden tabindex="-1" href="#version-switcher"><span class="icon icon-link"></span></a>Version switcher</h2>
+<h2 id="version-switcher"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#version-switcher"><span class="icon icon-link"></span></a>Version switcher</h2>
 <p>When versioning is configured, Tome automatically adds a version dropdown to the header. Users can switch between versions, and the URL updates to reflect the selected version.</p>
 <p>If the current page exists in the target version, the user stays on that page. Otherwise, they're redirected to the version's index page.</p>
-<h2 id="best-practices"><a class="heading-anchor" aria-hidden tabindex="-1" href="#best-practices"><span class="icon icon-link"></span></a>Best practices</h2>
+<h2 id="best-practices"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#best-practices"><span class="icon icon-link"></span></a>Best practices</h2>
 <ul>
 <li>Keep the <code>current</code> directory as your working copy</li>
 <li>Copy <code>current</code> to a versioned directory (e.g., <code>v2.0</code>) when you cut a release</li>

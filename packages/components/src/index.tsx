@@ -186,3 +186,131 @@ export function Accordion({ title, children }: { title: string; children: React.
     </div>
   );
 }
+
+// ── PACKAGE MANAGER ─────────────────────────────────────
+const PM_MAP: Record<string, Record<string, string>> = {
+  install: { npm: "npm install", yarn: "yarn add", pnpm: "pnpm add", bun: "bun add" },
+  "install -D": { npm: "npm install -D", yarn: "yarn add -D", pnpm: "pnpm add -D", bun: "bun add -d" },
+  uninstall: { npm: "npm uninstall", yarn: "yarn remove", pnpm: "pnpm remove", bun: "bun remove" },
+  run: { npm: "npm run", yarn: "yarn", pnpm: "pnpm", bun: "bun run" },
+  exec: { npm: "npx", yarn: "yarn dlx", pnpm: "pnpm dlx", bun: "bunx" },
+  init: { npm: "npm init", yarn: "yarn init", pnpm: "pnpm init", bun: "bun init" },
+  create: { npm: "npm create", yarn: "yarn create", pnpm: "pnpm create", bun: "bun create" },
+};
+
+function translateCommand(command: string, pm: string): string {
+  for (const [verb, map] of Object.entries(PM_MAP)) {
+    if (command.startsWith(verb + " ") || command === verb) {
+      const rest = command.slice(verb.length);
+      return (map[pm] || verb) + rest;
+    }
+  }
+  return `${pm} ${command}`;
+}
+
+export function PackageManager({ command }: { command: string }) {
+  const [active, setActive] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const pms = ["npm", "yarn", "pnpm", "bun"] as const;
+  const cmd = translateCommand(command, pms[active]);
+
+  return (
+    <div style={{ border: "1px solid var(--bd)", borderRadius: 2, marginBottom: 16, overflow: "hidden" }}>
+      <div style={{ display: "flex", borderBottom: "1px solid var(--bd)", background: "var(--sf)", overflowX: "auto" }}>
+        {pms.map((pm, i) => (
+          <button key={pm} onClick={() => { setActive(i); setCopied(false); }} style={{
+            padding: "8px 14px", background: "none", border: "none", cursor: "pointer",
+            fontSize: 12, fontFamily: "var(--font-code)", fontWeight: i === active ? 600 : 400,
+            color: i === active ? "var(--ac)" : "var(--txM)",
+            borderBottom: i === active ? "2px solid var(--ac)" : "2px solid transparent",
+            whiteSpace: "nowrap",
+          }}>{pm}</button>
+        ))}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 14px", background: "var(--cdBg)", gap: 8 }}>
+        <code style={{ flex: 1, fontFamily: "var(--font-code)", fontSize: 13, color: "var(--cdTx)", whiteSpace: "pre", overflowX: "auto" }}>
+          {cmd}
+        </code>
+        <button onClick={() => { navigator.clipboard?.writeText(cmd); setCopied(true); setTimeout(() => setCopied(false), 2000); }} style={{
+          background: "none", border: "none", cursor: "pointer", color: "var(--txM)", fontSize: 12, fontFamily: "var(--font-code)", flexShrink: 0,
+        }}>{copied ? "✓" : "Copy"}</button>
+      </div>
+    </div>
+  );
+}
+
+// ── TYPE TABLE ──────────────────────────────────────────
+interface TypeField {
+  name: string;
+  type: string;
+  required?: boolean;
+  default?: string;
+  description?: string;
+}
+
+export function TypeTable({ name, fields }: { name: string; fields: TypeField[] }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {name && <h4 style={{ fontFamily: "var(--font-code)", fontSize: 15, marginBottom: 8, color: "var(--tx)" }}>{name}</h4>}
+      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: "var(--font-body)" }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid var(--bd)" }}>
+              {["Property", "Type", "Required", "Default", "Description"].map(h => (
+                <th key={h} style={{ textAlign: "left", padding: "8px 10px", color: "var(--txM)", fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: ".05em", whiteSpace: "nowrap" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {fields.map(f => (
+              <tr key={f.name} style={{ borderBottom: "1px solid var(--bd)" }}>
+                <td style={{ padding: "8px 10px", fontFamily: "var(--font-code)", fontWeight: 500, color: "var(--tx)" }}>{f.name}</td>
+                <td style={{ padding: "8px 10px", fontFamily: "var(--font-code)", fontSize: 12, color: "var(--ac)" }}>{f.type}</td>
+                <td style={{ padding: "8px 10px" }}>
+                  {f.required && <span style={{ fontSize: 10, fontWeight: 600, color: "#e04040", background: "rgba(224,64,64,0.1)", padding: "2px 6px", borderRadius: 2 }}>required</span>}
+                </td>
+                <td style={{ padding: "8px 10px", fontFamily: "var(--font-code)", fontSize: 12, color: "var(--txM)" }}>{f.default || "—"}</td>
+                <td style={{ padding: "8px 10px", color: "var(--tx2)" }}>{f.description || ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── FILE TREE ───────────────────────────────────────────
+function FileTreeFile({ name }: { name: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 0", fontFamily: "var(--font-code)", fontSize: 13, color: "var(--tx2)" }}>
+      <span style={{ opacity: 0.6 }}>📄</span> {name}
+    </div>
+  );
+}
+
+function FileTreeFolder({ name, defaultOpen, children }: { name: string; defaultOpen?: boolean; children?: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  return (
+    <div>
+      <button onClick={() => setOpen(!open)} style={{
+        display: "flex", alignItems: "center", gap: 6, padding: "3px 0",
+        background: "none", border: "none", cursor: "pointer",
+        fontFamily: "var(--font-code)", fontSize: 13, color: "var(--tx)", fontWeight: 500,
+      }}>
+        <span>{open ? "📂" : "📁"}</span> {name}
+      </button>
+      {open && <div style={{ paddingLeft: 18, borderLeft: "1px solid var(--bd)", marginLeft: 8 }}>{children}</div>}
+    </div>
+  );
+}
+
+export function FileTree({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ border: "1px solid var(--bd)", borderRadius: 2, padding: "12px 16px", background: "var(--cdBg)", marginBottom: 16 }}>
+      {children}
+    </div>
+  );
+}
+FileTree.File = FileTreeFile;
+FileTree.Folder = FileTreeFolder;

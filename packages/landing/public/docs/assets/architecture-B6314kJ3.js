@@ -1,8 +1,8 @@
 const e={frontmatter:{title:"Architecture",description:"How Tome works internally — the Vite plugin, virtual modules, build pipeline, and theme system.",hidden:!1,toc:!0},html:`<p>Tome is built on Vite and React. Understanding the architecture helps when debugging build issues or building advanced customizations.</p>
-<h2 id="overview"><a class="heading-anchor" aria-hidden tabindex="-1" href="#overview"><span class="icon icon-link"></span></a>Overview</h2>
+<h2 id="overview"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#overview"><span class="icon icon-link"></span></a>Overview</h2>
 <p>A Tome site is a Vite application with a custom plugin that handles page discovery, routing, and content processing. The theme package provides the React UI shell.</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span>tome.config.js  →  Vite Plugin  →  Virtual Modules  →  Theme Shell  →  Static Site</span></span></code></pre>
-<h2 id="vite-plugin"><a class="heading-anchor" aria-hidden tabindex="-1" href="#vite-plugin"><span class="icon icon-link"></span></a>Vite plugin</h2>
+<h2 id="vite-plugin"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#vite-plugin"><span class="icon icon-link"></span></a>Vite plugin</h2>
 <p>The core of Tome is <code>vite-plugin-tome</code> in <code>@tomehq/core</code>. It has three responsibilities:</p>
 <p><strong>1. Page discovery</strong> — On startup, the plugin scans <code>pages/</code> for <code>.md</code> and <code>.mdx</code> files, extracts frontmatter, and builds a route table. It watches for file changes during development and triggers hot reloads.</p>
 <p><strong>2. Virtual modules</strong> — The plugin exposes content through Vite's virtual module system:</p>
@@ -37,7 +37,7 @@ const e={frontmatter:{title:"Architecture",description:"How Tome works internall
 </tbody>
 </table>
 <p><strong>3. Build-time generation</strong> — During builds, the plugin injects analytics scripts and generates the <code>mcp.json</code> manifest.</p>
-<h2 id="theme-system"><a class="heading-anchor" aria-hidden tabindex="-1" href="#theme-system"><span class="icon icon-link"></span></a>Theme system</h2>
+<h2 id="theme-system"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#theme-system"><span class="icon icon-link"></span></a>Theme system</h2>
 <p>The theme package (<code>@tomehq/theme</code>) provides the React shell:</p>
 <ul>
 <li><strong>Shell component</strong> — Header, sidebar, content area, footer</li>
@@ -46,20 +46,20 @@ const e={frontmatter:{title:"Architecture",description:"How Tome works internall
 <li><strong>AI chat</strong> — Optional floating widget</li>
 </ul>
 <p>The entry point (<code>.tome/entry.tsx</code>) bootstraps the shell by importing <code>@tomehq/theme/entry</code>.</p>
-<h2 id="content-pipeline"><a class="heading-anchor" aria-hidden tabindex="-1" href="#content-pipeline"><span class="icon icon-link"></span></a>Content pipeline</h2>
-<h3 id="markdown-md"><a class="heading-anchor" aria-hidden tabindex="-1" href="#markdown-md"><span class="icon icon-link"></span></a>Markdown (<code>.md</code>)</h3>
+<h2 id="content-pipeline"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#content-pipeline"><span class="icon icon-link"></span></a>Content pipeline</h2>
+<h3 id="markdown-md"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#markdown-md"><span class="icon icon-link"></span></a>Markdown (<code>.md</code>)</h3>
 <ol>
 <li>Frontmatter extracted via <code>gray-matter</code></li>
 <li>Markdown processed to HTML (syntax highlighting, GFM tables, headings)</li>
 <li>HTML + headings + frontmatter served as virtual module</li>
 </ol>
-<h3 id="mdx-mdx"><a class="heading-anchor" aria-hidden tabindex="-1" href="#mdx-mdx"><span class="icon icon-link"></span></a>MDX (<code>.mdx</code>)</h3>
+<h3 id="mdx-mdx"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#mdx-mdx"><span class="icon icon-link"></span></a>MDX (<code>.mdx</code>)</h3>
 <ol>
 <li>Frontmatter and headings extracted from raw source</li>
 <li>File passed to <code>@mdx-js/rollup</code> for JSX compilation</li>
 <li>Virtual module re-exports the compiled React component + metadata</li>
 </ol>
-<h2 id="build-output"><a class="heading-anchor" aria-hidden tabindex="-1" href="#build-output"><span class="icon icon-link"></span></a>Build output</h2>
+<h2 id="build-output"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#build-output"><span class="icon icon-link"></span></a>Build output</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span>out/</span></span>
 <span class="line"><span>├── index.html           # SPA entry</span></span>
 <span class="line"><span>├── assets/</span></span>
@@ -69,7 +69,7 @@ const e={frontmatter:{title:"Architecture",description:"How Tome works internall
 <span class="line"><span>├── mcp.json             # MCP manifest</span></span>
 <span class="line"><span>└── 404.html             # Error page</span></span></code></pre>
 <p>The output is a single-page application. Search is fully static.</p>
-<h2 id="package-structure"><a class="heading-anchor" aria-hidden tabindex="-1" href="#package-structure"><span class="icon icon-link"></span></a>Package structure</h2>
+<h2 id="package-structure"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#package-structure"><span class="icon icon-link"></span></a>Package structure</h2>
 <table>
 <thead>
 <tr>

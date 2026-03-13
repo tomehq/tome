@@ -1,5 +1,5 @@
 const n={frontmatter:{title:"Endpoints",description:"How Tome renders API endpoints from your OpenAPI spec — methods, parameters, schemas, and the interactive playground.",icon:"globe",hidden:!1,toc:!0},html:`<p>Tome renders each API operation from your OpenAPI spec as a structured endpoint section with method badges, parameter tables, request/response schemas, and an optional interactive playground.</p>
-<h2 id="endpoint-layout"><a class="heading-anchor" aria-hidden tabindex="-1" href="#endpoint-layout"><span class="icon icon-link"></span></a>Endpoint layout</h2>
+<h2 id="endpoint-layout"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#endpoint-layout"><span class="icon icon-link"></span></a>Endpoint layout</h2>
 <p>Each endpoint displays:</p>
 <ol>
 <li><strong>Method badge</strong> — Color-coded (GET, POST, PUT, DELETE, PATCH)</li>
@@ -9,7 +9,7 @@ const n={frontmatter:{title:"Endpoints",description:"How Tome renders API endpoi
 <li><strong>Request body</strong> — Schema rendered with types and descriptions</li>
 <li><strong>Responses</strong> — Status codes with response schemas</li>
 </ol>
-<h2 id="tag-grouping"><a class="heading-anchor" aria-hidden tabindex="-1" href="#tag-grouping"><span class="icon icon-link"></span></a>Tag grouping</h2>
+<h2 id="tag-grouping"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#tag-grouping"><span class="icon icon-link"></span></a>Tag grouping</h2>
 <p>Endpoints are organized by their OpenAPI tags. Each tag becomes a section heading:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">paths</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">  /users</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
@@ -25,7 +25,7 @@ const n={frontmatter:{title:"Endpoints",description:"How Tome renders API endpoi
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">      tags</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">Projects</span><span style="color:#24292E;--shiki-dark:#E1E4E8">]</span></span>
 <span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">      summary</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">List projects</span></span></code></pre>
 <p>This generates two groups: "Users" with two endpoints and "Projects" with one.</p>
-<h2 id="parameter-rendering"><a class="heading-anchor" aria-hidden tabindex="-1" href="#parameter-rendering"><span class="icon icon-link"></span></a>Parameter rendering</h2>
+<h2 id="parameter-rendering"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#parameter-rendering"><span class="icon icon-link"></span></a>Parameter rendering</h2>
 <p>Parameters are rendered in a table with type information:</p>
 <table>
 <thead>
@@ -61,7 +61,7 @@ const n={frontmatter:{title:"Endpoints",description:"How Tome renders API endpoi
 </tr>
 </tbody>
 </table>
-<h2 id="schema-display"><a class="heading-anchor" aria-hidden tabindex="-1" href="#schema-display"><span class="icon icon-link"></span></a>Schema display</h2>
+<h2 id="schema-display"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#schema-display"><span class="icon icon-link"></span></a>Schema display</h2>
 <p>Request and response schemas are rendered recursively. Nested objects show their properties with types:</p>
 <pre><code>UserResponse {
   id: string          — Unique identifier
@@ -75,7 +75,7 @@ const n={frontmatter:{title:"Endpoints",description:"How Tome renders API endpoi
 }
 </code></pre>
 <p>Arrays, enums, and <code>oneOf</code>/<code>anyOf</code> unions are all supported.</p>
-<h2 id="interactive-playground"><a class="heading-anchor" aria-hidden tabindex="-1" href="#interactive-playground"><span class="icon icon-link"></span></a>Interactive playground</h2>
+<h2 id="interactive-playground"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#interactive-playground"><span class="icon icon-link"></span></a>Interactive playground</h2>
 <p>When <code>playground.enabled</code> is true in your config, each endpoint gets a "Try it" section where users can:</p>
 <ul>
 <li>Fill in path and query parameters</li>

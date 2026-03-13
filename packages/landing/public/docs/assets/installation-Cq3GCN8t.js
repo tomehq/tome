@@ -1,5 +1,5 @@
 const s={frontmatter:{title:"Installation",description:"System requirements and detailed installation instructions for Tome.",icon:"download",hidden:!1,toc:!0},html:`<p>Tome requires Node.js and works with npm, pnpm, or yarn.</p>
-<h2 id="prerequisites"><a class="heading-anchor" aria-hidden tabindex="-1" href="#prerequisites"><span class="icon icon-link"></span></a>Prerequisites</h2>
+<h2 id="prerequisites"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#prerequisites"><span class="icon icon-link"></span></a>Prerequisites</h2>
 <table>
 <thead>
 <tr>
@@ -18,7 +18,7 @@ const s={frontmatter:{title:"Installation",description:"System requirements and 
 </tr>
 </tbody>
 </table>
-<h2 id="create-a-new-project"><a class="heading-anchor" aria-hidden tabindex="-1" href="#create-a-new-project"><span class="icon icon-link"></span></a>Create a new project</h2>
+<h2 id="create-a-new-project"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#create-a-new-project"><span class="icon icon-link"></span></a>Create a new project</h2>
 <p>The fastest way to start is with the CLI:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npx</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> @tomehq/cli</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> init</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> my-docs</span></span></code></pre>
 <p>This creates a new directory with everything you need:</p>
@@ -34,17 +34,17 @@ const s={frontmatter:{title:"Installation",description:"System requirements and 
 ├── package.json
 └── .gitignore
 </code></pre>
-<h2 id="install-dependencies"><a class="heading-anchor" aria-hidden tabindex="-1" href="#install-dependencies"><span class="icon icon-link"></span></a>Install dependencies</h2>
+<h2 id="install-dependencies"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#install-dependencies"><span class="icon icon-link"></span></a>Install dependencies</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">cd</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> my-docs</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> install</span></span></code></pre>
 <p>Or with pnpm / yarn:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">pnpm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> install</span></span>
 <span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D"># or</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">yarn</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> install</span></span></code></pre>
-<h2 id="start-the-dev-server"><a class="heading-anchor" aria-hidden tabindex="-1" href="#start-the-dev-server"><span class="icon icon-link"></span></a>Start the dev server</h2>
+<h2 id="start-the-dev-server"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#start-the-dev-server"><span class="icon icon-link"></span></a>Start the dev server</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> run</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> dev</span></span></code></pre>
 <p>The dev server starts at <code>http://localhost:3000</code> with hot reload enabled. Changes to any <code>.md</code> or <code>.mdx</code> file in <code>pages/</code> trigger an instant refresh. Config changes in <code>tome.config.js</code> trigger a full reload.</p>
-<h2 id="add-to-an-existing-project"><a class="heading-anchor" aria-hidden tabindex="-1" href="#add-to-an-existing-project"><span class="icon icon-link"></span></a>Add to an existing project</h2>
+<h2 id="add-to-an-existing-project"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#add-to-an-existing-project"><span class="icon icon-link"></span></a>Add to an existing project</h2>
 <p>If you already have a project and want to add Tome documentation:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> install</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> @tomehq/cli</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> @tomehq/theme</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> react</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> react-dom</span></span></code></pre>
 <p>Create the required files:</p>
@@ -64,18 +64,18 @@ const s={frontmatter:{title:"Installation",description:"System requirements and 
 <span class="line"></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">Your documentation starts here.</span></span></code></pre>
 <p><strong><code>index.html</code></strong></p>
-<pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">!DOCTYPE html></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">html lang="en"></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">head></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">meta charset="UTF-8" /></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">meta name="viewport" content="width=device-width, initial-scale=1.0" /></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">title>Docs</span><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/title></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/head></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">body></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">div id="tome-root"></span><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/div></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">script type="module" src=".tome/entry.tsx"></span><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/script></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/body></span></span>
-<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&#x26;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/html></span></span></code></pre>
+<pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">!DOCTYPE html&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">html lang="en"&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">head&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">meta charset="UTF-8" /&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">title&gt;Docs</span><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/title&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/head&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">body&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">div id="tome-root"&gt;</span><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/div&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">  &amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">script type="module" src=".tome/entry.tsx"&gt;</span><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/script&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/body&gt;</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">&amp;#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">/html&gt;</span></span></code></pre>
 <p><strong><code>.tome/entry.tsx</code></strong></p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">import</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> "@tomehq/theme/entry"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span></code></pre>
 <p>Add scripts to <code>package.json</code>:</p>
@@ -85,7 +85,7 @@ const s={frontmatter:{title:"Installation",description:"System requirements and 
 <span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">    "build"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"tome build"</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre>
-<h2 id="next-steps"><a class="heading-anchor" aria-hidden tabindex="-1" href="#next-steps"><span class="icon icon-link"></span></a>Next steps</h2>
+<h2 id="next-steps"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#next-steps"><span class="icon icon-link"></span></a>Next steps</h2>
 <ul>
 <li><strong><a href="#project-structure">Project Structure</a></strong> to understand how files are organized</li>
 <li><strong><a href="#configuration">Configuration</a></strong> to customize your site</li>

@@ -21,6 +21,9 @@ import {
   Steps,
   Accordion,
   ChangelogTimeline,
+  PackageManager,
+  TypeTable,
+  FileTree,
 } from "@tomehq/components";
 
 const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -31,6 +34,9 @@ const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
   Steps,
   Accordion,
   ChangelogTimeline,
+  PackageManager,
+  TypeTable,
+  FileTree, // Sub-components accessible as <FileTree.File /> and <FileTree.Folder /> in MDX
 };
 
 // ── CONTENT STYLES ───────────────────────────────────────
@@ -56,8 +62,10 @@ const contentStyles = `
   .tome-content table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
   .tome-content th, .tome-content td { padding: 0.5em 0.8em; border: 1px solid var(--bd); text-align: left; font-size: 0.9em; }
   .tome-content th { background: var(--sf); font-weight: 600; }
-  .tome-content img { max-width: 100%; border-radius: 2px; }
+  .tome-content img { max-width: 100%; border-radius: 2px; cursor: zoom-in; }
   .tome-content hr { border: none; border-top: 1px solid var(--bd); margin: 2em 0; }
+  .tome-mermaid { margin: 1.2em 0; text-align: center; }
+  .tome-mermaid svg { max-width: 100%; height: auto; }
 
   /* Mobile responsive content */
   @media (max-width: 767px) {
@@ -190,6 +198,53 @@ function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, [currentPageId, navigateTo]);
 
+  // Mermaid diagram rendering: load from CDN and render .tome-mermaid elements
+  useEffect(() => {
+    const els = document.querySelectorAll(".tome-mermaid[data-mermaid]");
+    if (els.length === 0) return;
+    let cancelled = false;
+
+    const MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    (async () => {
+      try {
+        // Load mermaid from CDN (ESM) — works in all browsers, no bundler dependency
+        const { default: mermaid } = await import(/* @vite-ignore */ MERMAID_CDN);
+        if (cancelled) return;
+        const isDark = document.documentElement.classList.contains("dark");
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? "dark" : "default",
+          fontFamily: "var(--font-body)",
+        });
+
+        for (let i = 0; i < els.length; i++) {
+          const el = els[i] as HTMLElement;
+          if (el.querySelector("svg")) continue; // already rendered
+          const encoded = el.getAttribute("data-mermaid");
+          if (!encoded) continue;
+          try {
+            const code = atob(encoded);
+            const { svg } = await mermaid.render(`tome-mermaid-${i}-${Date.now()}`, code);
+            if (!cancelled) el.innerHTML = svg;
+          } catch (err) {
+            console.warn("[tome] Mermaid render failed:", err);
+            el.textContent = "Diagram rendering failed";
+            (el as HTMLElement).style.cssText = "padding:16px;color:var(--txM);font-size:13px;border:1px dashed var(--bd);border-radius:2px;text-align:center;";
+          }
+        }
+      } catch (err) {
+        console.warn("[tome] Failed to load mermaid from CDN:", err);
+        els.forEach((el) => {
+          (el as HTMLElement).textContent = "Failed to load diagram renderer";
+          (el as HTMLElement).style.cssText = "padding:16px;color:var(--txM);font-size:13px;border:1px dashed var(--bd);border-radius:2px;text-align:center;";
+        });
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [pageData, loading]);
+
   const allPages = routes.map((r: any) => ({
     id: r.id,
     title: r.frontmatter.title,
@@ -204,6 +259,19 @@ function App() {
     const dirPrefix = dir ? `${dir.replace(/\/$/, "")}/` : "";
     editUrl = `https://github.com/${repo}/edit/${branch}/${dirPrefix}${currentRoute.filePath}`;
   }
+
+  // KaTeX CSS: inject stylesheet when math is enabled
+  useEffect(() => {
+    if (!(config as any).math) return;
+    const id = "tome-katex-css";
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css";
+    link.crossOrigin = "anonymous";
+    document.head.appendChild(link);
+  }, []);
 
   return (
     <>

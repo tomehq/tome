@@ -416,19 +416,115 @@ function generatePython(endpoint: ApiEndpoint, baseUrl: string): string {
   return lines.join("\n");
 }
 
+function generateGo(endpoint: ApiEndpoint, baseUrl: string): string {
+  const url = baseUrl + endpoint.path;
+  const lines: string[] = ["package main", "", 'import (', '  "fmt"', '  "net/http"'];
+  if (endpoint.requestBody?.schema) {
+    lines.push('  "bytes"', '  "encoding/json"');
+  }
+  lines.push('  "io"', ")", "");
+  lines.push("func main() {");
+
+  if (endpoint.requestBody?.schema) {
+    lines.push(`  body, _ := json.Marshal(${JSON.stringify(endpoint.requestBody.schema)})`);
+    lines.push(`  req, _ := http.NewRequest("${endpoint.method.toUpperCase()}", "${url}", bytes.NewBuffer(body))`);
+  } else {
+    lines.push(`  req, _ := http.NewRequest("${endpoint.method.toUpperCase()}", "${url}", nil)`);
+  }
+
+  const headerParams = endpoint.parameters.filter((p) => p.in === "header");
+  for (const h of headerParams) {
+    lines.push(`  req.Header.Set("${h.name}", "<value>")`);
+  }
+  if (endpoint.requestBody) {
+    lines.push(`  req.Header.Set("Content-Type", "${endpoint.requestBody.contentType}")`);
+  }
+
+  lines.push("  resp, _ := http.DefaultClient.Do(req)");
+  lines.push("  defer resp.Body.Close()");
+  lines.push("  data, _ := io.ReadAll(resp.Body)");
+  lines.push("  fmt.Println(string(data))");
+  lines.push("}");
+  return lines.join("\n");
+}
+
+function generateJava(endpoint: ApiEndpoint, baseUrl: string): string {
+  const url = baseUrl + endpoint.path;
+  const lines: string[] = [
+    "import java.net.http.*;",
+    "import java.net.URI;",
+    "",
+    "var client = HttpClient.newHttpClient();",
+  ];
+
+  if (endpoint.requestBody?.schema) {
+    lines.push(`var body = ${JSON.stringify(JSON.stringify(endpoint.requestBody.schema))};`);
+    lines.push(`var request = HttpRequest.newBuilder()`);
+    lines.push(`  .uri(URI.create("${url}"))`);
+    lines.push(`  .method("${endpoint.method.toUpperCase()}", HttpRequest.BodyPublishers.ofString(body))`);
+  } else {
+    lines.push(`var request = HttpRequest.newBuilder()`);
+    lines.push(`  .uri(URI.create("${url}"))`);
+    lines.push(`  .method("${endpoint.method.toUpperCase()}", HttpRequest.BodyPublishers.noBody())`);
+  }
+
+  const headerParams = endpoint.parameters.filter((p) => p.in === "header");
+  for (const h of headerParams) {
+    lines.push(`  .header("${h.name}", "<value>")`);
+  }
+  if (endpoint.requestBody) {
+    lines.push(`  .header("Content-Type", "${endpoint.requestBody.contentType}")`);
+  }
+  lines.push("  .build();");
+  lines.push("");
+  lines.push("var response = client.send(request, HttpResponse.BodyHandlers.ofString());");
+  lines.push("System.out.println(response.body());");
+  return lines.join("\n");
+}
+
+function generateCSharp(endpoint: ApiEndpoint, baseUrl: string): string {
+  const url = baseUrl + endpoint.path;
+  const lines: string[] = [
+    "using var client = new HttpClient();",
+    "",
+    `var request = new HttpRequestMessage(HttpMethod.${endpoint.method.charAt(0).toUpperCase() + endpoint.method.slice(1)}, "${url}");`,
+  ];
+
+  const headerParams = endpoint.parameters.filter((p) => p.in === "header");
+  for (const h of headerParams) {
+    lines.push(`request.Headers.Add("${h.name}", "<value>");`);
+  }
+
+  if (endpoint.requestBody?.schema) {
+    lines.push(`request.Content = new StringContent(`);
+    lines.push(`  ${JSON.stringify(JSON.stringify(endpoint.requestBody.schema))},`);
+    lines.push(`  System.Text.Encoding.UTF8,`);
+    lines.push(`  "${endpoint.requestBody.contentType}");`);
+  }
+
+  lines.push("");
+  lines.push("var response = await client.SendAsync(request);");
+  lines.push("var body = await response.Content.ReadAsStringAsync();");
+  lines.push("Console.WriteLine(body);");
+  return lines.join("\n");
+}
+
 export function CodeExamples({ endpoint, baseUrl = "https://api.example.com" }: CodeExamplesProps) {
   const [active, setActive] = useState(0);
 
-  const tabs = ["cURL", "JavaScript", "Python"];
+  const tabs = ["cURL", "JavaScript", "Python", "Go", "Java", "C#"];
   const examples = [
     generateCurl(endpoint, baseUrl),
     generateFetch(endpoint, baseUrl),
     generatePython(endpoint, baseUrl),
+    generateGo(endpoint, baseUrl),
+    generateJava(endpoint, baseUrl),
+    generateCSharp(endpoint, baseUrl),
   ];
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--bd)" }}>
+      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--bd)", overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
         {tabs.map((tab, i) => (
           <button
             key={tab}
@@ -443,6 +539,7 @@ export function CodeExamples({ endpoint, baseUrl = "https://api.example.com" }: 
               fontSize: 12,
               cursor: "pointer",
               fontFamily: "inherit",
+              whiteSpace: "nowrap",
             }}
           >
             {tab}

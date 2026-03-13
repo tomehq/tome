@@ -189,3 +189,46 @@ describe("defineConfig", () => {
     expect(cfg.theme).toBeUndefined();
   });
 });
+
+describe("BannerSchema", () => {
+  it("accepts banner config with text, link, and dismissible", () => {
+    const result = TomeConfigSchema.parse({
+      banner: { text: "New release!", link: "/changelog", dismissible: false },
+    });
+    expect(result.banner?.text).toBe("New release!");
+    expect(result.banner?.link).toBe("/changelog");
+    expect(result.banner?.dismissible).toBe(false);
+  });
+
+  it("accepts banner with only text", () => {
+    const result = TomeConfigSchema.parse({
+      banner: { text: "Hello world" },
+    });
+    expect(result.banner?.text).toBe("Hello world");
+    expect(result.banner?.link).toBeUndefined();
+  });
+
+  it("allows omitting banner entirely", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.banner).toBeUndefined();
+  });
+
+  it("applies dismissible default of true when not specified", () => {
+    const result = TomeConfigSchema.parse({
+      banner: { text: "Notice" },
+    });
+    expect(result.banner?.dismissible).toBe(true);
+  });
+});
+
+describe("Math config", () => {
+  it("defaults math to false", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.math).toBe(false);
+  });
+
+  it("accepts math: true", () => {
+    const result = TomeConfigSchema.parse({ math: true });
+    expect(result.math).toBe(true);
+  });
+});
