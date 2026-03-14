@@ -233,15 +233,10 @@ function App() {
             const code = atob(encoded);
             const { svg } = await mermaid.render(`tome-mermaid-${i}-${Date.now()}`, code);
             if (!cancelled) {
-              // Sanitize SVG to prevent XSS from mermaid-rendered content
-              try {
-                // @ts-ignore — CDN dynamic import for browser-only sanitization
-                const DOMPurify = (await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.es.mjs")).default;
-                el.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { html: true, svg: true, svgFilters: true } });
-              } catch {
-                // DOMPurify unavailable — render without sanitization (acceptable for trusted content)
-                el.innerHTML = svg;
-              }
+              // Mermaid SVG is trusted: input comes from site owner's markdown,
+              // base64-encoded at build time. DOMPurify strips foreignObject/text
+              // elements that mermaid needs for labels, so we skip sanitization here.
+              el.innerHTML = svg;
             }
           } catch (err) {
             console.warn("[tome] Mermaid render failed:", err);
