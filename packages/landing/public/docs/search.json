@@ -2,7 +2,7 @@
   "version": 1,
   "generator": "tome",
   "site": "Tome",
-  "totalPages": 82,
+  "totalPages": 87,
   "searchEndpoint": "/pagefind/pagefind.js",
   "pages": [
     {
@@ -157,6 +157,26 @@
       "wordCount": 313
     },
     {
+      "id": "guides/code-blocks",
+      "url": "/guides/code-blocks",
+      "title": "Code Blocks",
+      "description": "Advanced code block features — syntax highlighting, line numbers, titles, line highlighting, and TypeScript hover types with Twoslash.",
+      "headings": [
+        "Syntax highlighting",
+        "Code block titles",
+        "Line highlighting",
+        "Line numbers",
+        "Combining features",
+        "Twoslash (TypeScript hover types)",
+        "Setup",
+        "Twoslash features",
+        "Copy button",
+        "Diff highlighting"
+      ],
+      "tags": [],
+      "wordCount": 556
+    },
+    {
       "id": "guides/configuration",
       "url": "/guides/configuration",
       "title": "Configuration",
@@ -179,6 +199,23 @@
       "wordCount": 582
     },
     {
+      "id": "guides/content-sources",
+      "url": "/guides/content-sources",
+      "title": "Content Sources",
+      "description": "Pull documentation content from GitHub repositories or Notion databases alongside your local files.",
+      "headings": [
+        "Configuration",
+        "GitHub source",
+        "Private repositories",
+        "Notion source",
+        "Setting up the Notion integration",
+        "Custom content sources",
+        "Using multiple sources"
+      ],
+      "tags": [],
+      "wordCount": 599
+    },
+    {
       "id": "guides/custom-theme",
       "url": "/guides/custom-theme",
       "title": "Custom Theme",
@@ -195,6 +232,22 @@
       ],
       "tags": [],
       "wordCount": 345
+    },
+    {
+      "id": "guides/draft-pages",
+      "url": "/guides/draft-pages",
+      "title": "Draft Pages",
+      "description": "Mark pages as drafts to hide them from production builds while keeping them visible in development.",
+      "headings": [
+        "Marking a page as a draft",
+        "How drafts behave",
+        "Development (tome dev)",
+        "Production (tome build)",
+        "Use cases",
+        "Combining with hidden"
+      ],
+      "tags": [],
+      "wordCount": 358
     },
     {
       "id": "guides/migration",
@@ -216,6 +269,25 @@
       ],
       "tags": [],
       "wordCount": 546
+    },
+    {
+      "id": "guides/plugins",
+      "url": "/guides/plugins",
+      "title": "Plugin System",
+      "description": "Extend Tome with plugins that hook into the build lifecycle — modify routes, inject head tags, and run custom logic.",
+      "headings": [
+        "Defining a plugin",
+        "Available hooks",
+        "configResolved",
+        "routesResolved",
+        "headTags",
+        "buildStart / buildEnd",
+        "Full example: analytics plugin",
+        "Full example: route filter plugin",
+        "Plugin execution order"
+      ],
+      "tags": [],
+      "wordCount": 520
     },
     {
       "id": "guides/redirects",
@@ -247,6 +319,23 @@
       ],
       "tags": [],
       "wordCount": 354
+    },
+    {
+      "id": "guides/typedoc",
+      "url": "/guides/typedoc",
+      "title": "TypeDoc Generation",
+      "description": "Generate API documentation from TypeScript source code using the built-in TypeDoc integration.",
+      "headings": [
+        "Quick start",
+        "CLI flags",
+        "What gets extracted",
+        "Writing good JSDoc",
+        "Generated output",
+        "Adding to navigation",
+        "Regenerating docs"
+      ],
+      "tags": [],
+      "wordCount": 524
     },
     {
       "id": "guides/versioning",
@@ -389,10 +478,12 @@
         "VersioningConfig",
         "AnalyticsConfig",
         "BannerConfig",
-        "WebhookConfig"
+        "WebhookConfig",
+        "SocialLinksConfig",
+        "OverridesConfig"
       ],
       "tags": [],
-      "wordCount": 1002
+      "wordCount": 1333
     },
     {
       "id": "reference/frontmatter",
@@ -404,12 +495,14 @@
         "Fields",
         "Title resolution",
         "Hidden pages",
+        "Draft pages",
+        "Badges",
         "Tags",
         "Icons",
         "OpenGraph images"
       ],
       "tags": [],
-      "wordCount": 387
+      "wordCount": 642
     },
     {
       "id": "reference/theme-presets",

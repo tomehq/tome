@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/core",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Tome build engine — Vite plugin, Markdown pipeline, config loader",
   "type": "module",
   "main": "./dist/index.js",
@@ -35,7 +35,6 @@
     "@apidevtools/swagger-parser": "^10.1.1",
     "@mdx-js/rollup": "^3.0.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
-    "dompurify": "^3.3.3",
     "estree-util-visit": "^2.0.0",
     "glob": "^11.0.0",
     "gray-matter": "^4.0.3",
@@ -58,7 +57,6 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@types/dompurify": "^3.2.0",
     "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
@@ -70,7 +68,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vxcozy/tome.git",
+    "url": "https://github.com/tomehq/tome.git",
     "directory": "packages/core"
   }
 }

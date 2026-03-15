@@ -4,7 +4,7 @@
   "description": "Open-source documentation platform",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vxcozy/tome.git"
+    "url": "https://github.com/tomehq/tome.git"
   },
   "scripts": {
     "dev": "pnpm --filter @tomehq/cli dev",

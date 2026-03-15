@@ -10,12 +10,10 @@ Tome uses [Shiki](https://shiki.style) for syntax highlighting. All standard fen
 
 Use a language identifier after the opening fence:
 
-````markdown
 ```javascript
 const greeting = "hello";
 console.log(greeting);
 ```
-````
 
 Shiki supports [200+ languages](https://shiki.style/languages). Common identifiers: `javascript`, `typescript`, `python`, `go`, `rust`, `bash`, `json`, `yaml`, `sql`, `graphql`, `html`, `css`.
 
@@ -23,13 +21,11 @@ Shiki supports [200+ languages](https://shiki.style/languages). Common identifie
 
 Add a `title` attribute to show a filename or label above the code block:
 
-````markdown
 ```javascript title="tome.config.js"
 export default {
   name: "My Docs",
 };
 ```
-````
 
 The title renders as a label bar above the code, styled to match your theme.
 
@@ -37,18 +33,15 @@ The title renders as a label bar above the code, styled to match your theme.
 
 Highlight specific lines using curly braces after the language:
 
-````markdown
 ```javascript {2,4}
 const a = 1;
 const b = 2; // highlighted
 const c = 3;
 const d = 4; // highlighted
 ```
-````
 
 Use ranges for consecutive lines:
 
-````markdown
 ```javascript {1,3-5}
 import { config } from "./config";  // highlighted
 
@@ -57,7 +50,6 @@ export function init() {   // highlighted
   config.validate();        // highlighted
 }
 ```
-````
 
 Highlighted lines receive a subtle background color that works in both light and dark mode.
 
@@ -65,7 +57,6 @@ Highlighted lines receive a subtle background color that works in both light and
 
 Show line numbers in the gutter with `showLineNumbers`:
 
-````markdown
 ```typescript showLineNumbers
 interface User {
   id: string;
@@ -73,7 +64,6 @@ interface User {
   email: string;
 }
 ```
-````
 
 You can also use `lineNumbers` as an alias.
 
@@ -81,7 +71,6 @@ You can also use `lineNumbers` as an alias.
 
 All meta attributes can be combined on a single code fence:
 
-````markdown
 ```typescript title="types.ts" showLineNumbers {3-4}
 interface Config {
   name: string;
@@ -89,7 +78,6 @@ interface Config {
   plugins: Plugin[];     // highlighted
 }
 ```
-````
 
 ## Twoslash (TypeScript hover types)
 
@@ -152,15 +140,13 @@ Every code block includes a copy-to-clipboard button in the top-right corner. Th
 
 ## Diff highlighting
 
-Show added and removed lines in code blocks using `diff` syntax:
+Show added and removed lines in code blocks using inline markers:
 
-````markdown
 ```javascript
 const config = {
   name: "My Docs",    // [!code --]
   name: "Acme Docs",  // [!code ++]
 };
 ```
-````
 
 Lines marked with `// [!code --]` are styled with a red background, and `// [!code ++]` with a green background. The markers are stripped from the rendered output.

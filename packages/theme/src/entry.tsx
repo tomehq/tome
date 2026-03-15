@@ -34,6 +34,9 @@ import {
   PackageManager,
   TypeTable,
   FileTree,
+  CodeSamples,
+  LinkCard,
+  CardGrid,
 } from "@tomehq/components";
 
 const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -47,6 +50,9 @@ const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
   PackageManager,
   TypeTable,
   FileTree, // Sub-components accessible as <FileTree.File /> and <FileTree.Folder /> in MDX
+  CodeSamples,
+  LinkCard,
+  CardGrid,
 };
 
 // ── CONTENT STYLES ───────────────────────────────────────

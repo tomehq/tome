@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/theme",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Tome default theme and React app shell",
   "type": "module",
   "main": "./src/index.tsx",
@@ -9,7 +9,7 @@
     "./entry": "./src/entry.tsx"
   },
   "scripts": {
-    "build": "tsup src/index.tsx src/entry.tsx --format esm --dts --external react --external react-dom --external 'virtual:tome/config' --external 'virtual:tome/routes' --external 'virtual:tome/page-loader' --external 'virtual:tome/doc-context' --external '@tomehq/components'",
+    "build": "tsup src/index.tsx src/entry.tsx --format esm --dts --external react --external react-dom --external 'virtual:tome/config' --external 'virtual:tome/routes' --external 'virtual:tome/page-loader' --external 'virtual:tome/doc-context' --external 'virtual:tome/overrides' --external '@tomehq/components'",
     "dev": "tsup src/index.tsx src/entry.tsx --format esm --dts --external react --external react-dom --external 'virtual:tome/config' --external 'virtual:tome/routes' --external 'virtual:tome/page-loader' --external 'virtual:tome/doc-context' --external '@tomehq/components' --watch",
     "clean": "rm -rf dist"
   },
@@ -46,7 +46,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vxcozy/tome.git",
+    "url": "https://github.com/tomehq/tome.git",
     "directory": "packages/theme"
   }
 }

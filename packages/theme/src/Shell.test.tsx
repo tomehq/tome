@@ -860,6 +860,115 @@ describe("Shell feedback widget", () => {
   });
 });
 
+// ── Breadcrumbs ──────────────────────────────────────────
+
+describe("Shell breadcrumbs", () => {
+  const multiSectionNav = [
+    {
+      section: "Getting Started",
+      pages: [
+        { id: "intro", title: "Introduction", urlPath: "/intro" },
+        { id: "quickstart", title: "Quick Start", urlPath: "/quickstart" },
+      ],
+    },
+    {
+      section: "Guides",
+      pages: [
+        { id: "search", title: "Search", urlPath: "/search" },
+        { id: "deploy", title: "Deploy", urlPath: "/deploy" },
+      ],
+    },
+  ];
+
+  const multiSectionAllPages = [
+    { id: "intro", title: "Introduction" },
+    { id: "quickstart", title: "Quick Start" },
+    { id: "search", title: "Search" },
+    { id: "deploy", title: "Deploy" },
+  ];
+
+  it("renders breadcrumbs for a non-index page", () => {
+    renderShell({
+      navigation: multiSectionNav,
+      allPages: multiSectionAllPages,
+      currentPageId: "quickstart",
+      pageTitle: "Quick Start",
+    });
+    const breadcrumbs = screen.getByTestId("breadcrumbs");
+    expect(breadcrumbs).toBeInTheDocument();
+    expect(within(breadcrumbs).getByText("Getting Started")).toBeInTheDocument();
+    expect(within(breadcrumbs).getByText("Quick Start")).toBeInTheDocument();
+  });
+
+  it("does not render breadcrumbs on the index page", () => {
+    renderShell({
+      currentPageId: "index",
+      pageTitle: "Home",
+    });
+    expect(screen.queryByTestId("breadcrumbs")).not.toBeInTheDocument();
+  });
+
+  it("renders section name as a link", () => {
+    renderShell({
+      navigation: multiSectionNav,
+      allPages: multiSectionAllPages,
+      currentPageId: "deploy",
+      pageTitle: "Deploy",
+    });
+    const breadcrumbs = screen.getByTestId("breadcrumbs");
+    const sectionLink = within(breadcrumbs).getByText("Guides");
+    expect(sectionLink.tagName).toBe("A");
+  });
+
+  it("renders current page as plain text (not a link)", () => {
+    renderShell({
+      navigation: multiSectionNav,
+      allPages: multiSectionAllPages,
+      currentPageId: "deploy",
+      pageTitle: "Deploy",
+    });
+    const breadcrumbs = screen.getByTestId("breadcrumbs");
+    const currentPage = within(breadcrumbs).getByText("Deploy");
+    expect(currentPage.tagName).toBe("SPAN");
+  });
+
+  it("clicking section link calls onNavigate with first page id", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      navigation: multiSectionNav,
+      allPages: multiSectionAllPages,
+      currentPageId: "deploy",
+      pageTitle: "Deploy",
+      onNavigate,
+    });
+    const breadcrumbs = screen.getByTestId("breadcrumbs");
+    fireEvent.click(within(breadcrumbs).getByText("Guides"));
+    expect(onNavigate).toHaveBeenCalledWith("search");
+  });
+
+  it("renders separator between breadcrumb items", () => {
+    renderShell({
+      navigation: multiSectionNav,
+      allPages: multiSectionAllPages,
+      currentPageId: "quickstart",
+      pageTitle: "Quick Start",
+    });
+    const breadcrumbs = screen.getByTestId("breadcrumbs");
+    expect(breadcrumbs.textContent).toContain("\u203A");
+  });
+
+  it("has proper aria-label for accessibility", () => {
+    renderShell({
+      navigation: multiSectionNav,
+      allPages: multiSectionAllPages,
+      currentPageId: "quickstart",
+      pageTitle: "Quick Start",
+    });
+    const nav = screen.getByRole("navigation", { name: "Breadcrumbs" });
+    expect(nav).toBeInTheDocument();
+  });
+});
+
 // ── Image zoom ───────────────────────────────────────────
 
 describe("Shell image zoom", () => {
@@ -867,5 +976,79 @@ describe("Shell image zoom", () => {
     const { container } = renderShell();
     const zoomOverlay = container.querySelector('[style*="cursor: zoom-out"]');
     expect(zoomOverlay).toBeNull();
+  });
+});
+
+// ── RTL support ──────────────────────────────────────────
+
+describe("Shell RTL support", () => {
+  it("sets dir='rtl' on root element when dir prop is 'rtl'", () => {
+    const { container } = renderShell({ dir: "rtl" });
+    const root = container.querySelector("[dir='rtl']");
+    expect(root).not.toBeNull();
+  });
+
+  it("sets dir='ltr' on root element by default", () => {
+    const { container } = renderShell();
+    const root = container.querySelector("[dir='ltr']");
+    expect(root).not.toBeNull();
+  });
+
+  it("sets dir='ltr' when dir prop is explicitly 'ltr'", () => {
+    const { container } = renderShell({ dir: "ltr" });
+    const root = container.querySelector("[dir='ltr']");
+    expect(root).not.toBeNull();
+    expect(container.querySelector("[dir='rtl']")).toBeNull();
+  });
+
+  it("resolves dir from i18n.localeDirs when dir prop is not set", () => {
+    const { container } = renderShell({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en", "ar"],
+        localeDirs: { ar: "rtl" },
+      },
+      currentLocale: "ar",
+    });
+    const root = container.querySelector("[dir='rtl']");
+    expect(root).not.toBeNull();
+  });
+
+  it("defaults to ltr when locale has no entry in localeDirs", () => {
+    const { container } = renderShell({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en", "ar"],
+        localeDirs: { ar: "rtl" },
+      },
+      currentLocale: "en",
+    });
+    const root = container.querySelector("[dir='ltr']");
+    expect(root).not.toBeNull();
+  });
+
+  it("reverses main layout flex direction for RTL", () => {
+    const { container } = renderShell({ dir: "rtl" });
+    const flexRow = container.querySelector('[style*="flex-direction: row-reverse"]');
+    expect(flexRow).not.toBeNull();
+  });
+
+  it("uses normal row direction for LTR", () => {
+    const { container } = renderShell({ dir: "ltr" });
+    const flexRowReverse = container.querySelector('[style*="flex-direction: row-reverse"]');
+    expect(flexRowReverse).toBeNull();
+  });
+
+  it("mirrors sidebar border to borderLeft for RTL", () => {
+    const { container } = renderShell({ dir: "rtl" });
+    const aside = container.querySelector("aside");
+    expect(aside).not.toBeNull();
+    expect(aside!.style.borderLeft).toContain("1px solid");
+  });
+
+  it("renders without errors in RTL mode", () => {
+    expect(() =>
+      renderShell({ dir: "rtl" })
+    ).not.toThrow();
   });
 });

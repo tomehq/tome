@@ -11,11 +11,16 @@
 - [File-System Routing](/concepts/file-routing) - How Tome maps files in the pages/ directory to URLs — naming conventions, nested routes, i18n, and versioning.
 - [Configuration](/configuration) - How to configure your Tome site using tome.config.js — name, logo, navigation, theme, and more.
 - [API Reference Setup](/guides/api-reference) - How to generate an interactive API reference from an OpenAPI specification in Tome.
+- [Code Blocks](/guides/code-blocks) - Advanced code block features — syntax highlighting, line numbers, titles, line highlighting, and TypeScript hover types with Twoslash.
 - [Configuration](/guides/configuration) - How to configure your Tome site using tome.config.js — name, logo, navigation, theme, and more.
+- [Content Sources](/guides/content-sources) - Pull documentation content from GitHub repositories or Notion databases alongside your local files.
 - [Custom Theme](/guides/custom-theme) - How to customize your Tome site's appearance — presets, accent colors, fonts, dark mode, and CSS variables.
+- [Draft Pages](/guides/draft-pages) - Mark pages as drafts to hide them from production builds while keeping them visible in development.
 - [Migrate from GitBook or Mintlify](/guides/migration) - Move your existing documentation to Tome with a single command. Covers content conversion, navigation, redirects, and assets.
+- [Plugin System](/guides/plugins) - Extend Tome with plugins that hook into the build lifecycle — modify routes, inject head tags, and run custom logic.
 - [Redirects](/guides/redirects) - Set up URL redirects to preserve links when pages move. Supports config-level and per-page frontmatter redirects.
 - [Search](/guides/search) - How to set up search in your Tome documentation site — built-in Pagefind and optional Algolia DocSearch.
+- [TypeDoc Generation](/guides/typedoc) - Generate API documentation from TypeScript source code using the built-in TypeDoc integration.
 - [Multi-Version Docs](/guides/versioning) - How to maintain multiple versions of your documentation with Tome's built-in versioning system.
 - [Introduction](/) - Tome is an open-source documentation platform for Markdown and MDX. Beautiful docs without the $250/month price tag.
 - [Installation](/installation) - System requirements and detailed installation instructions for Tome.

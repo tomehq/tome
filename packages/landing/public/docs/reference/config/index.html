@@ -6,7 +6,7 @@
 <title>Config Reference | Tome</title>
 <meta name="description" content="Complete reference for every field in tome.config.js — types, defaults, and descriptions.">
 <link rel="canonical" href="/docs/reference/config">
-<script type="module" src="/docs/assets/index-Bt9uqlRh.js"></script>
+<script type="module" src="/docs/assets/index-5PUZ2X2j.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Config Reference","description":"Complete reference for every field in tome.config.js — types, defaults, and descriptions.","url":"/reference/config","isPartOf":{"@type":"WebSite","name":"Tome"}}</script>
 </head>
 <body>
@@ -36,6 +36,10 @@ The config file (`tome.config.js`, `.mjs`, or `.ts`) is validated at startup. In
 | `banner` | `BannerConfig` | — | Announcement banner at the top of every page |
 | `math` | `boolean` | `false` | Enable `$` inline and `$$` display math in `.md` files |
 | `webhooks` | `WebhookConfig[]` | — | Webhook notifications for deploy events |
+| `socialLinks` | `SocialLink[]` | — | Social media icons in the header |
+| `overrides` | `OverridesConfig` | — | Custom React components to replace default UI sections |
+| `tomePlugins` | `TomePlugin[]` | — | Plugins that hook into the build lifecycle |
+| `contentSources` | `ContentSource[]` | — | Remote content sources (GitHub, Notion) |
 
 ## ThemeConfig
 
@@ -105,6 +109,7 @@ Page IDs are filenames without extensions, relative to `pages/`. Nested groups a
 | `locales` | `string[]` | `["en"]` | All available locale codes |
 | `localeNames` | `Record<string, string>` | — | Display names (e.g., `{ en: "English" }`) |
 | `fallback` | `boolean` | `true` | Fall back to default locale for missing translations |
+| `localeDirs` | `Record<string, "ltr" \| "rtl">` | — | Text direction per locale (e.g., `{ ar: "rtl", he: "rtl" }`) |
 
 ## VersioningConfig
 
@@ -160,6 +165,44 @@ webhooks: [
 | `events` | `WebhookEventType[]` | all | Filter which events trigger the webhook |
 | `secret` | `string` | — | HMAC-SHA256 secret for HTTP signature (`X-Tome-Signature` header) |
 
-**Event types:** `deploy.succeeded`, `deploy.failed`, `preview.deployed`, `domain.verified`</div>
+**Event types:** `deploy.succeeded`, `deploy.failed`, `preview.deployed`, `domain.verified`
+
+## SocialLinksConfig
+
+Add social media icons to the site header. Each entry specifies a platform and URL.
+
+```js
+socialLinks: [
+  { platform: "github", url: "https://github.com/my-org/my-repo" },
+  { platform: "discord", url: "https://discord.gg/my-server" },
+  { platform: "twitter", url: "https://twitter.com/my-handle" },
+  { platform: "custom", url: "https://mastodon.social/@me", icon: "mastodon" },
+]
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `platform` | `"github" \| "twitter" \| "discord" \| "slack" \| "linkedin" \| "youtube" \| "custom"` | — | Social platform (required) |
+| `url` | `string` | — | Link URL (required) |
+| `icon` | `string` | — | Custom icon identifier (only used when `platform` is `"custom"`) |
+
+## OverridesConfig
+
+Replace default UI sections with your own React components. Each field accepts a file path (relative to the project root) that exports a default React component.
+
+```js
+overrides: {
+  Header: "./components/MyHeader.tsx",
+  Footer: "./components/MyFooter.tsx",
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `Header` | `string` | — | Path to a React component that replaces the default site header |
+| `Footer` | `string` | — | Path to a React component that replaces the default site footer |
+| `Sidebar` | `string` | — | Path to a React component that replaces the default sidebar |
+| `Toc` | `string` | — | Path to a React component that replaces the default table of contents |
+| `PageFooter` | `string` | — | Path to a React component that replaces the default page footer |</div>
 </body>
 </html>

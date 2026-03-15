@@ -1,6 +1,6 @@
 {
   "name": "create-tome",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Create a new Tome documentation project",
   "type": "module",
   "bin": {
@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vxcozy/tome.git",
+    "url": "https://github.com/tomehq/tome.git",
     "directory": "packages/create-tome"
   }
 }

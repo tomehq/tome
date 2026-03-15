@@ -5,8 +5,8 @@
 <p align="center">Beautiful documentation that doesn't cost a fortune.</p>
 
 <p align="center">
-  <a href="https://github.com/vxcozy/tome/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
-  <a href="https://github.com/vxcozy/tome/actions"><img src="https://github.com/vxcozy/tome/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/tomehq/tome/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <a href="https://github.com/tomehq/tome/actions"><img src="https://github.com/tomehq/tome/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 </p>
 
 ---
@@ -127,4 +127,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
-MIT © [Tome Contributors](https://github.com/vxcozy/tome/graphs/contributors)
+MIT © [Tome Contributors](https://github.com/tomehq/tome/graphs/contributors)

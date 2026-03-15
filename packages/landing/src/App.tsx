@@ -255,7 +255,7 @@ function Nav({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
         <button className="nav-link" onClick={() => scrollTo("pricing")} style={navLinkStyle}>
           Pricing
         </button>
-        <a className="nav-link" href="https://github.com/vxcozy/tome" style={navLinkStyle}>
+        <a className="nav-link" href="https://github.com/tomehq/tome" style={navLinkStyle}>
           GitHub
         </a>
         <button className="theme-toggle" onClick={toggle} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} style={{
@@ -316,7 +316,7 @@ function Hero() {
         }}>
           Get Started
         </a>
-        <a className="btn-ghost" href="https://github.com/vxcozy/tome" style={{
+        <a className="btn-ghost" href="https://github.com/tomehq/tome" style={{
           background: "transparent", color: "var(--tx)", border: "1px solid var(--bd)",
           borderRadius: 2, padding: "14px 32px", fontSize: 13, fontWeight: 500,
           fontFamily: '"Bricolage Grotesque", sans-serif', cursor: "pointer",
@@ -560,7 +560,7 @@ function Footer() {
         display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
       }}>
         <div style={{ display: "flex", gap: 24 }}>
-          <a className="footer-link" href="https://github.com/vxcozy/tome" style={linkStyle}>GitHub</a>
+          <a className="footer-link" href="https://github.com/tomehq/tome" style={linkStyle}>GitHub</a>
           <a className="footer-link" href="/docs" style={linkStyle}>Documentation</a>
           <a className="footer-link" href="https://x.com/vec0zy" style={linkStyle}>Contact</a>
         </div>

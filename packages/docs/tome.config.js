@@ -12,7 +12,7 @@ export default {
     dismissible: true,
   },
   socialLinks: [
-    { platform: "github", url: "https://github.com/vxcozy/tome" },
+    { platform: "github", url: "https://github.com/tomehq/tome" },
     { platform: "twitter", url: "https://x.com/AaronCoinworthy" },
     { platform: "discord", url: "https://discord.gg/tome" },
   ],

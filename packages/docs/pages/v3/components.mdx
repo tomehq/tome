@@ -10,6 +10,10 @@ Tome includes a set of built-in components available in any `.mdx` file. No impo
 
 Highlight important information with a styled callout:
 
+<Callout title="Important">
+  This is critical information that users should not miss.
+</Callout>
+
 ```mdx
 <Callout title="Important">
   This is critical information that users should not miss.
@@ -25,6 +29,10 @@ Callouts support a `type` prop for different styles:
 | `error` | Critical warnings and breaking changes |
 | `tip` | Helpful suggestions and best practices |
 
+<Callout type="warning" title="Deprecation Notice">
+  This API endpoint will be removed in v3.0.
+</Callout>
+
 ```mdx
 <Callout type="warning" title="Deprecation Notice">
   This API endpoint will be removed in v3.0.
@@ -35,11 +43,17 @@ Callouts support a `type` prop for different styles:
 
 Present content variants — useful for multiple languages or platform-specific instructions:
 
+<Tabs items={["npm", "pnpm", "yarn"]}>
+  <div>npm install @tomehq/cli</div>
+  <div>pnpm add @tomehq/cli</div>
+  <div>yarn add @tomehq/cli</div>
+</Tabs>
+
 ```mdx
 <Tabs items={["npm", "pnpm", "yarn"]}>
-  <Tab>npm install @tomehq/cli</Tab>
-  <Tab>pnpm add @tomehq/cli</Tab>
-  <Tab>yarn add @tomehq/cli</Tab>
+  <div>npm install @tomehq/cli</div>
+  <div>pnpm add @tomehq/cli</div>
+  <div>yarn add @tomehq/cli</div>
 </Tabs>
 ```
 
@@ -48,6 +62,10 @@ The active tab persists across page navigations within the same session.
 ## Card
 
 Link to related pages or external resources:
+
+<Card title="Quickstart" href="#quickstart">
+  Get up and running in under a minute.
+</Card>
 
 ```mdx
 <Card title="Quickstart" href="#quickstart">
@@ -58,6 +76,12 @@ Link to related pages or external resources:
 ### Card group
 
 Arrange cards in a responsive grid:
+
+<CardGroup cols={3}>
+  <Card title="Setup">Step 1</Card>
+  <Card title="Configure">Step 2</Card>
+  <Card title="Deploy">Step 3</Card>
+</CardGroup>
 
 ```mdx
 <CardGroup cols={3}>
@@ -73,23 +97,27 @@ The `cols` prop accepts `2`, `3`, or `4`. Defaults to `2`.
 
 Ordered procedural instructions with visual step indicators:
 
+<Steps>
+  <div>**Install dependencies** — Run `npm install` in your project directory.</div>
+  <div>**Configure** — Edit `tome.config.js` with your settings.</div>
+  <div>**Deploy** — Run `tome deploy` to publish your site.</div>
+</Steps>
+
 ```mdx
 <Steps>
-  <Step title="Install dependencies">
-    Run `npm install` in your project directory.
-  </Step>
-  <Step title="Configure">
-    Edit `tome.config.js` with your settings.
-  </Step>
-  <Step title="Deploy">
-    Run `tome deploy` to publish your site.
-  </Step>
+  <div>**Install dependencies** — Run `npm install` in your project directory.</div>
+  <div>**Configure** — Edit `tome.config.js` with your settings.</div>
+  <div>**Deploy** — Run `tome deploy` to publish your site.</div>
 </Steps>
 ```
 
 ## Accordion
 
 Collapsible content sections for FAQs or optional details:
+
+<Accordion title="How do I deploy?">
+  Run `npx @tomehq/cli deploy` from your project directory. See the deployment guide for details.
+</Accordion>
 
 ```mdx
 <Accordion title="How do I deploy?">
@@ -185,6 +213,14 @@ Click any folder to expand or collapse it. Use `defaultOpen` to start a folder i
 
 A card component that links to another page or URL. Use `CardGrid` to arrange multiple cards in a responsive grid.
 
+<LinkCard title="Getting Started" description="Learn the basics of Tome" href="#quickstart" />
+
+<CardGrid>
+  <LinkCard title="Configuration" description="Customize your site" href="#configuration" />
+  <LinkCard title="Theming" description="Change colors and fonts" href="#theming" />
+  <LinkCard title="Components" description="Built-in MDX components" href="#components" />
+</CardGrid>
+
 ```mdx
 <LinkCard title="Getting Started" description="Learn the basics of Tome" href="/quickstart" />
 
@@ -206,6 +242,14 @@ A card component that links to another page or URL. Use `CardGrid` to arrange mu
 ## CodeSamples
 
 Display tabbed code samples, typically used for showing API calls in multiple languages.
+
+<CodeSamples
+  samples={[
+    { label: "cURL", language: "bash", code: 'curl -X GET https://api.example.com/users' },
+    { label: "JavaScript", language: "js", code: 'const res = await fetch("https://api.example.com/users")' },
+    { label: "Python", language: "python", code: 'requests.get("https://api.example.com/users")' },
+  ]}
+/>
 
 ```mdx
 <CodeSamples
