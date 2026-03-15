@@ -109,6 +109,10 @@ This configures Vite's `base` option so all asset paths resolve correctly.
 
 Show an announcement at the top of every page:
 
+<Callout type="tip" title="Live example">
+  Look at the top of this page — the coral banner saying "New in v3" is a live banner configured in this site's `tome.config.js`.
+</Callout>
+
 ```javascript
 banner: {
   text: "We just launched v2.0!",
@@ -121,30 +125,43 @@ The banner uses your accent color as its background. When a user dismisses it, a
 
 ## Math / KaTeX
 
-Enable LaTeX math rendering with:
+Use ` ```math ` fenced code blocks for display math in both `.md` and `.mdx` files:
+
+```math
+E = mc^2
+```
+
+```math
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+```
+
+Math is rendered client-side with KaTeX loaded from CDN — no dependencies to install, no config flag needed. Just write the code block and it works.
+
+For `.md` files, you can also enable inline math with `$...$` and display math with `$$...$$` blocks by setting:
 
 ```javascript
 math: true,
 ```
 
-Then install the peer dependencies:
-
-```bash
-npm install remark-math rehype-katex katex
-```
-
-Use `$...$` for inline math and `$$...$$` for display blocks in your Markdown pages.
-
 ## Mermaid diagrams
 
 Mermaid diagrams require no configuration. Use a `mermaid` code fence in any page:
 
-````markdown
 ```mermaid
 flowchart LR
-    A["Input"] --> B["Process"] --> C["Output"]
+    A["Write Markdown"] --> B["Tome builds"]
+    B --> C["Beautiful docs"]
 ```
-````
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Tome
+    participant CDN
+    User->>Tome: tome build
+    Tome->>CDN: Deploy static files
+    CDN-->>User: Fast docs site
+```
 
 Mermaid is loaded from a CDN on demand — no install needed. Diagrams adapt to your light/dark theme automatically.
 

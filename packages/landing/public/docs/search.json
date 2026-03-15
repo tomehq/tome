@@ -167,22 +167,9 @@
       "url": "/guides/configuration",
       "title": "Configuration",
       "description": "How to configure your Tome site using tome.config.js — name, logo, navigation, theme, and more.",
-      "headings": [
-        "Minimal config",
-        "Site metadata",
-        "Navigation",
-        "Nested groups",
-        "Top navigation",
-        "Theme",
-        "Base path",
-        "Banner",
-        "Math / KaTeX",
-        "Mermaid diagrams",
-        "AI discoverability (llms.txt)",
-        "Full example"
-      ],
+      "headings": [],
       "tags": [],
-      "wordCount": 582
+      "wordCount": 0
     },
     {
       "id": "guides/content-sources",
