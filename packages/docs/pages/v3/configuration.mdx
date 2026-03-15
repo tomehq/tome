@@ -122,6 +122,10 @@ search: {
 
 Display an announcement banner at the top of every page:
 
+<Callout type="tip" title="Live example">
+  Look at the top of this page — the coral banner saying "New in v3" is a live banner configured in this site's `tome.config.js`.
+</Callout>
+
 ```javascript
 banner: {
   text: "v2.0 is now available!",
@@ -136,11 +140,13 @@ When a user dismisses the banner, it stays hidden until you change the text. Upd
 
 Use ` ```math ` fenced code blocks for display math in both `.md` and `.mdx` files:
 
-````markdown
 ```math
 E = mc^2
 ```
-````
+
+```math
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+```
 
 Math is rendered client-side with KaTeX loaded from CDN — no dependencies to install, no config flag needed. Just write the code block and it works.
 
@@ -154,13 +160,21 @@ math: true,
 
 Mermaid diagrams work out of the box with no configuration. Use a `mermaid` code fence in any `.md` or `.mdx` file:
 
-````markdown
 ```mermaid
 flowchart LR
-    A["Start"] --> B["Process"]
-    B --> C["End"]
+    A["Write Markdown"] --> B["Tome builds"]
+    B --> C["Beautiful docs"]
 ```
-````
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Tome
+    participant CDN
+    User->>Tome: tome build
+    Tome->>CDN: Deploy static files
+    CDN-->>User: Fast docs site
+```
 
 Diagrams are rendered client-side and automatically adapt to your site's light/dark theme. Colors, labels, and borders adjust for both light and dark mode with proper contrast.
 

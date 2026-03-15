@@ -122,23 +122,9 @@
       "url": "/configuration",
       "title": "Configuration",
       "description": "How to configure your Tome site using tome.config.js — name, logo, navigation, theme, and more.",
-      "headings": [
-        "Minimal config",
-        "Site metadata",
-        "Navigation",
-        "Nested groups",
-        "Top navigation",
-        "Theme",
-        "Base path",
-        "Search",
-        "Banner",
-        "Math rendering",
-        "Mermaid diagrams",
-        "Agent-friendly output",
-        "Full example"
-      ],
+      "headings": [],
       "tags": [],
-      "wordCount": 753
+      "wordCount": 0
     },
     {
       "id": "guides/api-reference",
