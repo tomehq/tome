@@ -302,9 +302,10 @@ function App() {
   const currentVersion = detectCurrentVersion(currentRoute, versions);
   const editUrl = computeEditUrl(config.editLink, currentRoute?.filePath);
 
-  // KaTeX CSS: inject stylesheet when math is enabled
+  // KaTeX CSS: inject stylesheet when math is enabled or math placeholders exist
   useEffect(() => {
-    if (!(config as any).math) return;
+    const hasMathPlaceholders = document.querySelectorAll(".tome-math[data-math]").length > 0;
+    if (!(config as any).math && !hasMathPlaceholders) return;
     const id = "tome-katex-css";
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
@@ -313,7 +314,41 @@ function App() {
     link.href = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css";
     link.crossOrigin = "anonymous";
     document.head.appendChild(link);
-  }, []);
+  }, [pageData, loading]);
+
+  // Client-side KaTeX rendering for MDX math placeholders (.tome-math[data-math])
+  useEffect(() => {
+    const els = document.querySelectorAll(".tome-math[data-math]");
+    if (els.length === 0) return;
+    let cancelled = false;
+
+    const KATEX_CDN = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs";
+
+    (async () => {
+      try {
+        const katex = (await import(/* @vite-ignore */ KATEX_CDN)).default;
+        if (cancelled) return;
+        for (const el of els) {
+          const encoded = el.getAttribute("data-math");
+          if (!encoded) continue;
+          try {
+            const tex = atob(encoded);
+            const isBlock = el.classList.contains("tome-math-block");
+            katex.render(tex, el as HTMLElement, {
+              displayMode: isBlock,
+              throwOnError: false,
+            });
+          } catch (err) {
+            console.warn("[tome] KaTeX render failed:", err);
+          }
+        }
+      } catch (err) {
+        console.warn("[tome] Failed to load KaTeX from CDN:", err);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [pageData, loading]);
 
   return (
     <>

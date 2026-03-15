@@ -232,7 +232,28 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
     // Sandbox CSP: inject Content-Security-Policy meta tag when sandbox is enabled
     transformIndexHtml(html) {
-      if (!config?.sandbox?.enabled) return html;
+      let result = html;
+
+      // Inject WebSite JSON-LD schema into the main index.html
+      const siteUrlForJsonLd = (config.baseUrl || "").replace(/\/$/, "");
+      const websiteSchema = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: config.name,
+        url: siteUrlForJsonLd || undefined,
+        description: `Documentation site powered by Tome`,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: siteUrlForJsonLd ? `${siteUrlForJsonLd}/search?q={search_term_string}` : undefined,
+          "query-input": "required name=search_term_string",
+        },
+      };
+      result = result.replace(
+        "</head>",
+        `<script type="application/ld+json">${JSON.stringify(websiteSchema)}</script>\n</head>`
+      );
+
+      if (!config?.sandbox?.enabled) return result;
       // Build connect-src dynamically: always allow self + mermaid/KaTeX CDN
       const connectSrc = ["'self'", "https://cdn.jsdelivr.net"];
       // If AI chat is enabled, allow the provider's API endpoint
@@ -248,7 +269,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         `img-src 'self' data: https:`,
         `connect-src ${connectSrc.join(" ")}`,
       ].join("; ");
-      return html.replace(
+      return result.replace(
         "<head>",
         `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}">`
       );
@@ -690,6 +711,224 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
           source: htmlParts,
         });
       }
+
+      // ── JSON-LD schema markup injection ──────────────────────
+      // Inject structured data into every HTML file in the bundle
+      const siteUrl = (baseUrl || "").replace(/\/$/, "");
+
+      // WebSite schema for the main index.html
+      const websiteJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: config.name,
+        url: siteUrl || undefined,
+        description: `Documentation site powered by Tome`,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: siteUrl ? `${siteUrl}/search?q={search_term_string}` : undefined,
+          "query-input": "required name=search_term_string",
+        },
+      };
+
+      // Inject JSON-LD into all HTML assets in the bundle
+      for (const fileName of Object.keys(bundle || {})) {
+        const chunk = bundle[fileName];
+        if (
+          chunk.type === "asset" &&
+          fileName.endsWith(".html") &&
+          typeof chunk.source === "string"
+        ) {
+          // Determine page-specific schema based on route match
+          const routeMatch = routes.find((r) => {
+            const routeFile = r.urlPath.replace(/^\//, "");
+            return fileName === `${routeFile}/index.html` || (fileName === "index.html" && (r.urlPath === "/" || r.urlPath === ""));
+          });
+
+          const schemas: any[] = [];
+
+          if (fileName === "index.html") {
+            schemas.push(websiteJsonLd);
+          }
+
+          if (routeMatch) {
+            const articleUrl = siteUrl ? `${siteUrl}${routeMatch.urlPath}` : routeMatch.urlPath;
+            schemas.push({
+              "@context": "https://schema.org",
+              "@type": "TechArticle",
+              headline: routeMatch.frontmatter.title,
+              description: routeMatch.frontmatter.description || undefined,
+              url: articleUrl,
+              isPartOf: {
+                "@type": "WebSite",
+                name: config.name,
+                url: siteUrl || undefined,
+              },
+            });
+          }
+
+          if (schemas.length > 0) {
+            const jsonLdTags = schemas
+              .map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`)
+              .join("\n");
+            chunk.source = chunk.source.replace("</head>", `${jsonLdTags}\n</head>`);
+          }
+        }
+      }
+
+      // ── skill.md generation ──────────────────────────────────
+      // Agent-readable file describing the site's capabilities and structure
+      const skillParts: string[] = [
+        `# ${config.name}`,
+        "",
+        `> Documentation site powered by [Tome](https://tome.dev)`,
+        "",
+        "## Overview",
+        "",
+        `This is the documentation for **${config.name}**. It is a static documentation site with full-text search, structured data, and machine-readable formats.`,
+        "",
+        "## Available Resources",
+        "",
+        "| Resource | Path | Description |",
+        "|----------|------|-------------|",
+        "| llms.txt | /llms.txt | Lightweight page index with titles, descriptions, and URLs |",
+        "| llms-full.txt | /llms-full.txt | Full raw markdown content of all pages |",
+        "| MCP manifest | /mcp.json | Machine-readable page metadata with headings and tags |",
+        "| skill.md | /skill.md | This file — agent capabilities and site structure |",
+        "| robots.txt | /robots.txt | Crawler directives with AI agent permissions |",
+        "| Search API | /search.json | Pagefind search index metadata for programmatic search |",
+        "",
+        "## Site Structure",
+        "",
+        "### Pages",
+        "",
+        ...visibleRoutes.map((r) => {
+          const url = siteUrl ? `${siteUrl}${r.urlPath}` : r.urlPath;
+          const desc = r.frontmatter.description ? ` — ${r.frontmatter.description}` : "";
+          return `- **[${r.frontmatter.title}](${url})**${desc}`;
+        }),
+        "",
+        "## How to Use This Site",
+        "",
+        "### For AI Agents",
+        "",
+        "1. **Quick overview**: Read `/llms.txt` for a page index with titles and URLs",
+        "2. **Full content**: Read `/llms-full.txt` for complete raw markdown of all pages",
+        "3. **Structured data**: Parse `/mcp.json` for machine-readable metadata including headings, tags, and content",
+        "4. **Search**: Use Pagefind search at `/pagefind/pagefind.js` or check `/search.json` for index metadata",
+        "",
+        "### Capabilities",
+        "",
+        `- **Search provider**: ${config.search?.provider || "local (Pagefind)"}`,
+        ...(config.api ? [`- **API reference**: Available at /api-reference`] : []),
+        ...(config.ai?.enabled ? [`- **AI chat**: Built-in AI assistant available`] : []),
+        ...(config.versioning ? [`- **Versioned docs**: ${config.versioning.versions.join(", ")} (current: ${config.versioning.current})`] : []),
+        ...(config.i18n && config.i18n.locales.length > 1 ? [`- **Internationalization**: ${config.i18n.locales.join(", ")}`] : []),
+        "",
+      ];
+
+      this.emitFile({
+        type: "asset",
+        fileName: "skill.md",
+        source: skillParts.join("\n"),
+      });
+
+      // ── robots.txt generation ────────────────────────────────
+      // Explicitly allows AI crawlers and points to machine-readable resources
+      const robotsLines = [
+        "# Tome Documentation Site",
+        "# https://tome.dev",
+        "",
+        "User-agent: *",
+        "Allow: /",
+        "",
+        "# AI Crawlers — explicitly allowed",
+        "User-agent: GPTBot",
+        "Allow: /",
+        "",
+        "User-agent: ClaudeBot",
+        "Allow: /",
+        "",
+        "User-agent: Claude-Web",
+        "Allow: /",
+        "",
+        "User-agent: Amazonbot",
+        "Allow: /",
+        "",
+        "User-agent: anthropic-ai",
+        "Allow: /",
+        "",
+        "User-agent: Bytespider",
+        "Allow: /",
+        "",
+        "User-agent: CCBot",
+        "Allow: /",
+        "",
+        "User-agent: cohere-ai",
+        "Allow: /",
+        "",
+        "User-agent: PerplexityBot",
+        "Allow: /",
+        "",
+        "# Machine-readable resources",
+        ...(siteUrl ? [`Sitemap: ${siteUrl}/sitemap.xml`] : []),
+        "",
+        "# AI/LLM Resources",
+        `# llms.txt: ${siteUrl ? siteUrl + "/llms.txt" : "/llms.txt"}`,
+        `# llms-full.txt: ${siteUrl ? siteUrl + "/llms-full.txt" : "/llms-full.txt"}`,
+        `# skill.md: ${siteUrl ? siteUrl + "/skill.md" : "/skill.md"}`,
+        `# MCP manifest: ${siteUrl ? siteUrl + "/mcp.json" : "/mcp.json"}`,
+        "",
+      ];
+
+      this.emitFile({
+        type: "asset",
+        fileName: "robots.txt",
+        source: robotsLines.join("\n"),
+      });
+
+      // ── search.json — structured search API metadata ─────────
+      // Exposes page index as a simple JSON file so agents can
+      // programmatically search without loading JavaScript
+      const searchIndex = {
+        version: 1,
+        generator: "tome",
+        site: config.name,
+        totalPages: visibleRoutes.length,
+        searchEndpoint: "/pagefind/pagefind.js",
+        pages: await Promise.all(
+          visibleRoutes.map(async (r) => {
+            const url = siteUrl ? `${siteUrl}${r.urlPath}` : r.urlPath;
+            let headings: string[] = [];
+            let wordCount = 0;
+
+            if (!r.isMdx && r.filePath !== "__api-reference__") {
+              try {
+                const page = await getPage(r.id);
+                if (page) {
+                  headings = page.headings.map((h) => h.text);
+                  wordCount = (page.raw || "").split(/\s+/).filter(Boolean).length;
+                }
+              } catch {}
+            }
+
+            return {
+              id: r.id,
+              url,
+              title: r.frontmatter.title,
+              description: r.frontmatter.description || "",
+              headings,
+              tags: r.frontmatter.tags || [],
+              wordCount,
+            };
+          })
+        ),
+      };
+
+      this.emitFile({
+        type: "asset",
+        fileName: "search.json",
+        source: JSON.stringify(searchIndex, null, 2),
+      });
     },
   };
 
@@ -708,9 +947,66 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       return recmaSandbox({ allowedExpressions: (config as any).sandbox.allowedExpressions ?? [] })(tree, file);
     };
     const recmaPlugins: any[] = [[lazySandbox]];
+
+    // Remark plugin: transform ```mermaid code blocks into JSX placeholder divs
+    // so the client-side mermaid renderer in entry.tsx can pick them up.
+    // Uses mdxJsxFlowElement (native MDX AST node) — no rehype-raw needed.
+    const walkTree = (node: any, fn: (n: any, i: number, parent: any) => void, parent?: any, index?: number) => {
+      fn(node, index ?? 0, parent);
+      if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+          walkTree(node.children[i], fn, node, i);
+        }
+      }
+    };
+    const remarkMermaid = () => (tree: any) => {
+      walkTree(tree, (node: any, index: number, parent: any) => {
+        if (node.type === "code" && node.lang === "mermaid" && parent && typeof index === "number") {
+          const encoded = Buffer.from((node.value || "").trim()).toString("base64");
+          parent.children[index] = {
+            type: "mdxJsxFlowElement",
+            name: "div",
+            attributes: [
+              { type: "mdxJsxAttribute", name: "className", value: "tome-mermaid" },
+              { type: "mdxJsxAttribute", name: "data-mermaid", value: encoded },
+            ],
+            children: [],
+            data: { _mdxExplicitJsx: true },
+          };
+        }
+      });
+    };
+
+    // Remark plugin: transform math blocks into JSX for client-side KaTeX rendering.
+    // remark-math + rehype-katex are ESM-only so we can't _require() them.
+    // Instead, emit placeholder elements that entry.tsx renders with KaTeX CDN.
+    const remarkMathToJsx = () => (tree: any) => {
+      walkTree(tree, (node: any, index: number, parent: any) => {
+        if (!parent || typeof index !== "number") return;
+        // Block math: ```math or $$ fenced
+        if (node.type === "code" && node.lang === "math") {
+          const encoded = Buffer.from((node.value || "").trim()).toString("base64");
+          parent.children[index] = {
+            type: "mdxJsxFlowElement",
+            name: "div",
+            attributes: [
+              { type: "mdxJsxAttribute", name: "className", value: "tome-math tome-math-block" },
+              { type: "mdxJsxAttribute", name: "data-math", value: encoded },
+            ],
+            children: [],
+            data: { _mdxExplicitJsx: true },
+          };
+        }
+      });
+    };
+
+    // Build remark/rehype plugin arrays
+    const remarkPlugins: any[] = [remarkGfm, [remarkFrontmatter, ["yaml"]], remarkMermaid, remarkMathToJsx];
+    const rehypePlugins: any[] = [];
+
     mdxPlugin = createMdxPlugin({
-      remarkPlugins: [remarkGfm, [remarkFrontmatter, ["yaml"]]],
-      rehypePlugins: [],
+      remarkPlugins,
+      rehypePlugins,
       recmaPlugins,
     }) as Plugin;
   } catch {

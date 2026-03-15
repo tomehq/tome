@@ -597,7 +597,7 @@ export function Shell({
           display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
           background: "var(--ac)", color: "#fff", padding: "8px 16px",
           fontSize: 13, fontFamily: "var(--font-body)", fontWeight: 500, textAlign: "center",
-          width: "100%", boxSizing: "border-box",
+          width: "100vw", boxSizing: "border-box",
         }}>
           {config.banner.link ? (
             <a

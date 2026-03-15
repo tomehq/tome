@@ -292,11 +292,14 @@ const CSS = `
 
 /* ── Responsive ────────────────────────────────── */
 @media (max-width: 767px) {
-  .dash-header { padding: 0 16px !important; }
-  .dash-header-left { gap: 16px !important; }
+  .dash-header { padding: 0 12px !important; height: 48px !important; }
+  .dash-header-left { gap: 12px !important; }
+  .dash-nav { gap: 12px !important; }
+  .dash-nav .nav-link { font-size: 12px !important; }
   .dash-header-right .nav-link-external { display: none !important; }
   .dash-header-right .dash-separator { display: none !important; }
   .dash-header-right .dash-user-name { display: none !important; }
+  .dash-header-right { gap: 8px !important; }
   .dash-main { padding: 24px 16px !important; }
   .step-buttons { flex-wrap: wrap !important; }
   .step-buttons button { flex: 1 1 45% !important; min-width: 0 !important; }
@@ -307,6 +310,8 @@ const CSS = `
 }
 
 @media (max-width: 480px) {
+  .dash-nav { gap: 8px !important; }
+  .dash-nav .nav-link { font-size: 11px !important; }
   .step-buttons button { flex: 1 1 100% !important; }
 }
 `;
@@ -498,7 +503,7 @@ function Shell({
               Tome<span style={{ color: "var(--coral)" }}>.</span>
             </span>
           </a>
-          <nav style={{ display: "flex", gap: 20 }}>
+          <nav className="dash-nav" style={{ display: "flex", gap: 20 }}>
             <a className="nav-link" href={`${BASE}/`} onClick={(e) => { e.preventDefault(); navigate("/"); }} data-active={page === "projects"}>Projects</a>
             <a className="nav-link" href={`${BASE}/billing`} onClick={(e) => { e.preventDefault(); navigate("/billing"); }} data-active={page === "billing"}>Billing</a>
             <a className="nav-link" href={`${BASE}/settings`} onClick={(e) => { e.preventDefault(); navigate("/settings"); }} data-active={page === "settings"}>Settings</a>
