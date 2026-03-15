@@ -1,11 +1,12 @@
 import { resolve, join } from "path";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync, rmSync } from "fs";
 import { createRequire } from "module";
 import type { Plugin, ViteDevServer } from "vite";
 
 const _require = createRequire(import.meta.url);
-import { loadConfig, type TomeConfig } from "./config.js";
+import { loadConfig, type TomeConfig, type TomePlugin } from "./config.js";
 import { discoverPages, buildNavigation, type PageRoute, type NavigationGroup, type I18nConfig } from "./routes.js";
+import { fetchRemoteContent, type ContentSource } from "./content-source.js";
 import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions, type MarkdownMathOptions } from "./markdown.js";
 import { parseOpenApiSpec, type ApiManifest } from "./openapi.js";
 import { recmaSandbox } from "./recma-sandbox.js";
@@ -22,6 +23,7 @@ const VIRTUAL_PAGE_LOADER = "virtual:tome/page-loader";
 const VIRTUAL_API = "virtual:tome/api";
 const VIRTUAL_ANALYTICS = "virtual:tome/analytics";
 const VIRTUAL_DOC_CONTEXT = "virtual:tome/doc-context";
+const VIRTUAL_OVERRIDES = "virtual:tome/overrides";
 
 const RESOLVED_CONFIG = "\0" + VIRTUAL_CONFIG;
 const RESOLVED_ROUTES = "\0" + VIRTUAL_ROUTES;
@@ -30,6 +32,39 @@ const RESOLVED_PAGE_LOADER = "\0" + VIRTUAL_PAGE_LOADER;
 const RESOLVED_API = "\0" + VIRTUAL_API;
 const RESOLVED_ANALYTICS = "\0" + VIRTUAL_ANALYTICS;
 const RESOLVED_DOC_CONTEXT = "\0" + VIRTUAL_DOC_CONTEXT;
+const RESOLVED_OVERRIDES = "\0" + VIRTUAL_OVERRIDES;
+
+// ── TOME PLUGIN HOOK RUNNER ──────────────────────────────
+function runPluginHook<T>(plugins: TomePlugin[], hook: keyof NonNullable<TomePlugin['hooks']>, arg?: T): T {
+  let result = arg as T;
+  for (const plugin of plugins) {
+    const fn = plugin.hooks?.[hook] as ((a: any) => any) | undefined;
+    if (fn) {
+      const ret = fn(result);
+      if (ret !== undefined) result = ret;
+    }
+  }
+  return result;
+}
+
+async function runPluginHookAsync(plugins: TomePlugin[], hook: 'buildStart' | 'buildEnd', arg?: string): Promise<void> {
+  for (const plugin of plugins) {
+    const fn = plugin.hooks?.[hook];
+    if (fn) {
+      await (fn as any)(arg);
+    }
+  }
+}
+
+function collectHeadTags(plugins: TomePlugin[]): string[] {
+  const tags: string[] = [];
+  for (const plugin of plugins) {
+    if (plugin.hooks?.headTags) {
+      tags.push(...plugin.hooks.headTags());
+    }
+  }
+  return tags;
+}
 
 // ── PLUGIN ───────────────────────────────────────────────
 export interface TomePluginOptions {
@@ -48,6 +83,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
   let navigation: NavigationGroup[] = [];
   let server: ViteDevServer | undefined;
   let apiManifest: ApiManifest | null = null;
+  let isDevMode = false;
 
   // Cache processed pages (HTML only — MDX pages are loaded directly by Vite)
   const pageCache = new Map<string, ProcessedPage>();
@@ -58,6 +94,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
   async function loadAll() {
     config = await loadConfig(root);
+
+    // Run configResolved hook for Tome plugins
+    const tomePlugins: TomePlugin[] = (config as any).tomePlugins || [];
+    config = runPluginHook(tomePlugins, 'configResolved', config);
 
     // TOM-57: Resolve custom markdown plugins from config
     resolvedPlugins = undefined;
@@ -107,7 +147,86 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         }
       : undefined;
     routes = await discoverPages(pagesDir, config.versioning ?? undefined, i18nConfig);
-    navigation = buildNavigation(routes, config);
+
+    // ── Content Sources: fetch remote pages and merge with local ──
+    const contentSources: ContentSource[] = (config as any).contentSources || [];
+    if (contentSources.length > 0) {
+      const remotePages = await fetchRemoteContent(contentSources);
+      const remoteDir = resolve(root, ".tome", "remote");
+
+      // Clean previous remote content
+      if (existsSync(remoteDir)) {
+        rmSync(remoteDir, { recursive: true, force: true });
+      }
+
+      // Track local page IDs so local pages take precedence on conflicts
+      const localIds = new Set(routes.map((r) => r.id));
+
+      for (const page of remotePages) {
+        if (localIds.has(page.id)) continue; // local wins
+
+        // Write remote page to temp directory so existing pipeline can process it
+        const fileName = (page.id || "index") + "." + page.format;
+        const filePath = join(remoteDir, fileName);
+        const fileDir = join(remoteDir, ...fileName.split("/").slice(0, -1));
+        mkdirSync(fileDir, { recursive: true });
+        writeFileSync(filePath, page.content, "utf-8");
+
+        // Build route entry matching the PageRoute interface
+        const ext = "." + page.format;
+        let id = page.id;
+        if (id.endsWith("/index") || id === "index") {
+          id = id.replace(/\/?index$/, "") || "index";
+        }
+        const urlPath = id === "" || id === "index" ? "/" : `/${id}`;
+
+        // Extract title from frontmatter or first heading
+        let title = "Untitled";
+        try {
+          const { data, content } = matter(page.content);
+          if (data.title) {
+            title = data.title;
+          } else {
+            const m = content.match(/^#\s+(.+)$/m);
+            if (m) title = m[1].trim();
+          }
+
+          routes.push({
+            id: id || "index",
+            filePath: `__remote__/${fileName}`,
+            absolutePath: filePath,
+            urlPath,
+            frontmatter: {
+              title,
+              description: data.description,
+              icon: data.icon,
+              sidebarTitle: data.sidebarTitle,
+              hidden: data.hidden ?? false,
+              tags: data.tags,
+              badge: data.badge,
+              draft: data.draft ?? false,
+            } as any,
+            isMdx: page.format === "mdx",
+          });
+        } catch {
+          routes.push({
+            id: id || "index",
+            filePath: `__remote__/${fileName}`,
+            absolutePath: filePath,
+            urlPath,
+            frontmatter: { title, hidden: false } as any,
+            isMdx: page.format === "mdx",
+          });
+        }
+      }
+    }
+
+    // Run routesResolved hook for Tome plugins
+    routes = runPluginHook(tomePlugins, 'routesResolved', routes);
+
+    // In production, filter out draft pages from routes used for navigation and outputs
+    const navRoutes = isDevMode ? routes : routes.filter(r => !r.frontmatter.draft);
+    navigation = buildNavigation(navRoutes, config);
     pageCache.clear();
 
     // TOM-19: Parse OpenAPI spec if configured
@@ -185,6 +304,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         toc: (data.toc as boolean | undefined) ?? true,
         lastUpdated: data.lastUpdated as string | undefined,
         type: data.type as string | undefined,
+        draft: (data.draft as boolean | undefined) ?? false,
       },
       headings: extractHeadingsFromSource(content),
     };
@@ -226,13 +346,20 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       return result;
     },
 
-    async configResolved() {
+    async configResolved(resolvedConfig: any) {
+      isDevMode = resolvedConfig?.command === "serve";
       await loadAll();
     },
 
     // Sandbox CSP: inject Content-Security-Policy meta tag when sandbox is enabled
     transformIndexHtml(html) {
       let result = html;
+
+      // Inject head tags from Tome plugins
+      const pluginHeadTags = collectHeadTags((config as any).tomePlugins || []);
+      if (pluginHeadTags.length > 0) {
+        result = result.replace('</head>', pluginHeadTags.join('\n') + '\n</head>');
+      }
 
       // Inject WebSite JSON-LD schema into the main index.html
       const siteUrlForJsonLd = (config.baseUrl || "").replace(/\/$/, "");
@@ -363,6 +490,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       if (id === VIRTUAL_API) return RESOLVED_API;
       if (id === VIRTUAL_ANALYTICS) return RESOLVED_ANALYTICS;
       if (id === VIRTUAL_DOC_CONTEXT) return RESOLVED_DOC_CONTEXT;
+      if (id === VIRTUAL_OVERRIDES) return RESOLVED_OVERRIDES;
       if (id.startsWith(VIRTUAL_PAGE_PREFIX)) return "\0" + id;
       return null;
     },
@@ -375,7 +503,8 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
       // Serve route manifest as virtual module
       if (id === RESOLVED_ROUTES) {
-        const routeData = routes.map((r) => ({
+        const routesSrc = isDevMode ? routes : routes.filter(r => !r.frontmatter.draft);
+        const routeData = routesSrc.map((r) => ({
           id: r.id,
           filePath: r.filePath,
           urlPath: r.urlPath,
@@ -393,6 +522,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
               defaultLocale: config.i18n.defaultLocale,
               locales: config.i18n.locales,
               localeNames: config.i18n.localeNames || {},
+              localeDirs: config.i18n.localeDirs || {},
             }
           : null;
         return `
@@ -419,7 +549,8 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
       // Page loader — enumerates all pages with explicit imports so Vite can bundle them
       if (id === RESOLVED_PAGE_LOADER) {
-        const entries = routes.map((r) => {
+        const loaderRoutes = isDevMode ? routes : routes.filter(r => !r.frontmatter.draft);
+        const entries = loaderRoutes.map((r) => {
           const importPath = `virtual:tome/page/${r.id}`;
           return `  ${JSON.stringify(r.id)}: () => import(${JSON.stringify(importPath)})`;
         });
@@ -439,7 +570,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         const MAX_CHARS = 50000;
 
         for (const route of routes) {
-          if (route.frontmatter.hidden || route.filePath === "__api-reference__") continue;
+          if (route.frontmatter.hidden || route.frontmatter.draft || route.filePath === "__api-reference__") continue;
           if (totalChars >= MAX_CHARS) break;
           try {
             const source = readFileSync(route.absolutePath, "utf-8");
@@ -457,6 +588,25 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         }
 
         return `export default ${JSON.stringify(docs)};`;
+      }
+
+      // Serve component overrides as virtual module
+      if (id === RESOLVED_OVERRIDES) {
+        const overrides = (config as any).overrides || {};
+        const imports: string[] = [];
+        const exportNames: string[] = [];
+
+        const slots = ["Header", "Footer", "Sidebar", "Toc", "PageFooter"] as const;
+        for (const slot of slots) {
+          if (overrides[slot]) {
+            imports.push(`import ${slot} from ${JSON.stringify(overrides[slot])};`);
+            exportNames.push(slot);
+          }
+        }
+
+        return `${imports.join("\n")}
+export default { ${exportNames.join(", ")} };
+`;
       }
 
       // Serve individual processed pages
@@ -513,6 +663,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
     // Generate MCP manifest + analytics injection at build time
     async generateBundle(_outputOptions, bundle) {
+      // Run buildStart hook for Tome plugins
+      const tomePluginsForBuild: TomePlugin[] = (config as any).tomePlugins || [];
+      await runPluginHookAsync(tomePluginsForBuild, 'buildStart');
+
       // TOM-24: Inject analytics script into HTML files
       if (config.analytics?.provider && config.analytics?.key) {
         const endpoint = "https://api.tome.center/api/analytics/event";
@@ -540,7 +694,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
           version: "1.0.0",
           pages: await Promise.all(
             routes
-              .filter((r) => !r.frontmatter.hidden)
+              .filter((r) => !r.frontmatter.hidden && !r.frontmatter.draft)
               .filter((r) => !config.mcp?.excludePages?.includes(r.id))
               .map(async (r) => {
                 const page = r.isMdx ? null : await getPage(r.id);
@@ -566,7 +720,8 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       }
 
       // ── llms.txt generation ─────────────────────────────────
-      const visibleRoutes = routes.filter((r) => !r.frontmatter.hidden);
+      // In production builds (generateBundle), always filter out drafts
+      const visibleRoutes = routes.filter((r) => !r.frontmatter.hidden && !r.frontmatter.draft);
       const baseUrl = config.baseUrl || "";
 
       // llms.txt — page index with titles, descriptions, URLs
@@ -663,7 +818,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       }
 
       for (const route of routes) {
-        if (route.frontmatter.hidden) continue;
+        if (route.frontmatter.hidden || route.frontmatter.draft) continue;
         // Skip root index — Vite already generates it
         if (route.urlPath === "/" || route.urlPath === "") continue;
 
@@ -929,6 +1084,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         fileName: "search.json",
         source: JSON.stringify(searchIndex, null, 2),
       });
+
+      // Run buildEnd hook for Tome plugins
+      const outputDir = typeof _outputOptions?.dir === 'string' ? _outputOptions.dir : 'dist';
+      await runPluginHookAsync(tomePluginsForBuild, 'buildEnd', outputDir);
     },
   };
 

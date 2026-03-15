@@ -30,6 +30,8 @@ Page content starts here.
 | `hidden` | `boolean` | `false` | Hide this page from sidebar navigation |
 | `tags` | `string[]` | — | Tags for search indexing and categorization |
 | `ogImage` | `string` | auto-generated | Custom OpenGraph image URL or path |
+| `draft` | `boolean` | `false` | Mark as draft — visible in dev, excluded from production builds |
+| `badge` | `string \| { text: string; variant?: "default" \| "outline" \| "info" \| "warning" \| "success" \| "danger" }` | — | Badge shown next to the page title in sidebar navigation |
 
 ## Title resolution
 
@@ -49,8 +51,51 @@ sidebarTitle: Authentication
 Pages with `hidden: true` are excluded from sidebar navigation but remain accessible at their URL. Useful for:
 
 - Landing pages that shouldn't appear in the sidebar
-- Draft pages shared via direct link
 - Internal reference pages linked from other content
+- Pages shared only via direct link
+
+Note that hidden pages still exist in production and can be reached by anyone with the URL. To fully exclude a page from production, use `draft: true` instead.
+
+## Draft pages
+
+Pages with `draft: true` are completely removed from production builds. Unlike `hidden`, drafts don't exist at all in production — not even via direct URL.
+
+In dev mode, draft pages are still visible so you can preview them, and they display a "DRAFT" banner at the top of the page to remind you they won't be published.
+
+```markdown
+---
+title: Upcoming Feature
+draft: true
+---
+
+This page is only visible during local development.
+```
+
+## Badges
+
+The `badge` field adds a colored pill next to the page title in sidebar navigation. This is useful for marking pages as new, beta, deprecated, and so on.
+
+A simple string value creates a badge with the default style:
+
+```markdown
+---
+title: Streaming API
+badge: "New"
+---
+```
+
+For more control, pass an object with `text` and an optional `variant`:
+
+```markdown
+---
+title: Legacy Auth
+badge:
+  text: "Beta"
+  variant: "warning"
+---
+```
+
+Available variants: `default`, `outline`, `info`, `warning`, `success`, `danger`. Each variant applies a different background and text color that matches the current theme.
 
 ## Tags
 

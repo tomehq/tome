@@ -1,0 +1,176 @@
+---
+title: Plugin System
+description: Extend Tome with plugins that hook into the build lifecycle — modify routes, inject head tags, and run custom logic.
+icon: puzzle
+---
+
+Tome's plugin system lets you hook into the build lifecycle to modify configuration, transform routes, inject HTML tags, and run custom logic at build time.
+
+## Defining a plugin
+
+A plugin is an object with a `name` and a `hooks` object. Add plugins to the `tomePlugins` array in your config:
+
+```javascript
+// tome.config.js
+export default {
+  name: "My Docs",
+  tomePlugins: [
+    {
+      name: "my-plugin",
+      hooks: {
+        buildStart() {
+          console.log("Build starting...");
+        },
+      },
+    },
+  ],
+};
+```
+
+## Available hooks
+
+Plugins can define any combination of these hooks:
+
+| Hook | When it runs | Arguments | Return |
+|------|-------------|-----------|--------|
+| `configResolved` | After config is loaded and validated | `config` | Modified config or `void` |
+| `routesResolved` | After all pages are discovered | `routes[]` | Modified routes or `void` |
+| `headTags` | When generating the HTML shell | *(none)* | Array of HTML strings |
+| `buildStart` | Before the build begins | *(none)* | `void` or `Promise<void>` |
+| `buildEnd` | After the build completes | `outputDir` | `void` or `Promise<void>` |
+
+### `configResolved`
+
+Runs after the config file is loaded and validated. Return a modified config object to change settings programmatically:
+
+```javascript
+{
+  name: "env-config",
+  hooks: {
+    configResolved(config) {
+      return {
+        ...config,
+        baseUrl: process.env.DOCS_URL || config.baseUrl,
+      };
+    },
+  },
+}
+```
+
+### `routesResolved`
+
+Runs after all pages are discovered from the filesystem. Return a modified routes array to add, remove, or transform pages:
+
+```javascript
+{
+  name: "sort-routes",
+  hooks: {
+    routesResolved(routes) {
+      // Add a "weight" sort based on frontmatter
+      return routes.sort((a, b) => {
+        const wa = a.frontmatter.weight ?? 100;
+        const wb = b.frontmatter.weight ?? 100;
+        return wa - wb;
+      });
+    },
+  },
+}
+```
+
+Each route object includes `id`, `filePath`, `absolutePath`, `urlPath`, `frontmatter`, and `isMdx`.
+
+### `headTags`
+
+Return an array of HTML strings to inject into the `<head>` of every page:
+
+```javascript
+{
+  name: "analytics",
+  hooks: {
+    headTags() {
+      return [
+        '<script defer src="https://analytics.example.com/script.js"></script>',
+        '<meta name="author" content="Acme Inc">',
+      ];
+    },
+  },
+}
+```
+
+### `buildStart` / `buildEnd`
+
+Run custom logic before or after the build. Both hooks support async functions:
+
+```javascript
+{
+  name: "notify",
+  hooks: {
+    async buildStart() {
+      console.log("Build started at", new Date().toISOString());
+    },
+    async buildEnd(outputDir) {
+      console.log(`Build complete. Output: ${outputDir}`);
+      // e.g., upload to S3, notify Slack, run a validator
+    },
+  },
+}
+```
+
+## Full example: analytics plugin
+
+```javascript
+// plugins/analytics.js
+export function analyticsPlugin(trackingId) {
+  return {
+    name: "analytics",
+    hooks: {
+      headTags() {
+        return [
+          `<script defer src="https://cdn.example.com/a.js" data-id="${trackingId}"></script>`,
+        ];
+      },
+      buildEnd(outputDir) {
+        console.log(`Analytics tracking ID: ${trackingId}`);
+      },
+    },
+  };
+}
+```
+
+```javascript
+// tome.config.js
+import { analyticsPlugin } from "./plugins/analytics.js";
+
+export default {
+  name: "My Docs",
+  tomePlugins: [
+    analyticsPlugin("UA-123456"),
+  ],
+};
+```
+
+## Full example: route filter plugin
+
+```javascript
+// tome.config.js
+export default {
+  name: "My Docs",
+  tomePlugins: [
+    {
+      name: "hide-internal",
+      hooks: {
+        routesResolved(routes) {
+          // Remove pages with "internal" tag from the site
+          return routes.filter(
+            (r) => !r.frontmatter.tags?.includes("internal")
+          );
+        },
+      },
+    },
+  ],
+};
+```
+
+## Plugin execution order
+
+When multiple plugins are registered, hooks run in array order. If a hook returns a value (like `configResolved` or `routesResolved`), that value is passed to the next plugin's hook.

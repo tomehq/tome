@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { extractHeadingsFromSource, processMarkdown } from "./markdown.js";
+import { extractHeadingsFromSource, processMarkdown, parseCodeMeta, enhanceCodeBlock } from "./markdown.js";
 
 describe("extractHeadingsFromSource", () => {
   it("returns empty array for empty source", () => {
@@ -305,4 +305,245 @@ describe("processMarkdown mermaid support", () => {
     // Mermaid block should be a placeholder div
     expect(result.html).toContain('<div class="tome-mermaid"');
   }, 15000);
+});
+
+// ── Expressive code blocks (Phase 2.1) ──────────────────
+
+describe("parseCodeMeta", () => {
+  it("extracts language from simple info string", () => {
+    const meta = parseCodeMeta("typescript");
+    expect(meta.lang).toBe("typescript");
+    expect(meta.title).toBeUndefined();
+    expect(meta.highlightLines).toBeUndefined();
+    expect(meta.showLineNumbers).toBeUndefined();
+  });
+
+  it("extracts title from title attribute", () => {
+    const meta = parseCodeMeta('ts title="app.ts"');
+    expect(meta.lang).toBe("ts");
+    expect(meta.title).toBe("app.ts");
+  });
+
+  it("extracts title from filename attribute", () => {
+    const meta = parseCodeMeta('js filename="index.js"');
+    expect(meta.lang).toBe("js");
+    expect(meta.title).toBe("index.js");
+  });
+
+  it("extracts highlighted line numbers from {1,3-5}", () => {
+    const meta = parseCodeMeta("ts {1,3-5}");
+    expect(meta.lang).toBe("ts");
+    expect(meta.highlightLines).toEqual([1, 3, 4, 5]);
+  });
+
+  it("extracts single line highlight {2}", () => {
+    const meta = parseCodeMeta("ts {2}");
+    expect(meta.highlightLines).toEqual([2]);
+  });
+
+  it("detects showLineNumbers", () => {
+    const meta = parseCodeMeta("ts showLineNumbers");
+    expect(meta.lang).toBe("ts");
+    expect(meta.showLineNumbers).toBe(true);
+  });
+
+  it("detects lineNumbers", () => {
+    const meta = parseCodeMeta("ts lineNumbers");
+    expect(meta.showLineNumbers).toBe(true);
+  });
+
+  it("detects diff language", () => {
+    const meta = parseCodeMeta("diff");
+    expect(meta.lang).toBe("diff");
+    expect(meta.diffEnabled).toBe(true);
+  });
+
+  it("extracts word highlight patterns", () => {
+    const meta = parseCodeMeta("ts /useState/ /useEffect/");
+    expect(meta.highlightWords).toEqual(["useState", "useEffect"]);
+  });
+
+  it("handles multiple attributes together", () => {
+    const meta = parseCodeMeta('ts title="app.ts" {1,3} showLineNumbers /useState/');
+    expect(meta.lang).toBe("ts");
+    expect(meta.title).toBe("app.ts");
+    expect(meta.highlightLines).toEqual([1, 3]);
+    expect(meta.showLineNumbers).toBe(true);
+    expect(meta.highlightWords).toEqual(["useState"]);
+  });
+
+  it("returns defaults for empty info string", () => {
+    const meta = parseCodeMeta("");
+    expect(meta.lang).toBe("text");
+  });
+});
+
+describe("enhanceCodeBlock", () => {
+  const sampleShiki = `<pre class="shiki"><code><span class="line">const x = 1;</span>
+<span class="line">const y = 2;</span>
+<span class="line">const z = 3;</span></code></pre>`;
+
+  it("adds tome-line-highlight class to highlighted lines", () => {
+    const result = enhanceCodeBlock(sampleShiki, {
+      lang: "ts",
+      highlightLines: [1, 3],
+    });
+    // Line 1 and 3 should have highlight class
+    const lines = result.match(/<span class="line[^"]*">/g) || [];
+    expect(lines[0]).toContain("tome-line-highlight");
+    expect(lines[1]).not.toContain("tome-line-highlight");
+    expect(lines[2]).toContain("tome-line-highlight");
+  });
+
+  it("adds data-line-numbers attribute when showLineNumbers is true", () => {
+    const result = enhanceCodeBlock(sampleShiki, {
+      lang: "ts",
+      showLineNumbers: true,
+    });
+    expect(result).toContain("data-line-numbers");
+  });
+
+  it("wraps in container with title header", () => {
+    const result = enhanceCodeBlock(sampleShiki, {
+      lang: "ts",
+      title: "app.ts",
+    });
+    expect(result).toContain('class="tome-code-block-wrapper"');
+    expect(result).toContain('class="tome-code-title"');
+    expect(result).toContain("app.ts");
+  });
+
+  it("adds tome-line-added for diff + lines", () => {
+    const diffShiki = `<pre class="shiki"><code><span class="line">+added line</span>
+<span class="line">-removed line</span>
+<span class="line"> unchanged</span></code></pre>`;
+    const result = enhanceCodeBlock(diffShiki, {
+      lang: "diff",
+      diffEnabled: true,
+    });
+    expect(result).toContain("tome-line-added");
+    expect(result).toContain("tome-line-removed");
+  });
+
+  it("processes inline diff markers [!code ++] and [!code --]", () => {
+    const codeWithMarkers = `<pre class="shiki"><code><span class="line">const x = 1; // [!code ++]</span>
+<span class="line">const y = 2; // [!code --]</span>
+<span class="line">const z = 3;</span></code></pre>`;
+    const result = enhanceCodeBlock(codeWithMarkers, { lang: "ts" });
+    expect(result).toContain("tome-line-added");
+    expect(result).toContain("tome-line-removed");
+    // The marker comments should be removed
+    expect(result).not.toContain("[!code ++]");
+    expect(result).not.toContain("[!code --]");
+  });
+
+  it("wraps matching words in highlight spans", () => {
+    const result = enhanceCodeBlock(sampleShiki, {
+      lang: "ts",
+      highlightWords: ["const"],
+    });
+    expect(result).toContain('class="tome-word-highlight"');
+    expect(result).toContain(">const</span>");
+  });
+});
+
+describe("processMarkdown expressive code blocks", () => {
+  it("preserves code fence meta and applies line highlighting", async () => {
+    const source = "# T\n\n```ts {1}\nconst x = 1;\nconst y = 2;\n```";
+    const result = await processMarkdown(source);
+    expect(result.html).toContain("tome-line-highlight");
+  }, 15000);
+
+  it("renders code block title from meta", async () => {
+    const source = '# T\n\n```ts title="app.ts"\nconst x = 1;\n```';
+    const result = await processMarkdown(source);
+    expect(result.html).toContain("tome-code-block-wrapper");
+    expect(result.html).toContain("tome-code-title");
+    expect(result.html).toContain("app.ts");
+  }, 15000);
+
+  it("adds line numbers attribute when showLineNumbers is in meta", async () => {
+    const source = "# T\n\n```ts showLineNumbers\nconst x = 1;\n```";
+    const result = await processMarkdown(source);
+    expect(result.html).toContain("data-line-numbers");
+  }, 15000);
+
+  it("processes inline diff markers in code blocks", async () => {
+    const source = "# T\n\n```ts\nconst x = 1; // [!code ++]\nconst y = 2; // [!code --]\n```";
+    const result = await processMarkdown(source);
+    expect(result.html).toContain("tome-line-added");
+    expect(result.html).toContain("tome-line-removed");
+  }, 15000);
+});
+
+// ── Twoslash support (Phase 4.4) ─────────────────────────
+
+describe("parseCodeMeta twoslash", () => {
+  it("detects twoslash flag in meta string", () => {
+    const meta = parseCodeMeta("ts twoslash");
+    expect(meta.lang).toBe("ts");
+    expect(meta.twoslash).toBe(true);
+  });
+
+  it("detects twoslash alongside other meta attributes", () => {
+    const meta = parseCodeMeta('ts twoslash title="example.ts" {1,3}');
+    expect(meta.lang).toBe("ts");
+    expect(meta.twoslash).toBe(true);
+    expect(meta.title).toBe("example.ts");
+    expect(meta.highlightLines).toEqual([1, 3]);
+  });
+
+  it("does not set twoslash when not present", () => {
+    const meta = parseCodeMeta("ts");
+    expect(meta.twoslash).toBeUndefined();
+  });
+
+  it("does not false-positive on partial matches", () => {
+    const meta = parseCodeMeta('ts title="twoslash-demo"');
+    // The word "twoslash" appears inside the title value but was already consumed
+    // by the title extractor; the remaining string should not trigger twoslash.
+    // However since title extraction removes the title="..." part, and "twoslash-demo"
+    // is inside quotes, the \btwoslash\b would not match "twoslash-demo" anyway.
+    expect(meta.twoslash).toBeUndefined();
+  });
+});
+
+describe("processMarkdown twoslash", () => {
+  it("produces twoslash annotations for ts twoslash code blocks", async () => {
+    const source = [
+      "# T",
+      "",
+      "```ts twoslash",
+      "const greeting = \"hello\";",
+      "//    ^?",
+      "```",
+    ].join("\n");
+    const result = await processMarkdown(source);
+    // Twoslash should produce hover-related markup (popup containers or data attributes)
+    // The exact class names depend on the @shikijs/twoslash version, but the output
+    // should differ from a normal code block by containing twoslash-specific elements.
+    const hasTwoslash = result.html.includes("twoslash") || result.html.includes("popup");
+    expect(hasTwoslash).toBe(true);
+  }, 30000);
+
+  it("does not add twoslash annotations to non-twoslash code blocks", async () => {
+    const source = "# T\n\n```ts\nconst x = 1;\n```";
+    const result = await processMarkdown(source);
+    expect(result.html).not.toContain("twoslash-hover");
+    expect(result.html).not.toContain("twoslash-popup");
+  }, 15000);
+
+  it("gracefully handles twoslash blocks even if code has type errors", async () => {
+    // Twoslash should not crash the pipeline on invalid TS
+    const source = [
+      "# T",
+      "",
+      "```ts twoslash",
+      "const x: number = \"not a number\";",
+      "```",
+    ].join("\n");
+    // Should not throw — either produces twoslash output or falls back gracefully
+    const result = await processMarkdown(source);
+    expect(result.html).toContain("const");
+  }, 30000);
 });

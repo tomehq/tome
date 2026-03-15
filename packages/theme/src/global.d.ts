@@ -21,3 +21,14 @@ declare module "virtual:tome/doc-context" {
   const docContext: Array<{ id: string; title: string; content: string }>;
   export default docContext;
 }
+
+declare module "virtual:tome/overrides" {
+  const overrides: {
+    Header?: React.ComponentType<any>;
+    Footer?: React.ComponentType<any>;
+    Sidebar?: React.ComponentType<any>;
+    Toc?: React.ComponentType<any>;
+    PageFooter?: React.ComponentType<any>;
+  };
+  export default overrides;
+}

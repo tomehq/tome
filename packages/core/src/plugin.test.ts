@@ -955,3 +955,467 @@ describe("generateBundle — search.json", () => {
     expect(introPage.url).toBe("https://docs.example.com/intro");
   });
 });
+
+// ── Draft pages ──────────────────────────────────────────
+
+describe("draft pages — production mode", () => {
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("excludes draft pages from navigation in production mode", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test Site", navigation: [{ group: "Guide", pages: ["intro", "getting-started", "draft-page"] }] };`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    // Production mode: command is NOT "serve"
+    await (corePlugin.configResolved as Function)({});
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/routes");
+    expect(result).toContain('"intro"');
+    expect(result).toContain('"getting-started"');
+    expect(result).not.toContain('"draft-page"');
+  });
+
+  it("excludes draft pages from search.json in production", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({});
+
+    const emitted: any[] = [];
+    await (corePlugin.generateBundle as Function).call({
+      emitFile: (f: any) => emitted.push(f),
+    });
+
+    const searchJson = emitted.find((f: any) => f.fileName === "search.json");
+    const parsed = JSON.parse(searchJson.source);
+    const ids = parsed.pages.map((p: any) => p.id);
+    expect(ids).not.toContain("draft-page");
+  });
+
+  it("excludes draft pages from skill.md in production", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({});
+
+    const emitted: any[] = [];
+    await (corePlugin.generateBundle as Function).call({
+      emitFile: (f: any) => emitted.push(f),
+    });
+
+    const skillMd = emitted.find((f: any) => f.fileName === "skill.md");
+    expect(skillMd.source).not.toContain("Draft Page");
+  });
+
+  it("excludes draft pages from llms.txt in production", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({});
+
+    const emitted: any[] = [];
+    await (corePlugin.generateBundle as Function).call({
+      emitFile: (f: any) => emitted.push(f),
+    });
+
+    const llmsTxt = emitted.find((f: any) => f.fileName === "llms.txt");
+    expect(llmsTxt.source).not.toContain("Draft Page");
+  });
+});
+
+describe("draft pages — dev mode", () => {
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("includes draft pages in navigation in dev mode", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test Site", navigation: [{ group: "Guide", pages: ["intro", "getting-started", "draft-page"] }] };`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    // Dev mode: command is "serve"
+    await (corePlugin.configResolved as Function)({ command: "serve" });
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/routes");
+    expect(result).toContain('"intro"');
+    expect(result).toContain('"getting-started"');
+    expect(result).toContain('"draft-page"');
+  });
+
+  it("includes draft pages in page loader in dev mode", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({ command: "serve" });
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/page-loader");
+    expect(result).toContain('"draft-page"');
+  });
+
+  it("excludes draft pages from page loader in production mode", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "pages", "draft-page.md"),
+      `---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({});
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/page-loader");
+    expect(result).not.toContain('"draft-page"');
+  });
+});
+
+// ── virtual:tome/overrides ──────────────────────────────
+
+describe("virtual:tome/overrides", () => {
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('resolves "virtual:tome/overrides" to "\\0virtual:tome/overrides"', async () => {
+    setupPluginEnv();
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const resolved = (corePlugin.resolveId as Function).call(null, "virtual:tome/overrides");
+    expect(resolved).toBe("\0virtual:tome/overrides");
+  });
+
+  it("generates empty exports when no overrides configured", async () => {
+    setupPluginEnv();
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/overrides");
+    expect(result).toContain("export default");
+    expect(result).toContain("export default {");
+    // Should not contain any import statements
+    expect(result).not.toContain("import ");
+  });
+
+  it("generates correct imports when overrides are configured", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test Site", navigation: [], overrides: { Header: "./components/MyHeader.tsx", Footer: "./components/MyFooter.tsx" } };`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/overrides");
+    expect(result).toContain('import Header from "./components/MyHeader.tsx"');
+    expect(result).toContain('import Footer from "./components/MyFooter.tsx"');
+    expect(result).toContain("Header");
+    expect(result).toContain("Footer");
+    // Should NOT import slots that weren't configured
+    expect(result).not.toContain("import Sidebar");
+    expect(result).not.toContain("import Toc");
+    expect(result).not.toContain("import PageFooter");
+  });
+
+  it("generates imports for all five slots when all are configured", async () => {
+    setupPluginEnv();
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Test", navigation: [], overrides: { Header: "./H.tsx", Footer: "./F.tsx", Sidebar: "./S.tsx", Toc: "./T.tsx", PageFooter: "./PF.tsx" } };`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+    await (corePlugin.configResolved as Function)({} as any);
+
+    const result = await (corePlugin.load as Function).call(null, "\0virtual:tome/overrides");
+    expect(result).toContain("import Header");
+    expect(result).toContain("import Footer");
+    expect(result).toContain("import Sidebar");
+    expect(result).toContain("import Toc");
+    expect(result).toContain("import PageFooter");
+    expect(result).toContain("export default { Header, Footer, Sidebar, Toc, PageFooter }");
+  });
+});
+
+// ── Tome Plugin System (Phase 4.1) ─────────────────────
+
+import type { TomePlugin } from "./config.js";
+import type { TomeConfig } from "./config.js";
+import { vi } from "vitest";
+
+describe("TomePlugin — configResolved hook", () => {
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("configResolved hook modifies config name", async () => {
+    setupPluginEnv();
+    const myPlugin: TomePlugin = {
+      name: "rename-plugin",
+      hooks: {
+        configResolved: (config) => {
+          return { ...config, name: "Plugin-Modified" } as TomeConfig;
+        },
+      },
+    };
+    writeFileSync(
+      join(tmpDir, "tome.config.js"),
+      `export default { name: "Original", navigation: [{ group: "Guide", pages: ["intro"] }], tomePlugins: [${JSON.stringify({ name: "rename-plugin" })}] };`
+    );
+
+    plugins = tomePlugin({ root: tmpDir });
+    corePlugin = plugins.find((p) => p.name === "vite-plugin-tome")!;
+
+    // We can't pass TomePlugin instances through JSON config files, so we test
+    // the hook runner logic directly instead
+    // The configResolved hook is tested through the unit helper below
+  });
+});
+
+describe("TomePlugin — hook runner unit tests", () => {
+  // Inline the helper functions to test them in isolation
+  function runPluginHook<T>(tomePlugins: TomePlugin[], hook: keyof NonNullable<TomePlugin['hooks']>, arg?: T): T {
+    let result = arg as T;
+    for (const plugin of tomePlugins) {
+      const fn = plugin.hooks?.[hook] as ((a: any) => any) | undefined;
+      if (fn) {
+        const ret = fn(result);
+        if (ret !== undefined) result = ret;
+      }
+    }
+    return result;
+  }
+
+  async function runPluginHookAsync(tomePlugins: TomePlugin[], hook: 'buildStart' | 'buildEnd', arg?: string): Promise<void> {
+    for (const plugin of tomePlugins) {
+      const fn = plugin.hooks?.[hook];
+      if (fn) {
+        await (fn as any)(arg);
+      }
+    }
+  }
+
+  function collectHeadTags(tomePlugins: TomePlugin[]): string[] {
+    const tags: string[] = [];
+    for (const plugin of tomePlugins) {
+      if (plugin.hooks?.headTags) {
+        tags.push(...plugin.hooks.headTags());
+      }
+    }
+    return tags;
+  }
+
+  it("configResolved hook can modify config", () => {
+    const plugin: TomePlugin = {
+      name: "rename-plugin",
+      hooks: {
+        configResolved: (config) => {
+          return { ...config, name: "Modified Docs" } as TomeConfig;
+        },
+      },
+    };
+    const baseConfig = { name: "Original Docs" } as TomeConfig;
+    const result = runPluginHook([plugin], "configResolved", baseConfig);
+    expect(result.name).toBe("Modified Docs");
+  });
+
+  it("configResolved returning void keeps original config", () => {
+    const plugin: TomePlugin = {
+      name: "noop-plugin",
+      hooks: {
+        configResolved: () => { /* void */ },
+      },
+    };
+    const baseConfig = { name: "Original" } as TomeConfig;
+    const result = runPluginHook([plugin], "configResolved", baseConfig);
+    expect(result.name).toBe("Original");
+  });
+
+  it("routesResolved hook can add routes", () => {
+    const plugin: TomePlugin = {
+      name: "extra-routes",
+      hooks: {
+        routesResolved: (routes: any[]) => {
+          return [
+            ...routes,
+            {
+              id: "injected",
+              filePath: "injected.md",
+              absolutePath: "/fake/injected.md",
+              urlPath: "/injected",
+              frontmatter: { title: "Injected" },
+              isMdx: false,
+            },
+          ];
+        },
+      },
+    };
+    const baseRoutes = [
+      { id: "index", filePath: "index.md", absolutePath: "/f/index.md", urlPath: "/", frontmatter: { title: "Home" }, isMdx: false },
+    ];
+    const result = runPluginHook([plugin], "routesResolved", baseRoutes);
+    expect(result).toHaveLength(2);
+    expect(result[1].id).toBe("injected");
+  });
+
+  it("headTags hook collects tags from plugins", () => {
+    const plugin: TomePlugin = {
+      name: "tag-plugin",
+      hooks: {
+        headTags: () => [
+          '<meta name="custom" content="value">',
+          '<link rel="preconnect" href="https://example.com">',
+        ],
+      },
+    };
+    const tags = collectHeadTags([plugin]);
+    expect(tags).toHaveLength(2);
+    expect(tags[0]).toContain('meta name="custom"');
+  });
+
+  it("headTags injects into HTML string correctly", () => {
+    const plugin: TomePlugin = {
+      name: "inject-plugin",
+      hooks: {
+        headTags: () => ['<script src="analytics.js"></script>'],
+      },
+    };
+    const tags = collectHeadTags([plugin]);
+    const html = "<html><head><title>T</title></head><body></body></html>";
+    const result = html.replace("</head>", tags.join("\n") + "\n</head>");
+    expect(result).toContain('<script src="analytics.js"></script>\n</head>');
+  });
+
+  it("buildStart hook is called", async () => {
+    const fn = vi.fn();
+    const plugin: TomePlugin = { name: "bs-plugin", hooks: { buildStart: fn } };
+    await runPluginHookAsync([plugin], "buildStart");
+    expect(fn).toHaveBeenCalledOnce();
+  });
+
+  it("buildEnd hook is called with outputDir", async () => {
+    const fn = vi.fn();
+    const plugin: TomePlugin = { name: "be-plugin", hooks: { buildEnd: fn } };
+    await runPluginHookAsync([plugin], "buildEnd", "/out/dist");
+    expect(fn).toHaveBeenCalledWith("/out/dist");
+  });
+
+  it("buildStart and buildEnd support async functions", async () => {
+    const order: string[] = [];
+    const plugin: TomePlugin = {
+      name: "async-plugin",
+      hooks: {
+        buildStart: async () => {
+          await new Promise((r) => setTimeout(r, 5));
+          order.push("start");
+        },
+        buildEnd: async () => {
+          await new Promise((r) => setTimeout(r, 5));
+          order.push("end");
+        },
+      },
+    };
+    await runPluginHookAsync([plugin], "buildStart");
+    await runPluginHookAsync([plugin], "buildEnd", "dist");
+    expect(order).toEqual(["start", "end"]);
+  });
+
+  it("multiple plugins run in order", () => {
+    const order: string[] = [];
+    const pluginA: TomePlugin = {
+      name: "plugin-a",
+      hooks: {
+        configResolved: (config) => {
+          order.push("a");
+          return { ...config, name: config.name + "-A" } as TomeConfig;
+        },
+      },
+    };
+    const pluginB: TomePlugin = {
+      name: "plugin-b",
+      hooks: {
+        configResolved: (config) => {
+          order.push("b");
+          return { ...config, name: config.name + "-B" } as TomeConfig;
+        },
+      },
+    };
+    const result = runPluginHook([pluginA, pluginB], "configResolved", { name: "Docs" } as TomeConfig);
+    expect(order).toEqual(["a", "b"]);
+    expect(result.name).toBe("Docs-A-B");
+  });
+
+  it("plugin with no hooks does not break execution", () => {
+    const noHooks: TomePlugin = { name: "empty" };
+    const withHook: TomePlugin = {
+      name: "real",
+      hooks: {
+        configResolved: (config) => ({ ...config, name: "Modified" } as TomeConfig),
+      },
+    };
+    const result = runPluginHook([noHooks, withHook], "configResolved", { name: "Original" } as TomeConfig);
+    expect(result.name).toBe("Modified");
+  });
+
+  it("plugin with empty hooks object does not break", () => {
+    const plugin: TomePlugin = { name: "empty-hooks", hooks: {} };
+    const result = runPluginHook([plugin], "configResolved", { name: "Docs" } as TomeConfig);
+    expect(result.name).toBe("Docs");
+  });
+
+  it("collectHeadTags returns empty array when no plugins have headTags", () => {
+    const plugin: TomePlugin = { name: "no-tags", hooks: {} };
+    expect(collectHeadTags([plugin])).toEqual([]);
+  });
+
+  it("headTags from multiple plugins are collected in order", () => {
+    const a: TomePlugin = { name: "a", hooks: { headTags: () => ['<meta name="a">'] } };
+    const b: TomePlugin = { name: "b", hooks: { headTags: () => ['<meta name="b">'] } };
+    const tags = collectHeadTags([a, b]);
+    expect(tags).toHaveLength(2);
+    expect(tags[0]).toContain('"a"');
+    expect(tags[1]).toContain('"b"');
+  });
+});

@@ -14,6 +14,14 @@ export {
 // ── API PLAYGROUND (TOM-20) ─────────────────────────────
 export { ApiPlayground } from "./ApiPlayground.js";
 
+// ── CODE SAMPLES (Phase 2.2) ────────────────────────────
+export { CodeSamples } from "./CodeSamples.js";
+export type { CodeSample, CodeSamplesProps } from "./CodeSamples.js";
+
+// ── LINK CARD & CARD GRID (Phase 3.1) ──────────────────
+export { LinkCard, CardGrid } from "./LinkCard.js";
+export type { LinkCardProps, CardGridProps } from "./LinkCard.js";
+
 // ── CHANGELOG (TOM-49) ─────────────────────────────────
 export { ChangelogTimeline } from "./Changelog.js";
 export type { ChangelogTimelineProps } from "./Changelog.js";

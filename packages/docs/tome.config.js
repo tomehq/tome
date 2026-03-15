@@ -11,6 +11,11 @@ export default {
     link: "/docs/configuration",
     dismissible: true,
   },
+  socialLinks: [
+    { platform: "github", url: "https://github.com/vxcozy/tome" },
+    { platform: "twitter", url: "https://x.com/AaronCoinworthy" },
+    { platform: "discord", url: "https://discord.gg/tome" },
+  ],
   topNav: [
     { label: "Home", href: "/" },
     { label: "Dashboard", href: "/dashboard" },
@@ -42,6 +47,11 @@ export default {
         "guides/configuration",
         "guides/custom-theme",
         "guides/api-reference",
+        "guides/draft-pages",
+        "guides/plugins",
+        "guides/content-sources",
+        "guides/typedoc",
+        "guides/code-blocks",
       ],
     },
     {

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { buildNavigation, getPrevNext, discoverPages } from "./routes.js";
+import { buildNavigation, getPrevNext, discoverPages, normalizeBadge } from "./routes.js";
 import type { PageRoute, NavigationGroup } from "./routes.js";
 import type { TomeConfig } from "./config.js";
 
@@ -232,6 +232,31 @@ describe("discoverPages", () => {
     writeFileSync(join(tmpDir, "guides", "index.md"), "# Guides");
     const routes = await discoverPages(tmpDir);
     expect(routes[0].urlPath).toBe("/guides");
+  });
+  it("parses draft: true from frontmatter", async () => {
+    writeFileSync(join(tmpDir, "draft-page.md"), "---\ntitle: Draft Page\ndraft: true\n---\n\n# Draft\n\nWork in progress.");
+    const routes = await discoverPages(tmpDir);
+    const draftRoute = routes.find(r => r.id === "draft-page");
+    expect(draftRoute).toBeDefined();
+    expect(draftRoute!.frontmatter.draft).toBe(true);
+  });
+
+  it("defaults draft to false when not specified", async () => {
+    writeFileSync(join(tmpDir, "normal.md"), "---\ntitle: Normal Page\n---\n\n# Normal");
+    const routes = await discoverPages(tmpDir);
+    const route = routes.find(r => r.id === "normal");
+    expect(route).toBeDefined();
+    expect(route!.frontmatter.draft).toBe(false);
+  });
+
+  it("includes draft pages in route discovery (filtering happens later)", async () => {
+    writeFileSync(join(tmpDir, "page-a.md"), "---\ntitle: Page A\n---\n\n# A");
+    writeFileSync(join(tmpDir, "page-b.md"), "---\ntitle: Page B\ndraft: true\n---\n\n# B");
+    const routes = await discoverPages(tmpDir);
+    expect(routes).toHaveLength(2);
+    const ids = routes.map(r => r.id);
+    expect(ids).toContain("page-a");
+    expect(ids).toContain("page-b");
   });
 });
 
@@ -526,5 +551,63 @@ describe("discoverPages with i18n", () => {
     const routes = await discoverPages(tmpDir, undefined, noFallback);
     expect(routes).toHaveLength(1);
     expect(routes[0].locale).toBe("en");
+  });
+});
+
+// ── normalizeBadge ────────────────────────────────────────
+
+describe("normalizeBadge", () => {
+  it("returns undefined for undefined input", () => {
+    expect(normalizeBadge(undefined)).toBeUndefined();
+  });
+
+  it("normalizes string badge to object with default variant", () => {
+    expect(normalizeBadge("New")).toEqual({ text: "New", variant: "default" });
+  });
+
+  it("passes through object badge with explicit variant", () => {
+    expect(normalizeBadge({ text: "Beta", variant: "warning" })).toEqual({ text: "Beta", variant: "warning" });
+  });
+
+  it("defaults variant to 'default' when object badge omits variant", () => {
+    expect(normalizeBadge({ text: "Soon" })).toEqual({ text: "Soon", variant: "default" });
+  });
+});
+
+// ── buildNavigation with badges ───────────────────────────
+
+describe("buildNavigation with badges", () => {
+  it("passes badge from frontmatter to nav item (auto-generated)", () => {
+    const routes = [
+      makeRoute({ id: "intro", frontmatter: { title: "Intro", badge: "New" } }),
+    ];
+    const nav = buildNavigation(routes, emptyConfig);
+    expect(nav[0].pages[0].badge).toEqual({ text: "New", variant: "default" });
+  });
+
+  it("passes object badge from frontmatter to nav item", () => {
+    const routes = [
+      makeRoute({ id: "api", frontmatter: { title: "API", badge: { text: "Beta", variant: "warning" } } }),
+    ];
+    const nav = buildNavigation(routes, emptyConfig);
+    expect(nav[0].pages[0].badge).toEqual({ text: "Beta", variant: "warning" });
+  });
+
+  it("nav item has no badge when frontmatter has no badge", () => {
+    const routes = [makeRoute({ id: "plain", frontmatter: { title: "Plain" } })];
+    const nav = buildNavigation(routes, emptyConfig);
+    expect(nav[0].pages[0].badge).toBeUndefined();
+  });
+
+  it("passes badge through config-based navigation", () => {
+    const routes = [
+      makeRoute({ id: "intro", frontmatter: { title: "Intro", badge: "New" } }),
+    ];
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [{ group: "Docs", pages: ["intro"] }],
+    };
+    const nav = buildNavigation(routes, config);
+    expect(nav[0].pages[0].badge).toEqual({ text: "New", variant: "default" });
   });
 });

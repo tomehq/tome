@@ -1,0 +1,151 @@
+---
+title: Content Sources
+description: Pull documentation content from GitHub repositories or Notion databases alongside your local files.
+icon: cloud-download
+---
+
+Content sources let you pull documentation from external services — GitHub repos, Notion databases, or custom APIs — and merge them with your local pages at build time. Remote pages are treated exactly like local files: they appear in navigation, search, and the route manifest.
+
+## Configuration
+
+Add content sources to the `contentSources` array in your config:
+
+```javascript
+import { githubSource, notionSource } from "@tomehq/core";
+
+export default {
+  name: "My Docs",
+  contentSources: [
+    githubSource({
+      owner: "acme",
+      repo: "sdk-docs",
+      path: "docs",
+    }),
+  ],
+};
+```
+
+## GitHub source
+
+Pull `.md` and `.mdx` files from a GitHub repository:
+
+```javascript
+import { githubSource } from "@tomehq/core";
+
+githubSource({
+  owner: "acme",          // GitHub org or user
+  repo: "sdk-docs",       // Repository name
+  branch: "main",         // Branch to pull from (default: "main")
+  path: "docs",           // Directory within the repo (default: "docs")
+  token: process.env.GH_TOKEN,  // Optional — required for private repos
+})
+```
+
+The source fetches the repo tree via the GitHub API, then downloads each `.md` / `.mdx` file from the specified path. File paths within the directory become page IDs — `docs/getting-started.md` becomes the page ID `getting-started`.
+
+### Private repositories
+
+For private repos, pass a GitHub personal access token (classic or fine-grained) with `contents:read` permission:
+
+```javascript
+githubSource({
+  owner: "acme",
+  repo: "internal-docs",
+  token: process.env.GH_TOKEN,
+})
+```
+
+## Notion source
+
+Pull pages from a Notion database:
+
+```javascript
+import { notionSource } from "@tomehq/core";
+
+notionSource({
+  databaseId: "abc123...",           // Notion database ID
+  apiKey: process.env.NOTION_TOKEN,  // Notion integration token
+})
+```
+
+Each page in the database is converted to Markdown:
+
+- The page title becomes the `title` frontmatter field
+- Headings, paragraphs, lists, code blocks, quotes, and dividers are converted
+- Bold, italic, code, and link annotations are preserved
+- The title is slugified to create the page ID (`Getting Started` becomes `getting-started`)
+
+### Setting up the Notion integration
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) and create a new integration
+2. Copy the integration token
+3. Share your database with the integration (click "..." on the database, then "Connections")
+
+## Custom content sources
+
+Use `defineContentSource` to create your own source with full type checking:
+
+```javascript
+import { defineContentSource } from "@tomehq/core";
+
+const apiSource = defineContentSource({
+  name: "my-api",
+
+  async fetchPages() {
+    const res = await fetch("https://api.example.com/docs");
+    const data = await res.json();
+
+    return data.pages.map((page) => ({
+      id: page.slug,
+      content: `---\ntitle: ${page.title}\n---\n\n${page.body}`,
+      format: "md",
+      lastModified: page.updatedAt,
+    }));
+  },
+});
+```
+
+Each page must return:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Page identifier (used for URL and navigation) |
+| `content` | `string` | Raw Markdown/MDX including frontmatter |
+| `format` | `"md"` or `"mdx"` | File format |
+| `lastModified` | `string?` | ISO 8601 date (optional) |
+
+Custom sources can also implement an optional `watch` method for development mode — return a cleanup function to stop watching:
+
+```javascript
+defineContentSource({
+  name: "polling-api",
+  async fetchPages() { /* ... */ },
+
+  watch(onChange) {
+    const interval = setInterval(async () => {
+      const pages = await this.fetchPages();
+      onChange(pages);
+    }, 30000); // Poll every 30 seconds
+
+    return () => clearInterval(interval);
+  },
+});
+```
+
+## Using multiple sources
+
+You can combine any number of content sources. Remote pages are merged with local files — if a remote page has the same ID as a local page, the local page takes priority.
+
+```javascript
+import { githubSource, notionSource } from "@tomehq/core";
+
+export default {
+  name: "My Docs",
+  contentSources: [
+    githubSource({ owner: "acme", repo: "sdk-docs", path: "docs" }),
+    notionSource({ databaseId: "abc123", apiKey: process.env.NOTION_TOKEN }),
+  ],
+};
+```
+
+Content is fetched once at build time (and on startup in dev mode). Failed sources log a warning but don't block the build — your local pages will still work.

@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Callout, Tabs, Card, CardGroup, Steps, Accordion, PackageManager, TypeTable, FileTree } from "./index.js";
+import { Callout, Tabs, Card, CardGroup, Steps, Accordion, PackageManager, TypeTable, FileTree, LinkCard, CardGrid } from "./index.js";
 
 // ── Callout ───────────────────────────────────────────────
 
@@ -350,5 +350,99 @@ describe("FileTree", () => {
       </FileTree>
     );
     expect(screen.getByText("utils.ts")).toBeInTheDocument();
+  });
+});
+
+// ── LinkCard ─────────────────────────────────────────────
+
+describe("LinkCard", () => {
+  it("renders title and href", () => {
+    const { container } = render(<LinkCard href="/docs/config" title="Configuration" />);
+    const link = container.querySelector("a");
+    expect(link).toBeTruthy();
+    expect(link?.getAttribute("href")).toBe("/docs/config");
+    expect(screen.getByText("Configuration")).toBeInTheDocument();
+  });
+
+  it("renders description when provided", () => {
+    render(<LinkCard href="/docs" title="Guide" description="Learn the basics" />);
+    expect(screen.getByText("Learn the basics")).toBeInTheDocument();
+  });
+
+  it("does not render description when omitted", () => {
+    const { container } = render(<LinkCard href="/docs" title="Guide" />);
+    expect(container.querySelectorAll("p").length).toBe(0);
+  });
+
+  it("renders icon when provided", () => {
+    render(<LinkCard href="/docs" title="Guide" icon="📖" />);
+    expect(screen.getByText("📖")).toBeInTheDocument();
+  });
+
+  it("adds target=_blank for external links", () => {
+    const { container } = render(<LinkCard href="https://example.com" title="External" />);
+    const link = container.querySelector("a");
+    expect(link?.getAttribute("target")).toBe("_blank");
+    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("does not add target=_blank for internal links", () => {
+    const { container } = render(<LinkCard href="/docs/intro" title="Internal" />);
+    const link = container.querySelector("a");
+    expect(link?.getAttribute("target")).toBeNull();
+    expect(link?.getAttribute("rel")).toBeNull();
+  });
+
+  it("respects explicit external prop", () => {
+    const { container } = render(<LinkCard href="/api" title="API" external />);
+    const link = container.querySelector("a");
+    expect(link?.getAttribute("target")).toBe("_blank");
+  });
+
+  it("shows → for internal links", () => {
+    render(<LinkCard href="/docs" title="Next" />);
+    expect(screen.getByText("→")).toBeInTheDocument();
+  });
+
+  it("shows ↗ for external links", () => {
+    render(<LinkCard href="https://example.com" title="Visit" />);
+    expect(screen.getByText("↗")).toBeInTheDocument();
+  });
+});
+
+// ── CardGrid ─────────────────────────────────────────────
+
+describe("CardGrid", () => {
+  it("renders children in grid layout", () => {
+    const { container } = render(
+      <CardGrid>
+        <div>Child A</div>
+        <div>Child B</div>
+      </CardGrid>
+    );
+    expect(screen.getByText("Child A")).toBeInTheDocument();
+    expect(screen.getByText("Child B")).toBeInTheDocument();
+    const grid = container.firstElementChild as HTMLElement;
+    expect(grid.style.display).toBe("grid");
+  });
+
+  it("defaults to 2 columns", () => {
+    const { container } = render(
+      <CardGrid>
+        <div>A</div>
+      </CardGrid>
+    );
+    const grid = container.firstElementChild as HTMLElement;
+    expect(grid.style.gridTemplateColumns).toContain("2");
+  });
+
+  it("accepts custom columns", () => {
+    const { container } = render(
+      <CardGrid columns={3}>
+        <div>A</div>
+      </CardGrid>
+    );
+    const grid = container.firstElementChild as HTMLElement;
+    expect(grid.style.gridTemplateColumns).toContain("3");
   });
 });

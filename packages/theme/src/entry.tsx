@@ -13,11 +13,13 @@ import {
 // @ts-ignore — resolved by vite-plugin-tome
 import config from "virtual:tome/config";
 // @ts-ignore — resolved by vite-plugin-tome
-import { routes, navigation, versions } from "virtual:tome/routes";
+import { routes, navigation, versions, i18n } from "virtual:tome/routes";
 // @ts-ignore — resolved by vite-plugin-tome
 import loadPageModule from "virtual:tome/page-loader";
 // @ts-ignore — resolved by vite-plugin-tome
 import docContext from "virtual:tome/doc-context";
+// @ts-ignore — resolved by vite-plugin-tome
+import overrides from "virtual:tome/overrides";
 
 // TOM-8: Built-in MDX components from @tomehq/components
 // These are injected into every MDX page automatically
@@ -60,15 +62,15 @@ const contentStyles = `
   .tome-content a { color: var(--ac); text-decoration: none; }
   .tome-content a:hover { text-decoration: underline; }
   .tome-content .heading-anchor { display: none; }
-  .tome-content ul, .tome-content ol { color: var(--tx2); padding-left: 1.5em; margin-bottom: 1em; }
+  .tome-content ul, .tome-content ol { color: var(--tx2); padding-inline-start: 1.5em; margin-bottom: 1em; }
   .tome-content li { margin-bottom: 0.3em; line-height: 1.7; }
   .tome-content code { font-family: var(--font-code); font-size: 0.88em; background: var(--cdBg); padding: 0.15em 0.4em; border-radius: 2px; color: var(--ac); }
   .tome-content pre { margin-bottom: 1.2em; border-radius: 2px; overflow-x: auto; border: 1px solid var(--bd); }
   .tome-content pre code { background: none; padding: 1em 1.2em; display: block; font-size: 12.5px; line-height: 1.7; color: var(--cdTx); }
-  .tome-content blockquote { border-left: 3px solid var(--ac); padding: 0.5em 1em; margin: 1em 0; background: var(--acD); border-radius: 0 2px 2px 0; }
+  .tome-content blockquote { border-inline-start: 3px solid var(--ac); padding: 0.5em 1em; margin: 1em 0; background: var(--acD); border-radius: 0 2px 2px 0; }
   .tome-content blockquote p { color: var(--tx2); margin: 0; }
   .tome-content table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
-  .tome-content th, .tome-content td { padding: 0.5em 0.8em; border: 1px solid var(--bd); text-align: left; font-size: 0.9em; }
+  .tome-content th, .tome-content td { padding: 0.5em 0.8em; border: 1px solid var(--bd); text-align: start; font-size: 0.9em; }
   .tome-content th { background: var(--sf); font-weight: 600; }
   .tome-content img { max-width: 100%; border-radius: 2px; cursor: zoom-in; }
   .tome-content hr { border: none; border-top: 1px solid var(--bd); margin: 2em 0; }
@@ -122,6 +124,74 @@ const contentStyles = `
     background-repeat: repeat; background-size: 256px;
   }
 
+  /* ── Expressive code blocks ───────────────────────────── */
+
+  /* Code block wrapper (for titled blocks) */
+  .tome-code-block-wrapper { position: relative; margin-bottom: 1.2em; border: 1px solid var(--bd); border-radius: 2px; overflow: hidden; }
+  .tome-code-block-wrapper pre { margin-bottom: 0; border: none; border-radius: 0; }
+  .tome-code-title {
+    font-family: var(--font-code); font-size: 12px; color: var(--tx2);
+    background: var(--sf); padding: 6px 12px; border-bottom: 1px solid var(--bd);
+    letter-spacing: 0.01em; font-weight: 500;
+  }
+
+  /* Line highlighting */
+  .tome-content pre .line.tome-line-highlight {
+    background: rgba(139, 148, 158, 0.1);
+    display: inline-block; width: 100%; margin: 0 -1.2em; padding: 0 1.2em;
+  }
+  html.dark .tome-content pre .line.tome-line-highlight {
+    background: rgba(200, 210, 220, 0.08);
+  }
+
+  /* Diff lines */
+  .tome-content pre .line.tome-line-added {
+    background: rgba(34, 197, 94, 0.12);
+    display: inline-block; width: 100%; margin: 0 -1.2em; padding: 0 1.2em;
+  }
+  .tome-content pre .line.tome-line-removed {
+    background: rgba(239, 68, 68, 0.12);
+    display: inline-block; width: 100%; margin: 0 -1.2em; padding: 0 1.2em;
+  }
+  html.dark .tome-content pre .line.tome-line-added { background: rgba(34, 197, 94, 0.15); }
+  html.dark .tome-content pre .line.tome-line-removed { background: rgba(239, 68, 68, 0.15); }
+
+  /* Line numbers (CSS counter) */
+  .tome-content pre[data-line-numbers] code {
+    counter-reset: line;
+  }
+  .tome-content pre[data-line-numbers] .line::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block; width: 2.5em; margin-inline-end: 1em;
+    text-align: end; color: var(--txM); opacity: 0.4;
+    font-size: 0.85em; user-select: none;
+    border-inline-end: 1px solid var(--bd); padding-inline-end: 0.8em; margin-inline-end: 0.8em;
+  }
+
+  /* Word highlighting */
+  .tome-word-highlight {
+    background: rgba(139, 148, 158, 0.2); border-radius: 2px;
+    padding: 1px 3px; margin: 0 -1px;
+  }
+  html.dark .tome-word-highlight {
+    background: rgba(200, 210, 220, 0.15);
+  }
+
+  /* Copy button */
+  .tome-content pre { position: relative; }
+  .tome-copy-btn {
+    position: absolute; top: 8px; inset-inline-end: 8px;
+    font-family: var(--font-code); font-size: 11px;
+    color: var(--tx2); background: var(--sf); border: 1px solid var(--bd);
+    padding: 3px 8px; border-radius: 2px; cursor: pointer;
+    opacity: 0; transition: opacity 0.15s;
+    z-index: 2; line-height: 1.4;
+  }
+  .tome-content pre:hover .tome-copy-btn,
+  .tome-copy-btn:focus { opacity: 1; }
+  .tome-copy-btn:hover { background: var(--sfH); }
+
   /* Shiki dual-theme support */
   .shiki { background: var(--cdBg) !important; }
 
@@ -143,6 +213,57 @@ const contentStyles = `
   html:not(.dark) .shiki span[style*="color:#22863A"] { color: #1a6e2e !important; }
   html:not(.dark) .shiki span[style*="color:#D73A49"] { color: #b62324 !important; }
   html:not(.dark) .shiki span[style*="color:#005CC5"] { color: #0349b4 !important; }
+
+  /* ── Twoslash type hover tooltips ───────────────────── */
+  .twoslash-hover {
+    position: relative;
+    border-bottom: 1px dotted var(--tx2);
+    cursor: help;
+  }
+  .twoslash-popup-container {
+    position: absolute;
+    opacity: 0;
+    display: none;
+    z-index: 10;
+    left: 0;
+    top: 100%;
+    margin-top: 4px;
+    padding: 6px 10px;
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-code);
+    color: var(--tx);
+    white-space: pre-wrap;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+  }
+  .twoslash-hover:hover .twoslash-popup-container {
+    opacity: 1;
+    display: block;
+  }
+  /* Twoslash error/warning underlines */
+  .twoslash-error {
+    position: relative;
+    background: rgba(239, 68, 68, 0.1);
+    border-bottom: 2px wavy rgba(239, 68, 68, 0.6);
+  }
+  /* Twoslash highlighted identifiers */
+  .twoslash-highlighted {
+    background: rgba(139, 148, 158, 0.15);
+    border-radius: 2px;
+    padding: 1px 2px;
+  }
+  /* Twoslash type annotation line (^?) */
+  .twoslash-popup-code .shiki { background: transparent !important; padding: 0; margin: 0; }
+  .twoslash-popup-code .shiki code { padding: 0; font-size: 12px; }
+  html.dark .twoslash-popup-container {
+    background: var(--sf);
+    border-color: var(--bd);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
 `;
 
 // ── ROUTING HELPERS ──────────────────────────────────────
@@ -309,6 +430,39 @@ function App() {
     return () => { cancelled = true; };
   }, [pageData, loading, mermaidTheme]);
 
+  // Add copy buttons to all pre blocks (expressive code blocks)
+  useEffect(() => {
+    if (loading) return;
+    const preBlocks = document.querySelectorAll(".tome-content pre");
+    const buttons: HTMLButtonElement[] = [];
+    preBlocks.forEach((pre) => {
+      // Skip if already has a copy button
+      if (pre.querySelector(".tome-copy-btn")) return;
+      const btn = document.createElement("button");
+      btn.className = "tome-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", async () => {
+        const code = pre.querySelector("code");
+        if (code) {
+          try {
+            await navigator.clipboard.writeText(code.textContent || "");
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+          } catch {
+            // Fallback for non-HTTPS contexts
+            btn.textContent = "Failed";
+            setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+          }
+        }
+      });
+      pre.appendChild(btn);
+      buttons.push(btn);
+    });
+    return () => {
+      buttons.forEach((btn) => btn.remove());
+    };
+  }, [pageData, loading]);
+
   const allPages = routes.map((r: any) => ({
     id: r.id,
     title: r.frontmatter.title,
@@ -319,6 +473,10 @@ function App() {
   const currentRoute = routes.find((r: any) => r.id === currentPageId);
   const currentVersion = detectCurrentVersion(currentRoute, versions);
   const editUrl = computeEditUrl(config.editLink, currentRoute?.filePath);
+
+  // RTL: detect current locale and compute text direction
+  const currentLocale = currentRoute?.locale || i18n?.defaultLocale || "en";
+  const dir: "ltr" | "rtl" = i18n?.localeDirs?.[currentLocale] || "ltr";
 
   // KaTeX CSS: inject stylesheet when math is enabled or math placeholders exist
   useEffect(() => {
@@ -391,6 +549,11 @@ function App() {
         versioning={versions || undefined}
         currentVersion={currentVersion}
         basePath={basePath}
+        isDraft={currentRoute?.frontmatter?.draft === true}
+        dir={dir}
+        i18n={i18n || undefined}
+        currentLocale={currentLocale}
+        overrides={overrides}
       />
     </>
   );

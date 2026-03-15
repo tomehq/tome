@@ -23,11 +23,12 @@
     "./git-dates": "./dist/git-dates.js",
     "./link-checker": "./dist/link-checker.js",
     "./migrate-gitbook": "./dist/migrate-gitbook.js",
-    "./migrate-mintlify": "./dist/migrate-mintlify.js"
+    "./migrate-mintlify": "./dist/migrate-mintlify.js",
+    "./typedoc": "./dist/typedoc.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts --format esm --dts",
-    "dev": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts --format esm --dts --watch",
+    "build": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts src/typedoc.ts --format esm --dts",
+    "dev": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts src/typedoc.ts --format esm --dts --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -49,6 +50,7 @@
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.0.0",
+    "@shikijs/twoslash": "^1.22.0",
     "shiki": "^1.22.0",
     "unified": "^11.0.0",
     "unist-util-visit": "^5.1.0",

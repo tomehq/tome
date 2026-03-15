@@ -10,6 +10,7 @@ export interface ApiParameter {
   required: boolean;
   type: string;
   schema?: unknown;
+  example?: unknown;
 }
 
 export interface ApiRequestBody {
@@ -17,6 +18,7 @@ export interface ApiRequestBody {
   required: boolean;
   contentType: string;
   schema?: unknown;
+  example?: unknown;
 }
 
 export interface ApiResponse {
@@ -24,6 +26,12 @@ export interface ApiResponse {
   description: string;
   contentType?: string;
   schema?: unknown;
+}
+
+export interface CodeSample {
+  language: string;
+  label: string;
+  code: string;
 }
 
 export interface ApiEndpoint {
@@ -38,6 +46,7 @@ export interface ApiEndpoint {
   responses: ApiResponse[];
   deprecated: boolean;
   security?: unknown[];
+  codeSamples?: CodeSample[];
 }
 
 export interface ApiManifest {
@@ -47,6 +56,163 @@ export interface ApiManifest {
   servers: Array<{ url: string; description?: string }>;
   endpoints: ApiEndpoint[];
   tags: Array<{ name: string; description?: string }>;
+}
+
+// ── CODE SAMPLE GENERATION ─────────────────────────────
+
+function buildFullUrl(
+  baseUrl: string,
+  path: string,
+  parameters?: Array<{ name: string; in: string; example?: unknown }>,
+): string {
+  let resolvedPath = path;
+
+  // Substitute path parameters with example values
+  const pathParams = (parameters || []).filter((p) => p.in === "path");
+  for (const p of pathParams) {
+    const value = p.example != null ? String(p.example) : `{${p.name}}`;
+    resolvedPath = resolvedPath.replace(`{${p.name}}`, value);
+  }
+
+  let url = baseUrl.replace(/\/$/, "") + resolvedPath;
+
+  // Append query parameters
+  const queryParams = (parameters || []).filter((p) => p.in === "query");
+  if (queryParams.length > 0) {
+    const qs = queryParams
+      .map((p) => {
+        const val = p.example != null ? String(p.example) : "VALUE";
+        return `${encodeURIComponent(p.name)}=${encodeURIComponent(val)}`;
+      })
+      .join("&");
+    url += "?" + qs;
+  }
+
+  return url;
+}
+
+const BODY_METHODS = new Set(["post", "put", "patch"]);
+
+export function generateCodeSamples(endpoint: {
+  method: string;
+  path: string;
+  baseUrl?: string;
+  parameters?: Array<{ name: string; in: string; required?: boolean; example?: unknown }>;
+  requestBody?: { contentType?: string; example?: unknown };
+  auth?: { type: string; header?: string };
+}): CodeSample[] {
+  const base = endpoint.baseUrl || "https://api.example.com";
+  const method = endpoint.method.toUpperCase();
+  const methodLower = endpoint.method.toLowerCase();
+  const url = buildFullUrl(base, endpoint.path, endpoint.parameters);
+  const hasBody = BODY_METHODS.has(methodLower) && endpoint.requestBody;
+  const bodyExample = hasBody && endpoint.requestBody?.example;
+  const contentType = endpoint.requestBody?.contentType || "application/json";
+
+  // Build auth header info
+  const authHeaderName = endpoint.auth
+    ? endpoint.auth.header || (endpoint.auth.type === "bearer" ? "Authorization" : "X-API-Key")
+    : null;
+  const authHeaderValue = endpoint.auth
+    ? endpoint.auth.type === "bearer"
+      ? "Bearer YOUR_TOKEN"
+      : "YOUR_API_KEY"
+    : null;
+
+  // ── curl ──
+  const curlParts: string[] = [`curl -X ${method} "${url}"`];
+  if (authHeaderName && authHeaderValue) {
+    curlParts.push(`  -H "${authHeaderName}: ${authHeaderValue}"`);
+  }
+  if (hasBody) {
+    curlParts.push(`  -H "Content-Type: ${contentType}"`);
+    if (bodyExample) {
+      curlParts.push(`  -d '${JSON.stringify(bodyExample)}'`);
+    }
+  }
+  const curlCode = curlParts.join(" \\\n");
+
+  // ── JavaScript (fetch) ──
+  const jsLines: string[] = [];
+  const jsOpts: string[] = [];
+  jsOpts.push(`  method: "${method}",`);
+  const jsHeaders: string[] = [];
+  if (authHeaderName && authHeaderValue) {
+    jsHeaders.push(`    "${authHeaderName}": "${authHeaderValue}",`);
+  }
+  if (hasBody) {
+    jsHeaders.push(`    "Content-Type": "${contentType}",`);
+  }
+  if (jsHeaders.length > 0) {
+    jsOpts.push(`  headers: {\n${jsHeaders.join("\n")}\n  },`);
+  }
+  if (hasBody && bodyExample) {
+    jsOpts.push(`  body: JSON.stringify(${JSON.stringify(bodyExample, null, 2).replace(/\n/g, "\n  ")}),`);
+  }
+  jsLines.push(`const response = await fetch("${url}", {`);
+  jsLines.push(jsOpts.join("\n"));
+  jsLines.push(`});`);
+  jsLines.push(`const data = await response.json();`);
+  const jsCode = jsLines.join("\n");
+
+  // ── Python (requests) ──
+  const pyLines: string[] = ["import requests", ""];
+  const pyHeaders: Record<string, string> = {};
+  if (authHeaderName && authHeaderValue) {
+    pyHeaders[authHeaderName] = authHeaderValue;
+  }
+  if (hasBody) {
+    pyHeaders["Content-Type"] = contentType;
+  }
+  const pyArgs: string[] = [];
+  pyArgs.push(`    "${url}",`);
+  if (Object.keys(pyHeaders).length > 0) {
+    const headersStr = Object.entries(pyHeaders)
+      .map(([k, v]) => `        "${k}": "${v}",`)
+      .join("\n");
+    pyArgs.push(`    headers={\n${headersStr}\n    },`);
+  }
+  if (hasBody && bodyExample) {
+    pyArgs.push(`    json=${JSON.stringify(bodyExample)},`);
+  }
+  pyLines.push(`response = requests.${methodLower}(`);
+  pyLines.push(pyArgs.join("\n"));
+  pyLines.push(`)`);
+  pyLines.push(`data = response.json()`);
+  const pyCode = pyLines.join("\n");
+
+  // ── Go (net/http) ──
+  const goLines: string[] = [];
+  if (hasBody && bodyExample) {
+    goLines.push(`payload, _ := json.Marshal(${JSON.stringify(bodyExample)})`);
+    goLines.push(`req, err := http.NewRequest("${method}", "${url}", bytes.NewBuffer(payload))`);
+  } else {
+    goLines.push(`req, err := http.NewRequest("${method}", "${url}", nil)`);
+  }
+  goLines.push(`if err != nil {`);
+  goLines.push(`    log.Fatal(err)`);
+  goLines.push(`}`);
+  if (authHeaderName && authHeaderValue) {
+    goLines.push(`req.Header.Set("${authHeaderName}", "${authHeaderValue}")`);
+  }
+  if (hasBody) {
+    goLines.push(`req.Header.Set("Content-Type", "${contentType}")`);
+  }
+  goLines.push(``);
+  goLines.push(`client := &http.Client{}`);
+  goLines.push(`resp, err := client.Do(req)`);
+  goLines.push(`if err != nil {`);
+  goLines.push(`    log.Fatal(err)`);
+  goLines.push(`}`);
+  goLines.push(`defer resp.Body.Close()`);
+  const goCode = goLines.join("\n");
+
+  return [
+    { language: "curl", label: "cURL", code: curlCode },
+    { language: "javascript", label: "JavaScript", code: jsCode },
+    { language: "python", label: "Python", code: pyCode },
+    { language: "go", label: "Go", code: goCode },
+  ];
 }
 
 // ── PARSER ──────────────────────────────────────────────
@@ -80,6 +246,7 @@ function extractParameters(
       required: p.required ?? false,
       type: resolveSchemaType(p.schema as OpenAPIV3.SchemaObject),
       schema: p.schema,
+      example: p.example ?? (p.schema as OpenAPIV3.SchemaObject | undefined)?.example,
     }));
 }
 
@@ -95,6 +262,7 @@ function extractRequestBody(
     required: body.required ?? false,
     contentType,
     schema: mediaType?.schema,
+    example: mediaType?.example ?? (mediaType?.schema as OpenAPIV3.SchemaObject | undefined)?.example,
   };
 }
 
@@ -135,6 +303,7 @@ export async function parseOpenApiSpec(
 ): Promise<ApiManifest> {
   const api = (await SwaggerParser.validate(specPath)) as OpenAPIV3.Document;
 
+  const baseUrl = api.servers?.[0]?.url || "https://api.example.com";
   const endpoints: ApiEndpoint[] = [];
 
   for (const [path, pathItem] of Object.entries(api.paths || {})) {
@@ -145,6 +314,35 @@ export async function parseOpenApiSpec(
       const operation = item[method];
       if (!operation) continue;
 
+      const parameters = [
+        ...extractParameters(
+          item.parameters as
+            | (OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject)[]
+            | undefined,
+        ),
+        ...extractParameters(
+          operation.parameters as
+            | (OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject)[]
+            | undefined,
+        ),
+      ];
+
+      const requestBody = extractRequestBody(
+        operation.requestBody as
+          | OpenAPIV3.RequestBodyObject
+          | undefined,
+      );
+
+      const codeSamples = generateCodeSamples({
+        method,
+        path,
+        baseUrl,
+        parameters,
+        requestBody: requestBody
+          ? { contentType: requestBody.contentType, example: requestBody.example }
+          : undefined,
+      });
+
       endpoints.push({
         method,
         path,
@@ -152,26 +350,12 @@ export async function parseOpenApiSpec(
         summary: operation.summary,
         description: operation.description,
         tags: operation.tags || [],
-        parameters: [
-          ...extractParameters(
-            item.parameters as
-              | (OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject)[]
-              | undefined,
-          ),
-          ...extractParameters(
-            operation.parameters as
-              | (OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject)[]
-              | undefined,
-          ),
-        ],
-        requestBody: extractRequestBody(
-          operation.requestBody as
-            | OpenAPIV3.RequestBodyObject
-            | undefined,
-        ),
+        parameters,
+        requestBody,
         responses: extractResponses(operation.responses),
         deprecated: operation.deprecated ?? false,
         security: operation.security,
+        codeSamples,
       });
     }
   }

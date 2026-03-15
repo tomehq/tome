@@ -9,7 +9,7 @@ Tome provides automated migration from GitBook and Mintlify. The CLI handles nav
 ## Migrate from GitBook
 
 ```bash
-npx tome migrate gitbook ./path-to-gitbook-project
+npx @tomehq/cli migrate gitbook ./path-to-gitbook-project
 ```
 
 ### What gets converted
@@ -32,10 +32,10 @@ npx tome migrate gitbook ./path-to-gitbook-project
 
 ```bash
 # Output to a specific directory
-npx tome migrate gitbook ./gitbook-docs --out ./my-new-docs
+npx @tomehq/cli migrate gitbook ./gitbook-docs --out ./my-new-docs
 
 # Preview without writing files
-npx tome migrate gitbook ./gitbook-docs --dry-run
+npx @tomehq/cli migrate gitbook ./gitbook-docs --dry-run
 ```
 
 ### How it works
@@ -52,7 +52,7 @@ npx tome migrate gitbook ./gitbook-docs --dry-run
 ## Migrate from Mintlify
 
 ```bash
-npx tome migrate mintlify ./path-to-mintlify-project
+npx @tomehq/cli migrate mintlify ./path-to-mintlify-project
 ```
 
 ### What gets converted
@@ -79,10 +79,10 @@ Components that are already compatible (`<Card>`, `<CardGroup>`, `<Steps>`, `<Ta
 
 ```bash
 # Output to a specific directory
-npx tome migrate mintlify ./mintlify-docs --out ./my-new-docs
+npx @tomehq/cli migrate mintlify ./mintlify-docs --out ./my-new-docs
 
 # Preview without writing files
-npx tome migrate mintlify ./mintlify-docs --dry-run
+npx @tomehq/cli migrate mintlify ./mintlify-docs --dry-run
 ```
 
 ---
@@ -118,8 +118,8 @@ Open [localhost:3000](http://localhost:3000) and review the converted pages. Som
 Once everything looks good, deploy to Tome Cloud:
 
 ```bash
-npx tome login
-npx tome deploy
+npx @tomehq/cli login
+npx @tomehq/cli deploy
 ```
 
 Or push to your git repository — if you scaffold with `tome init`, a GitHub Actions workflow is included that deploys automatically on push to `main`.

@@ -1,11 +1,15 @@
 export { loadConfig, defineConfig, TomeConfigSchema } from "./config.js";
-export type { TomeConfig } from "./config.js";
+export type { TomeConfig, TomePlugin } from "./config.js";
 
-export { processMarkdown, processMarkdownFile } from "./markdown.js";
-export type { PageFrontmatter, ProcessedPage } from "./markdown.js";
+export function definePlugin(plugin: import("./config.js").TomePlugin): import("./config.js").TomePlugin {
+  return plugin;
+}
 
-export { discoverPages, buildNavigation, getPrevNext } from "./routes.js";
-export type { PageRoute, NavigationItem, NavigationGroup, I18nConfig, VersioningConfig } from "./routes.js";
+export { processMarkdown, processMarkdownFile, parseCodeMeta, enhanceCodeBlock, extractCodeFenceMetas } from "./markdown.js";
+export type { PageFrontmatter, ProcessedPage, CodeMeta } from "./markdown.js";
+
+export { discoverPages, buildNavigation, getPrevNext, normalizeBadge } from "./routes.js";
+export type { PageRoute, NavigationItem, NavigationGroup, I18nConfig, VersioningConfig, Badge, BadgeVariant } from "./routes.js";
 
 export { default as tomePlugin } from "./vite-plugin.js";
 export type { TomePluginOptions } from "./vite-plugin.js";
@@ -13,13 +17,14 @@ export type { TomePluginOptions } from "./vite-plugin.js";
 export { startMcpServer, loadManifest, searchPages, getPage, listPages } from "./mcp-server.js";
 export type { McpManifest, McpPage } from "./mcp-server.js";
 
-export { parseOpenApiSpec } from "./openapi.js";
+export { parseOpenApiSpec, generateCodeSamples } from "./openapi.js";
 export type {
   ApiEndpoint,
   ApiManifest,
   ApiParameter,
   ApiRequestBody,
   ApiResponse,
+  CodeSample,
 } from "./openapi.js";
 
 export { collectBuildFiles, computeFileHashes, deployToCloud, readAuthToken, saveAuthToken } from "./deploy.js";
@@ -117,6 +122,9 @@ export type { MigrationResult as GitbookMigrationResult } from "./migrate-gitboo
 export { migrateFromMintlify, parseMintConfig, convertMintNavigation, convertMintConfig, convertMintlifyContent } from "./migrate-mintlify.js";
 export type { MigrationResult as MintlifyMigrationResult } from "./migrate-mintlify.js";
 
+export { extractDocEntries, extractDocEntriesFromSource, generateMarkdown, generateTypeDocs } from "./typedoc.js";
+export type { TypeDocConfig, DocEntry, DocMember, DocParam } from "./typedoc.js";
+
 export { generateAnalyticsScript, aggregateEvents, generateSessionId } from "./analytics.js";
 export type {
   PageViewEvent,
@@ -124,3 +132,18 @@ export type {
   AnalyticsEvent,
   AnalyticsSummary,
 } from "./analytics.js";
+
+export {
+  defineContentSource,
+  githubSource,
+  notionSource,
+  notionBlocksToMarkdown,
+  richTextToMd,
+  fetchRemoteContent,
+} from "./content-source.js";
+export type {
+  ContentPage,
+  ContentSource,
+  GitHubSourceOptions,
+  NotionSourceOptions,
+} from "./content-source.js";

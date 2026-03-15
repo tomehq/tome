@@ -2,6 +2,7 @@
 title: Quickstart
 description: Get a Tome documentation site running in under a minute.
 icon: zap
+badge: "New"
 ---
 
 Get a working documentation site in three commands.

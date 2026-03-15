@@ -16,7 +16,7 @@ Tome Cloud hosts your documentation site on a global CDN with automatic SSL, cus
 Log in to your Tome Cloud account:
 
 ```bash
-npx tome login
+npx @tomehq/cli login
 ```
 
 Enter your email address. You'll receive a magic link — click it to authenticate. Your API token is stored locally for future deployments.
@@ -26,7 +26,7 @@ Enter your email address. You'll receive a magic link — click it to authentica
 From your project directory:
 
 ```bash
-npx tome deploy
+npx @tomehq/cli deploy
 ```
 
 Tome builds your site, collects the output files, and uploads them using hash-based deduplication. Only changed files are transferred, making subsequent deploys fast.
@@ -42,7 +42,7 @@ https://your-project.tome.center
 Register a custom domain for your docs:
 
 ```bash
-npx tome domains:add docs.example.com
+npx @tomehq/cli domains:add docs.example.com
 ```
 
 Tome returns DNS records you need to configure with your domain registrar:
@@ -56,7 +56,7 @@ Value: your-project.tome.center
 After configuring DNS, verify the domain:
 
 ```bash
-npx tome domains:verify docs.example.com
+npx @tomehq/cli domains:verify docs.example.com
 ```
 
 SSL is provisioned automatically once DNS propagates.
@@ -66,13 +66,13 @@ SSL is provisioned automatically once DNS propagates.
 List all domains attached to your project:
 
 ```bash
-npx tome domains:list
+npx @tomehq/cli domains:list
 ```
 
 Remove a domain:
 
 ```bash
-npx tome domains:remove docs.example.com
+npx @tomehq/cli domains:remove docs.example.com
 ```
 
 ## 5. Automatic deploys with CI/CD
@@ -84,7 +84,7 @@ Projects created with `tome init` include a GitHub Actions workflow (`.github/wo
 
 ### Setup
 
-1. Generate a deploy token by running `npx tome login`, then copy the token from `~/.tome/config`
+1. Generate a deploy token by running `npx @tomehq/cli login`, then copy the token from `~/.tome/config`
 2. In your GitHub repository, go to **Settings → Secrets and variables → Actions**
 3. Create a secret named `TOME_TOKEN` with your deploy token
 
@@ -100,7 +100,7 @@ deploy:
   script:
     - npm ci
     - npm run build
-    - npx tome deploy
+    - npx @tomehq/cli deploy
   only:
     - main
   variables:
@@ -123,7 +123,7 @@ pipelines:
           script:
             - npm ci
             - npm run build
-            - npx tome deploy
+            - npx @tomehq/cli deploy
 ```
 
 Add `TOME_TOKEN` in **Repository settings → Pipelines → Variables**.

@@ -42,7 +42,7 @@ search: {
 Tome includes a helper command to set up your Algolia index:
 
 ```bash
-npx tome algolia:init
+npx @tomehq/cli algolia:init
 ```
 
 This creates a crawler configuration optimized for Tome's HTML structure.

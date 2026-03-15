@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { ApiPlayground } from "./ApiPlayground.js";
 import type { ApiPlaygroundProps } from "./ApiPlayground.js";
+import { CodeSamples } from "./CodeSamples.js";
+import type { CodeSample } from "./CodeSamples.js";
 
 // ── TYPES (mirrored from @tomehq/core openapi) ────────────
 // These are kept lightweight so the components package doesn't
@@ -13,6 +15,7 @@ export interface ApiParameter {
   required: boolean;
   type: string;
   schema?: Record<string, unknown>;
+  example?: unknown;
 }
 
 export interface ApiRequestBody {
@@ -20,6 +23,7 @@ export interface ApiRequestBody {
   required: boolean;
   contentType: string;
   schema?: Record<string, unknown>;
+  example?: unknown;
 }
 
 export interface ApiResponse {
@@ -41,6 +45,7 @@ export interface ApiEndpoint {
   responses: ApiResponse[];
   deprecated: boolean;
   security?: unknown[];
+  codeSamples?: CodeSample[];
 }
 
 export interface ApiManifest {
@@ -721,7 +726,11 @@ export function EndpointCard({ endpoint, baseUrl, defaultExpanded = false, showP
             <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--tx)" }}>
               Code Examples
             </h4>
-            <CodeExamples endpoint={endpoint} baseUrl={baseUrl} />
+            {endpoint.codeSamples && endpoint.codeSamples.length > 0 ? (
+              <CodeSamples samples={endpoint.codeSamples} />
+            ) : (
+              <CodeExamples endpoint={endpoint} baseUrl={baseUrl} />
+            )}
           </div>
 
           {showPlayground && (

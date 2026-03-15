@@ -70,6 +70,14 @@ const FrontmatterSchema = z.object({
   type: z.enum(["page", "changelog"]).optional(),
   ogImage: z.string().optional(),
   redirect_from: z.array(z.string()).optional(),
+  draft: z.boolean().default(false),
+  badge: z.union([
+    z.string(),
+    z.object({
+      text: z.string(),
+      variant: z.enum(["info", "success", "warning", "danger", "default"]).optional(),
+    }),
+  ]).optional(),
 });
 
 export type PageFrontmatter = {
@@ -84,6 +92,8 @@ export type PageFrontmatter = {
   type?: "page" | "changelog";
   ogImage?: string;
   redirect_from?: string[];
+  badge?: string | { text: string; variant?: "info" | "success" | "warning" | "danger" | "default" };
+  draft?: boolean;
 };
 
 function validateFrontmatter(
@@ -102,6 +112,7 @@ function validateFrontmatter(
   return FrontmatterSchema.catch({
     hidden: false,
     toc: true,
+    draft: false,
   }).parse(raw);
 }
 
@@ -168,13 +179,230 @@ export function extractHeadingsFromSource(
   return headings;
 }
 
+// ── CODE META PARSING ─────────────────────────────────────
+export interface CodeMeta {
+  lang: string;
+  title?: string;
+  highlightLines?: number[];
+  showLineNumbers?: boolean;
+  diffEnabled?: boolean;
+  highlightWords?: string[];
+  twoslash?: boolean;
+}
+
+export function parseCodeMeta(info: string): CodeMeta {
+  const meta: CodeMeta = { lang: "text" };
+
+  if (!info || !info.trim()) return meta;
+
+  let remaining = info.trim();
+
+  // Extract language (first word)
+  const langMatch = remaining.match(/^(\w+)/);
+  if (langMatch) {
+    meta.lang = langMatch[1];
+    remaining = remaining.slice(langMatch[0].length).trim();
+  }
+
+  // Extract title="..." or filename="..."
+  const titleMatch = remaining.match(/(?:title|filename)="([^"]+)"/);
+  if (titleMatch) {
+    meta.title = titleMatch[1];
+    remaining = remaining.replace(titleMatch[0], "").trim();
+  }
+
+  // Extract line highlight ranges {1,3-5}
+  const lineMatch = remaining.match(/\{([\d,\s-]+)\}/);
+  if (lineMatch) {
+    const lines: number[] = [];
+    const parts = lineMatch[1].split(",");
+    for (const part of parts) {
+      const trimmed = part.trim();
+      const rangeMatch = trimmed.match(/^(\d+)-(\d+)$/);
+      if (rangeMatch) {
+        const start = parseInt(rangeMatch[1]);
+        const end = parseInt(rangeMatch[2]);
+        for (let i = start; i <= end; i++) lines.push(i);
+      } else {
+        const num = parseInt(trimmed);
+        if (!isNaN(num)) lines.push(num);
+      }
+    }
+    if (lines.length > 0) meta.highlightLines = lines;
+    remaining = remaining.replace(lineMatch[0], "").trim();
+  }
+
+  // Extract showLineNumbers or lineNumbers
+  if (/\b(?:showLineNumbers|lineNumbers)\b/.test(remaining)) {
+    meta.showLineNumbers = true;
+    remaining = remaining.replace(/\b(?:showLineNumbers|lineNumbers)\b/, "").trim();
+  }
+
+  // Detect twoslash flag
+  if (/\btwoslash\b/.test(remaining)) {
+    meta.twoslash = true;
+    remaining = remaining.replace(/\btwoslash\b/, "").trim();
+  }
+
+  // Extract word highlight patterns /word/
+  const wordMatches = [...remaining.matchAll(/\/([^/]+)\//g)];
+  if (wordMatches.length > 0) {
+    meta.highlightWords = wordMatches.map((m) => m[1]);
+  }
+
+  // Detect diff language
+  if (meta.lang === "diff") {
+    meta.diffEnabled = true;
+  }
+
+  return meta;
+}
+
+// ── CODE BLOCK ENHANCEMENT ───────────────────────────────
+export function enhanceCodeBlock(html: string, meta: CodeMeta): string {
+  let result = html;
+
+  // Process inline diff markers: // [!code ++] and // [!code --]
+  // Must happen before line highlighting since it modifies line content
+  // Note: Shiki splits the marker across multiple spans, so we check the
+  // stripped text content of the entire line for the marker pattern.
+  result = result.replace(
+    /<span class="line">((?:<span[^>]*>[^<]*<\/span>|[^<])*)<\/span>/g,
+    (match, inner: string) => {
+      const textContent = inner.replace(/<[^>]+>/g, "");
+      if (textContent.includes("[!code ++]")) {
+        // Remove the marker — may be plain text or across Shiki spans
+        let cleaned = inner
+          .replace(/<span[^>]*>[^<]*\[!code \+\+\][^<]*<\/span>/g, "")  // Shiki span containing marker
+          .replace(/\s*\/\/\s*\[!code \+\+\]/g, "")  // Plain text marker
+          .replace(/\s*#\s*\[!code \+\+\]/g, "")  // Hash comment marker
+          .replace(/<span[^>]*>\s*\/\/\s*<\/span>\s*$/g, "");  // Trailing // span
+        return `<span class="line tome-line-added">${cleaned}</span>`;
+      }
+      if (textContent.includes("[!code --]")) {
+        let cleaned = inner
+          .replace(/<span[^>]*>[^<]*\[!code --\][^<]*<\/span>/g, "")
+          .replace(/\s*\/\/\s*\[!code --\]/g, "")
+          .replace(/\s*#\s*\[!code --\]/g, "")
+          .replace(/<span[^>]*>\s*\/\/\s*<\/span>\s*$/g, "");
+        return `<span class="line tome-line-removed">${cleaned}</span>`;
+      }
+      return match;
+    }
+  );
+
+  // Process diff language lines (+ and - prefixes)
+  if (meta.diffEnabled) {
+    let lineIndex = 0;
+    result = result.replace(
+      /<span class="line">((?:<span[^>]*>[^<]*<\/span>|[^<])*)<\/span>/g,
+      (match, inner: string) => {
+        lineIndex++;
+        // Strip HTML to check the raw text prefix
+        const text = inner.replace(/<[^>]+>/g, "");
+        if (text.startsWith("+")) {
+          return `<span class="line tome-line-added">${inner}</span>`;
+        }
+        if (text.startsWith("-")) {
+          return `<span class="line tome-line-removed">${inner}</span>`;
+        }
+        return match;
+      }
+    );
+  }
+
+  // Apply line highlighting
+  if (meta.highlightLines && meta.highlightLines.length > 0) {
+    let lineIndex = 0;
+    result = result.replace(
+      /<span class="line/g,
+      (match) => {
+        lineIndex++;
+        if (meta.highlightLines!.includes(lineIndex)) {
+          return `<span class="line tome-line-highlight`;
+        }
+        return match;
+      }
+    );
+  }
+
+  // Add data-line-numbers attribute for CSS counter-based line numbers
+  if (meta.showLineNumbers) {
+    result = result.replace(/<pre /, '<pre data-line-numbers ');
+    // Handle case where <pre> has no attributes
+    result = result.replace(/<pre>/, '<pre data-line-numbers>');
+  }
+
+  // Word highlighting: wrap matching text in highlight spans
+  if (meta.highlightWords && meta.highlightWords.length > 0) {
+    for (const word of meta.highlightWords) {
+      // Escape regex special chars in the word
+      const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // Only match text content inside spans, not HTML tags/attributes
+      result = result.replace(
+        /(<span[^>]*>)([^<]*)/g,
+        (match, tag: string, text: string) => {
+          if (!text.includes(word)) return match;
+          const highlighted = text.replace(
+            new RegExp(escaped, "g"),
+            `<span class="tome-word-highlight">${word}</span>`
+          );
+          return tag + highlighted;
+        }
+      );
+    }
+  }
+
+  // Wrap in container with title header if title exists
+  if (meta.title) {
+    result = `<div class="tome-code-block-wrapper"><div class="tome-code-title">${meta.title}</div>${result}</div>`;
+  }
+
+  return result;
+}
+
+// ── EXTRACT CODE FENCE META FROM MARKDOWN ────────────────
+// remark-rehype discards the info string beyond the language name.
+// We extract meta strings from the raw markdown source and store them
+// in a queue that the code block transformer consumes in order.
+export function extractCodeFenceMetas(source: string): string[] {
+  const metas: string[] = [];
+  const regex = /^```(\w+)(.*?)$/gm;
+  let match;
+  while ((match = regex.exec(source)) !== null) {
+    const meta = match[2].trim();
+    metas.push(meta);
+  }
+  return metas;
+}
+
+// ── TWOSLASH TRANSFORMER (lazy-loaded) ───────────────────
+let twoslashTransformerPromise: Promise<any> | null = null;
+
+function getTwoslashTransformer(): Promise<any> {
+  if (!twoslashTransformerPromise) {
+    twoslashTransformerPromise = import("@shikijs/twoslash")
+      .then((mod) => mod.transformerTwoslash)
+      .catch(() => {
+        console.warn("[tome] @shikijs/twoslash not available — twoslash annotations will be skipped.");
+        return null;
+      });
+  }
+  return twoslashTransformerPromise;
+}
+
 // ── CODE BLOCK TRANSFORM ─────────────────────────────────
-function createCodeBlockTransformer(highlighter: Highlighter) {
+function createCodeBlockTransformer(highlighter: Highlighter, codeMetas: string[], twoslashFactory: any) {
+  let metaIndex = 0;
   return (html: string): string => {
     // Replace <pre><code class="language-xxx"> blocks with Shiki output
     return html.replace(
-      /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g,
+      /<pre><code class="language-(\w+)"[^>]*>([\s\S]*?)<\/code><\/pre>/g,
       (_match, lang: string, code: string) => {
+        // Get the meta string for this code block (in order of appearance)
+        const metaStr = codeMetas[metaIndex] || "";
+        metaIndex++;
+
         // Decode HTML entities back to raw text for Shiki
         // Handles both named entities (&amp;) and hex entities (&#x26;)
         const decoded = code
@@ -195,11 +423,26 @@ function createCodeBlockTransformer(highlighter: Highlighter) {
           return `<div class="tome-mermaid" data-mermaid="${encoded}"></div>`;
         }
 
+        // Parse code fence meta info
+        const meta = parseCodeMeta(lang + (metaStr ? " " + metaStr : ""));
+
         try {
-          return highlighter.codeToHtml(decoded.trim(), {
-            lang: lang || "text",
+          // Build transformers array — include twoslash when requested and available
+          const transformers: any[] = [];
+          if (meta.twoslash && twoslashFactory) {
+            transformers.push(twoslashFactory());
+          }
+
+          let shikiHtml = highlighter.codeToHtml(decoded.trim(), {
+            lang: meta.lang || "text",
             themes: { dark: "github-dark", light: "github-light" },
+            transformers: transformers.length > 0 ? transformers : undefined,
           });
+
+          // Apply enhancements (line highlighting, diff, title, etc.)
+          shikiHtml = enhanceCodeBlock(shikiHtml, meta);
+
+          return shikiHtml;
         } catch {
           // Fallback: return original with basic styling
           return `<pre class="tome-code" data-lang="${lang}"><code>${code}</code></pre>`;
@@ -254,6 +497,8 @@ export async function processMarkdown(
     type: validated.type,
     ogImage: validated.ogImage,
     redirect_from: validated.redirect_from,
+    draft: validated.draft,
+    badge: validated.badge,
   };
 
   // Process Markdown → HTML
@@ -311,9 +556,14 @@ export async function processMarkdown(
   const result = await processor.process(content);
   let html = String(result);
 
+  // Extract code fence meta strings from raw markdown source
+  // (remark-rehype discards the info string beyond the language name)
+  const codeMetas = extractCodeFenceMetas(content);
+
   // Apply syntax highlighting
   const highlighter = await getHighlighter();
-  const transformCodeBlocks = createCodeBlockTransformer(highlighter);
+  const twoslashFactory = await getTwoslashTransformer();
+  const transformCodeBlocks = createCodeBlockTransformer(highlighter, codeMetas, twoslashFactory);
   html = transformCodeBlocks(html);
 
   // Sanitize HTML to prevent XSS (blocks script, iframe, event handlers, etc.)

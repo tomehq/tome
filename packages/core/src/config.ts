@@ -64,6 +64,7 @@ export const I18nSchema = z.object({
   defaultLocale: z.string().default("en"),
   locales: z.array(z.string()).default(["en"]),
   localeNames: z.record(z.string()).optional(),
+  localeDirs: z.record(z.enum(["ltr", "rtl"])).optional(),
   fallback: z.boolean().default(true),
 }).optional();
 
@@ -93,6 +94,23 @@ export const SandboxSchema = z.object({
   enabled: z.boolean().default(false),
   allowedExpressions: z.array(z.string()).default([]),
 }).optional();
+
+export const OverridesSchema = z.object({
+  Header: z.string().optional(),
+  Footer: z.string().optional(),
+  Sidebar: z.string().optional(),
+  Toc: z.string().optional(),
+  PageFooter: z.string().optional(),
+}).optional();
+
+export const SocialLinkSchema = z.object({
+  platform: z.enum(["github", "twitter", "discord", "linkedin", "youtube", "mastodon", "bluesky", "custom"]),
+  url: z.string().url(),
+  label: z.string().optional(),
+  icon: z.string().optional(),
+});
+
+export const SocialLinksSchema = z.array(SocialLinkSchema).optional();
 
 export const BannerSchema = z.object({
   text: z.string(),
@@ -149,9 +167,37 @@ export const TomeConfigSchema = z.object({
   webhooks: z.array(WebhookSchema).optional(),
   redirects: z.array(RedirectSchema).default([]),
   sandbox: SandboxSchema,
+  socialLinks: SocialLinksSchema,
+  overrides: OverridesSchema,
+  contentSources: z.array(z.any()).optional(),  // ContentSource instances — validated at runtime, not by zod
+  tomePlugins: z.array(z.any()).optional(),  // validated at runtime, not by zod (plugins are class instances)
 });
 
 export type TomeConfig = z.infer<typeof TomeConfigSchema>;
+
+// ── PLUGIN INTERFACE ────────────────────────────────────
+export interface TomePlugin {
+  name: string;
+  hooks?: {
+    configResolved?: (config: TomeConfig) => TomeConfig | void;
+    routesResolved?: (routes: PageRoute[]) => PageRoute[] | void;
+    headTags?: () => string[];
+    buildStart?: () => void | Promise<void>;
+    buildEnd?: (outputDir: string) => void | Promise<void>;
+  };
+}
+
+// Forward-declared PageRoute type for plugin interface (matches routes.ts)
+interface PageRoute {
+  id: string;
+  filePath: string;
+  absolutePath: string;
+  urlPath: string;
+  frontmatter: Record<string, unknown>;
+  isMdx: boolean;
+  version?: string;
+  locale?: string;
+}
 
 // ── CONFIG LOADER ────────────────────────────────────────
 const CONFIG_FILES = [

@@ -6,6 +6,22 @@ import type { TomeConfig } from "./config.js";
 import type { PageFrontmatter } from "./markdown.js";
 
 // ── TYPES ────────────────────────────────────────────────
+export type BadgeVariant = "info" | "success" | "warning" | "danger" | "default";
+
+export interface Badge {
+  text: string;
+  variant: BadgeVariant;
+}
+
+/** Normalize badge from frontmatter: string → { text, variant: "default" }, object → fill in default variant */
+export function normalizeBadge(
+  raw: string | { text: string; variant?: BadgeVariant } | undefined
+): Badge | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw === "string") return { text: raw, variant: "default" };
+  return { text: raw.text, variant: raw.variant || "default" };
+}
+
 export interface PageRoute {
   /** Unique page ID derived from file path: "getting-started", "api/endpoints" */
   id: string;
@@ -30,6 +46,7 @@ export interface NavigationItem {
   id: string;
   urlPath: string;
   icon?: string;
+  badge?: Badge;
 }
 
 export interface NavigationGroup {
@@ -108,6 +125,8 @@ export async function discoverPages(
           tags: data.tags,
           type: data.type,
           redirect_from: data.redirect_from,
+          badge: data.badge,
+          draft: data.draft ?? false,
         };
 
         allRoutes.push({
@@ -205,6 +224,8 @@ export async function discoverPages(
           tags: data.tags,
           type: data.type,
           redirect_from: data.redirect_from,
+          badge: data.badge,
+          draft: data.draft ?? false,
         };
 
         allRoutes.push({
@@ -259,6 +280,8 @@ export async function discoverPages(
       hidden: data.hidden ?? false,
       tags: data.tags,
       redirect_from: data.redirect_from,
+      badge: data.badge,
+      draft: data.draft ?? false,
     };
 
     routes.push({
@@ -294,6 +317,7 @@ export function buildNavigation(
             id: route.id,
             urlPath: route.urlPath,
             icon: route.frontmatter.icon,
+            badge: normalizeBadge(route.frontmatter.badge),
           };
         })
         .filter(Boolean) as NavigationItem[],
@@ -320,6 +344,7 @@ export function buildNavigation(
       id: route.id,
       urlPath: route.urlPath,
       icon: route.frontmatter.icon,
+      badge: normalizeBadge(route.frontmatter.badge),
     });
   }
 

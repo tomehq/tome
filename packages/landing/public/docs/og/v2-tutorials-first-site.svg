@@ -1,9 +1,0 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="630" fill="#ffffff" />
-  <rect x="0" y="0" width="1200" height="6" fill="#2563eb" />
-  <text x="80" y="100" font-family="sans-serif" font-size="24" font-weight="400" fill="#6b7280">Tome</text>
-  <text x="80" y="300" font-family="sans-serif" font-size="56" font-weight="700" fill="#111827">Create Your First Site</text>
-  <text x="80" y="380" font-family="sans-serif" font-size="28" font-weight="400" fill="#6b7280">A step-by-step tutorial that walks you through creating a documentation site with Tome, from installation to running ...</text>
-  <rect x="80" y="540" width="60" height="4" rx="2" fill="#2563eb" />
-  <text x="160" y="548" font-family="sans-serif" font-size="20" font-weight="400" fill="#6b7280">Powered by Tome</text>
-</svg>

@@ -343,11 +343,14 @@ export async function migrateFromMintlify(
   const convertedFiles: string[] = [];
   const dryRun = options?.dryRun ?? false;
 
-  // 1. Read and parse mint.json -------------------------------------------
-  const mintPath = join(sourceDir, 'mint.json');
+  // 1. Read and parse mint.json or docs.json ------------------------------
+  //    Mintlify deprecated mint.json in favor of docs.json — support both.
+  const docsJsonPath = join(sourceDir, 'docs.json');
+  const mintJsonPath = join(sourceDir, 'mint.json');
+  const mintPath = existsSync(docsJsonPath) ? docsJsonPath : mintJsonPath;
 
   if (!existsSync(mintPath)) {
-    throw new Error(`mint.json not found in ${sourceDir}`);
+    throw new Error(`Neither docs.json nor mint.json found in ${sourceDir}`);
   }
 
   const mintConfig = parseMintConfig(readFileSync(mintPath, 'utf-8'));

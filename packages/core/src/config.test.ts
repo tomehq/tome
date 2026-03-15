@@ -254,6 +254,54 @@ describe("SandboxSchema", () => {
   });
 });
 
+describe("SocialLinksSchema", () => {
+  it("accepts a valid social link array", () => {
+    const result = TomeConfigSchema.parse({
+      socialLinks: [
+        { platform: "github", url: "https://github.com/example/repo" },
+        { platform: "twitter", url: "https://twitter.com/example", label: "Follow us" },
+        { platform: "discord", url: "https://discord.gg/example" },
+      ],
+    });
+    expect(result.socialLinks).toHaveLength(3);
+    expect(result.socialLinks![0].platform).toBe("github");
+    expect(result.socialLinks![0].url).toBe("https://github.com/example/repo");
+    expect(result.socialLinks![1].label).toBe("Follow us");
+  });
+
+  it("rejects an invalid URL", () => {
+    expect(() => TomeConfigSchema.parse({
+      socialLinks: [{ platform: "github", url: "not-a-url" }],
+    })).toThrow();
+  });
+
+  it("rejects an invalid platform", () => {
+    expect(() => TomeConfigSchema.parse({
+      socialLinks: [{ platform: "facebook", url: "https://facebook.com/example" }],
+    })).toThrow();
+  });
+
+  it("accepts an empty array", () => {
+    const result = TomeConfigSchema.parse({ socialLinks: [] });
+    expect(result.socialLinks).toEqual([]);
+  });
+
+  it("allows omitting socialLinks entirely (undefined)", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.socialLinks).toBeUndefined();
+  });
+
+  it("accepts a custom platform with an icon", () => {
+    const result = TomeConfigSchema.parse({
+      socialLinks: [
+        { platform: "custom", url: "https://example.com", label: "Website", icon: "M0 0h16v16H0z" },
+      ],
+    });
+    expect(result.socialLinks![0].platform).toBe("custom");
+    expect(result.socialLinks![0].icon).toBe("M0 0h16v16H0z");
+  });
+});
+
 describe("RedirectSchema", () => {
   it("defaults redirects to empty array", () => {
     const result = TomeConfigSchema.parse({});
@@ -282,5 +330,119 @@ describe("RedirectSchema", () => {
     expect(() => TomeConfigSchema.parse({
       redirects: [{ from: "/old", to: "/new", status: 302 }],
     })).toThrow();
+  });
+});
+
+describe("tomePlugins config", () => {
+  it("defaults tomePlugins to undefined when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.tomePlugins).toBeUndefined();
+  });
+
+  it("accepts an empty tomePlugins array", () => {
+    const result = TomeConfigSchema.parse({ tomePlugins: [] });
+    expect(result.tomePlugins).toEqual([]);
+  });
+
+  it("accepts tomePlugins with plugin objects", () => {
+    const plugin = { name: "test-plugin", hooks: {} };
+    const result = TomeConfigSchema.parse({ tomePlugins: [plugin] });
+    expect(result.tomePlugins).toHaveLength(1);
+    expect(result.tomePlugins![0].name).toBe("test-plugin");
+  });
+});
+
+describe("OverridesSchema", () => {
+  it("accepts undefined overrides (not provided)", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.overrides).toBeUndefined();
+  });
+
+  it("accepts empty overrides object", () => {
+    const result = TomeConfigSchema.parse({ overrides: {} });
+    expect(result.overrides).toEqual({});
+  });
+
+  it("accepts partial overrides (just Header)", () => {
+    const result = TomeConfigSchema.parse({
+      overrides: { Header: "./components/MyHeader.tsx" },
+    });
+    expect(result.overrides?.Header).toBe("./components/MyHeader.tsx");
+    expect(result.overrides?.Footer).toBeUndefined();
+    expect(result.overrides?.Sidebar).toBeUndefined();
+    expect(result.overrides?.Toc).toBeUndefined();
+    expect(result.overrides?.PageFooter).toBeUndefined();
+  });
+
+  it("accepts all override slots", () => {
+    const result = TomeConfigSchema.parse({
+      overrides: {
+        Header: "./MyHeader.tsx",
+        Footer: "./MyFooter.tsx",
+        Sidebar: "./MySidebar.tsx",
+        Toc: "./MyToc.tsx",
+        PageFooter: "./MyPageFooter.tsx",
+      },
+    });
+    expect(result.overrides?.Header).toBe("./MyHeader.tsx");
+    expect(result.overrides?.Footer).toBe("./MyFooter.tsx");
+    expect(result.overrides?.Sidebar).toBe("./MySidebar.tsx");
+    expect(result.overrides?.Toc).toBe("./MyToc.tsx");
+    expect(result.overrides?.PageFooter).toBe("./MyPageFooter.tsx");
+  });
+});
+
+describe("I18nSchema localeDirs (RTL support)", () => {
+  it("accepts localeDirs with valid ltr/rtl values", () => {
+    const result = TomeConfigSchema.parse({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en", "ar", "he"],
+        localeDirs: { ar: "rtl", he: "rtl" },
+      },
+    });
+    expect(result.i18n?.localeDirs).toEqual({ ar: "rtl", he: "rtl" });
+  });
+
+  it("accepts localeDirs with ltr values", () => {
+    const result = TomeConfigSchema.parse({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en", "fr"],
+        localeDirs: { en: "ltr", fr: "ltr" },
+      },
+    });
+    expect(result.i18n?.localeDirs).toEqual({ en: "ltr", fr: "ltr" });
+  });
+
+  it("rejects invalid direction values in localeDirs", () => {
+    expect(() => TomeConfigSchema.parse({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en", "ar"],
+        localeDirs: { ar: "bidi" },
+      },
+    })).toThrow();
+  });
+
+  it("allows omitting localeDirs entirely", () => {
+    const result = TomeConfigSchema.parse({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en", "ar"],
+      },
+    });
+    expect(result.i18n?.localeDirs).toBeUndefined();
+  });
+
+  it("accepts empty localeDirs object", () => {
+    const result = TomeConfigSchema.parse({
+      i18n: {
+        defaultLocale: "en",
+        locales: ["en"],
+        localeDirs: {},
+      },
+    });
+    expect(result.i18n?.localeDirs).toEqual({});
   });
 });

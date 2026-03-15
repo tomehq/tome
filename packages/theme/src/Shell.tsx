@@ -212,6 +212,27 @@ const GlobeIcon = () => <Icon d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3.6 9h16.
 // ── TOP NAV EXTERNAL LINK ICON ────────────────────────────
 const ExtLinkIcon = () => <Icon d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" size={11} />;
 
+// ── SOCIAL LINK ICONS ──────────────────────────────────
+const SOCIAL_ICON_PATHS: Record<string, string> = {
+  github: "M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z",
+  twitter: "M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z",
+  discord: "M13.545 2.907a13.227 13.227 0 00-3.257-1.011.05.05 0 00-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 00-3.658 0 8.258 8.258 0 00-.412-.833.051.051 0 00-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 00-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 003.995 2.02.05.05 0 00.056-.019c.308-.42.582-.863.818-1.329a.05.05 0 00-.028-.07 8.735 8.735 0 01-1.248-.595.05.05 0 01-.005-.083c.084-.063.168-.129.248-.195a.05.05 0 01.051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 01.053.007c.08.066.164.132.248.195a.051.051 0 01-.004.085c-.399.232-.813.431-1.249.594a.05.05 0 00-.03.07c.24.465.515.909.817 1.329a.05.05 0 00.056.019 13.235 13.235 0 004.001-2.02.049.049 0 00.021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 00-.02-.019z",
+  linkedin: "M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 01.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z",
+  youtube: "M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 011.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.007 2.007 0 01-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.007 2.007 0 01-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31.4 31.4 0 010 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.007 2.007 0 011.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A99.788 99.788 0 017.858 2h.193zM6.4 5.209v4.818l4.157-2.408L6.4 5.209z",
+  mastodon: "M11.19 12.195c2.016-.24 3.77-1.475 3.99-2.603.348-1.778.32-4.339.32-4.339 0-3.47-2.286-4.488-2.286-4.488C12.062.238 10.083.017 8.027 0h-.05C5.92.017 3.942.238 2.79.765 2.79.765.504 1.783.504 5.253c-.005.995-.01 2.19.013 3.44.075 4.21.56 8.354 3.383 9.386 1.302.476 2.418.576 3.317.507 1.628-.125 2.541-.8 2.541-.8l-.054-1.182s-1.163.366-2.47.322c-1.293-.044-2.658-.138-2.867-1.716a3.23 3.23 0 01-.028-.465s1.27.31 2.879.384c.984.045 1.905-.058 2.842-.17zM13 8.59V5.319c0-.67-.17-1.2-.507-1.592-.348-.4-.806-.605-1.373-.605-.656 0-1.154.252-1.486.756L9.2 4.595l-.434-.717c-.332-.504-.83-.756-1.486-.756-.567 0-1.025.204-1.373.605-.338.392-.507.923-.507 1.592V8.59h1.69V5.468c0-.67.285-1.012.855-1.012.63 0 .946.404.946 1.204V7.11h1.682V5.66c0-.8.316-1.204.946-1.204.57 0 .855.342.855 1.012V8.59H13z",
+  bluesky: "M3.468 1.948C5.303 3.325 7.276 6.118 8 7.616c.724-1.498 2.697-4.29 4.532-5.668C13.855 1.013 16 .638 16 3.14c0 .5-.286 4.2-.454 4.8-.585 2.093-2.716 2.628-4.544 2.305 3.195.564 4.007 2.433 2.25 4.302-3.337 3.548-4.8-1.244-5.252-2.547 0 0-.116-.334-.166-.334h.332C8.166 11.666 8.05 12 8.05 12c-.452 1.303-1.916 6.095-5.252 2.547-1.756-1.869-.946-3.738 2.25-4.302-1.829.323-3.96-.212-4.544-2.305C.336 7.34.05 3.64.05 3.14.05.638 2.195 1.013 3.468 1.948z",
+};
+
+const SocialIcon = ({ platform, customIcon }: { platform: string; customIcon?: string }) => {
+  const d = platform === "custom" && customIcon ? customIcon : SOCIAL_ICON_PATHS[platform];
+  if (!d) return null;
+  return (
+    <svg width={16} height={16} viewBox="0 0 16 16" fill="currentColor">
+      <path d={d} />
+    </svg>
+  );
+};
+
 // ── SHELL COMPONENT ──────────────────────────────────────
 export interface VersioningInfo {
   current: string;
@@ -222,6 +243,7 @@ export interface I18nInfo {
   defaultLocale: string;
   locales: string[];
   localeNames?: Record<string, string>;
+  localeDirs?: Record<string, "ltr" | "rtl">;
 }
 
 // ── CHANGELOG VIEW (TOM-49) ─────────────────────────────
@@ -290,6 +312,34 @@ function ChangelogView({ entries }: { entries: ChangelogViewEntry[] }) {
   );
 }
 
+// ── BREADCRUMBS ─────────────────────────────────────────
+type BreadcrumbItem = { label: string; href: string | null };
+
+function getBreadcrumbs(
+  navigation: Array<{ section: string; pages: Array<{ title: string; id: string; urlPath: string }> }>,
+  currentPageId: string,
+  pageTitle: string,
+): BreadcrumbItem[] {
+  if (currentPageId === "index") return [];
+
+  for (const section of navigation) {
+    const found = section.pages.find(p => p.id === currentPageId);
+    if (found) {
+      const crumbs: BreadcrumbItem[] = [];
+      // Section label — link to first page in section
+      const firstPage = section.pages[0];
+      crumbs.push({
+        label: section.section,
+        href: firstPage ? firstPage.urlPath : null,
+      });
+      // Current page (last crumb, not a link)
+      crumbs.push({ label: pageTitle, href: null });
+      return crumbs;
+    }
+  }
+  return [];
+}
+
 interface ShellProps {
   config: {
     name: string;
@@ -299,11 +349,12 @@ interface ShellProps {
     toc?: { enabled?: boolean; depth?: number };
     topNav?: Array<{ label: string; href: string }>;
     banner?: { text: string; link?: string; dismissible?: boolean };
+    socialLinks?: Array<{ platform: string; url: string; label?: string; icon?: string }>;
     [key: string]: unknown;
   };
   navigation: Array<{
     section: string;
-    pages: Array<{ title: string; id: string; urlPath: string; icon?: string }>;
+    pages: Array<{ title: string; id: string; urlPath: string; icon?: string; badge?: { text: string; variant: string } }>;
   }>;
   currentPageId: string;
   pageHtml?: string;
@@ -324,13 +375,27 @@ interface ShellProps {
   currentLocale?: string;
   docContext?: Array<{ id: string; title: string; content: string }>;
   basePath?: string;
+  isDraft?: boolean;
+  dir?: "ltr" | "rtl";
+  overrides?: {
+    Header?: React.ComponentType<any>;
+    Footer?: React.ComponentType<any>;
+    Sidebar?: React.ComponentType<any>;
+    Toc?: React.ComponentType<any>;
+    PageFooter?: React.ComponentType<any>;
+  };
 }
 
 export function Shell({
   config, navigation, currentPageId, pageHtml, pageComponent, mdxComponents,
   pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries, onNavigate, allPages,
-  versioning, currentVersion, i18n, currentLocale, docContext, basePath = "",
+  versioning, currentVersion, i18n, currentLocale, docContext, basePath = "", isDraft, dir: dirProp, overrides,
 }: ShellProps) {
+  // RTL support: resolve text direction from prop, i18n.localeDirs, or default to "ltr"
+  const resolvedLocale = currentLocale || i18n?.defaultLocale || "en";
+  const dir: "ltr" | "rtl" = dirProp || i18n?.localeDirs?.[resolvedLocale] || "ltr";
+  const isRtl = dir === "rtl";
+
   const themeMode = config.theme?.mode || "auto";
 
   // TOM-12: Initialize dark mode from config.theme.mode + system preference
@@ -571,6 +636,9 @@ export function Shell({
   const prev = idx > 0 ? allNavPages[idx - 1] : null;
   const next = idx < allNavPages.length - 1 ? allNavPages[idx + 1] : null;
 
+  // Breadcrumbs
+  const breadcrumbs = getBreadcrumbs(navigation, currentPageId, pageTitle);
+
   const togSec = (s: string) => setExpanded(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
 
   const cssVars: Record<string, string> = {
@@ -590,7 +658,7 @@ export function Shell({
   const bannerIsInternal = bannerLink ? (bannerLink.startsWith("#") || (basePath && bannerLink.startsWith(basePath + "/"))) : false;
 
   return (
-    <div className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", minHeight: "100vh", overflow: "hidden" }}>
+    <div dir={dir} className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", minHeight: "100vh", overflow: "hidden" }}>
       {/* Banner */}
       {config.banner?.text && !bannerDismissed && (
         <div style={{
@@ -653,7 +721,7 @@ export function Shell({
         />
       ) : null}
 
-      <div style={{ display: "flex", flex: 1, height: config.banner?.text && !bannerDismissed ? "calc(100vh - 32px)" : "100vh" }}>
+      <div style={{ display: "flex", flexDirection: isRtl ? "row-reverse" : "row", flex: 1, height: config.banner?.text && !bannerDismissed ? "calc(100vh - 32px)" : "100vh" }}>
         {/* Mobile sidebar backdrop */}
         {mobile && sbOpen && (
           <div onClick={() => setSb(false)} style={{
@@ -662,12 +730,25 @@ export function Shell({
           }} />
         )}
         {/* Sidebar */}
+        {overrides?.Sidebar ? (
+          <overrides.Sidebar
+            config={config}
+            navigation={navigation}
+            currentPageId={currentPageId}
+            onNavigate={onNavigate}
+            mobile={mobile}
+            sbOpen={sbOpen}
+            setSbOpen={setSb}
+            versioning={versioning}
+            currentVersion={currentVersion}
+          />
+        ) : (
         <aside style={{
           width: sbOpen ? 270 : 0, minWidth: sbOpen ? 270 : 0,
-          background: "var(--sbBg)", borderRight: "1px solid var(--bd)",
+          background: "var(--sbBg)", [isRtl ? "borderLeft" : "borderRight"]: "1px solid var(--bd)",
           display: "flex", flexDirection: "column",
           transition: "width .2s, min-width .2s", overflow: "hidden",
-          ...(mobile ? { position: "fixed" as const, top: 0, left: 0, bottom: 0, zIndex: 201 } : {}),
+          ...(mobile ? { position: "fixed" as const, top: 0, [isRtl ? "right" : "left"]: 0, bottom: 0, zIndex: 201 } : {}),
         }}>
           <a href="/" style={{ padding: "18px 20px", display: "flex", alignItems: "baseline", gap: 6, borderBottom: "1px solid var(--bd)", textDecoration: "none", color: "inherit" }}>
             <span style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 700, fontStyle: "italic" }}>
@@ -683,7 +764,7 @@ export function Shell({
               padding: "8px 12px", cursor: "pointer", color: "var(--txM)", fontSize: 12.5,
               fontFamily: "var(--font-body)",
             }}>
-              <SearchIcon /><span style={{ flex: 1, textAlign: "left" }}>Search...</span>
+              <SearchIcon /><span style={{ flex: 1, textAlign: isRtl ? "right" : "left" }}>Search...</span>
               <kbd style={{ fontFamily: "var(--font-code)", fontSize: 9, background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2, padding: "2px 6px" }}>{"\u2318K"}</kbd>
             </button>
           </div>
@@ -699,21 +780,38 @@ export function Shell({
                 }}>
                   {expanded.includes(sec.section) ? <ChevDown /> : <ChevRight />}{sec.section}
                 </button>
-                {expanded.includes(sec.section) && <div style={{ marginLeft: 8, borderLeft: "1px solid var(--bd)", paddingLeft: 0 }}>
+                {expanded.includes(sec.section) && <div style={{ [isRtl ? "marginRight" : "marginLeft"]: 8, [isRtl ? "borderRight" : "borderLeft"]: "1px solid var(--bd)", [isRtl ? "paddingRight" : "paddingLeft"]: 0 }}>
                   {sec.pages.map(p => {
                     const active = currentPageId === p.id;
                     return (
                       <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
                         display: "flex", alignItems: "center", gap: 10, width: "100%",
-                        textAlign: "left", background: "none",
+                        textAlign: isRtl ? "right" : "left", background: "none",
                         border: "none", borderRadius: 0,
-                        borderLeft: active ? "2px solid var(--ac)" : "2px solid transparent",
+                        [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
                         padding: "7px 14px", cursor: "pointer",
                         color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
                         fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
                         transition: "all .12s",
                       }}>
                         {p.title}
+                        {p.badge && (() => {
+                          const badgeColors: Record<string, { bg: string; text: string }> = {
+                            default: { bg: "var(--sf)", text: "var(--tx2)" },
+                            info: { bg: "rgba(59,130,246,0.15)", text: "rgb(59,130,246)" },
+                            success: { bg: "rgba(34,197,94,0.15)", text: "rgb(34,197,94)" },
+                            warning: { bg: "rgba(234,179,8,0.15)", text: "rgb(202,138,4)" },
+                            danger: { bg: "rgba(239,68,68,0.15)", text: "rgb(239,68,68)" },
+                          };
+                          const bc = badgeColors[p.badge!.variant || "default"] || badgeColors.default;
+                          return (
+                            <span style={{
+                              fontSize: 10, fontWeight: 600, padding: "2px 6px",
+                              borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
+                              background: bc.bg, color: bc.text,
+                            }}>{p.badge!.text}</span>
+                          );
+                        })()}
                       </button>
                     );
                   })}
@@ -734,11 +832,11 @@ export function Shell({
                     onNavigate(targetId);
                   }}
                   style={{
-                    flex: 1, padding: "6px 0", textAlign: "center",
+                    flex: 1, padding: "3px 0", textAlign: "center",
                     background: v === (currentVersion || versioning.current) ? "var(--acD)" : "var(--sf)",
                     border: "1px solid var(--bd)", borderRadius: 2, cursor: "pointer",
                     color: v === (currentVersion || versioning.current) ? "var(--ac)" : "var(--tx2)",
-                    fontSize: 12, fontFamily: "var(--font-code)",
+                    fontSize: 11, fontFamily: "var(--font-code)",
                     fontWeight: v === versioning.current ? 600 : 400,
                   }}
                 >
@@ -758,10 +856,30 @@ export function Shell({
             <span style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)" }}>{typeof __TOME_VERSION__ !== "undefined" && __TOME_VERSION__ ? `v${__TOME_VERSION__}` : "v0.1.0"}</span>
           </div>
         </aside>
+        )}
 
         {/* Main area */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           {/* Header */}
+          {overrides?.Header ? (
+            <overrides.Header
+              config={config}
+              navigation={navigation}
+              currentPageId={currentPageId}
+              onNavigate={onNavigate}
+              mobile={mobile}
+              sbOpen={sbOpen}
+              setSbOpen={setSb}
+              isDark={isDark}
+              setDark={setDark}
+              versioning={versioning}
+              currentVersion={currentVersion}
+              i18n={i18n}
+              currentLocale={currentLocale}
+              onSearchOpen={() => setSearch(true)}
+              basePath={basePath}
+            />
+          ) : (
           <header style={{
             display: "flex", alignItems: "center", gap: mobile ? 8 : 12, padding: mobile ? "8px 12px" : "10px 24px",
             borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
@@ -817,6 +935,30 @@ export function Shell({
                   );
                 })}
                 <span style={{ width: 1, height: 16, background: "var(--bd)" }} />
+              </div>
+            )}
+
+            {/* Social Links */}
+            {config.socialLinks && config.socialLinks.length > 0 && !mobile && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {config.socialLinks.map((link) => (
+                  <a
+                    key={link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={link.label || link.platform}
+                    data-testid={`social-link-${link.platform}`}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "var(--tx2)", cursor: "pointer", transition: "color .15s",
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.color = "var(--tx)")}
+                    onMouseOut={(e) => (e.currentTarget.style.color = "var(--tx2)")}
+                  >
+                    <SocialIcon platform={link.platform} customIcon={link.icon} />
+                  </a>
+                ))}
               </div>
             )}
 
@@ -947,6 +1089,7 @@ export function Shell({
               </div>
             )}
           </header>
+          )}
 
           {/* TOM-30: Old version banner */}
           {isOldVersion && (
@@ -975,9 +1118,42 @@ export function Shell({
           {/* Content + TOC */}
           <div ref={contentRef} style={{ flex: 1, overflow: "auto", display: "flex" }}>
             <main style={{ flex: 1, maxWidth: mobile ? "100%" : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
+              {breadcrumbs.length > 0 && (
+                <nav aria-label="Breadcrumbs" data-testid="breadcrumbs" style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  fontSize: 13, color: "var(--tx2)", marginBottom: 8,
+                }}>
+                  {breadcrumbs.map((crumb, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && <span style={{ color: "var(--tx2)", opacity: 0.5 }}>{"\u203A"}</span>}
+                      {i < breadcrumbs.length - 1 && crumb.href !== null ? (
+                        <a
+                          href={crumb.href}
+                          onClick={(e: React.MouseEvent) => {
+                            e.preventDefault();
+                            // Find the page id for this href
+                            const page = navigation.flatMap(s => s.pages).find(p => p.urlPath === crumb.href);
+                            if (page) onNavigate(page.id);
+                          }}
+                          style={{ color: "var(--tx2)", textDecoration: "none", cursor: "pointer" }}
+                        >
+                          {crumb.label}
+                        </a>
+                      ) : (
+                        <span style={i === breadcrumbs.length - 1 ? { color: "var(--tx)" } : undefined}>{crumb.label}</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </nav>
+              )}
               <h1 style={{ fontFamily: "var(--font-heading)", fontSize: mobile ? 26 : 38, fontWeight: 400, fontStyle: "italic", lineHeight: 1.15, marginBottom: 8 }}>
                 {pageTitle}
               </h1>
+              {isDraft && (
+                <div data-testid="draft-banner" style={{ background: "#fef3c7", color: "#92400e", padding: "8px 16px", borderRadius: 6, fontSize: 13, marginBottom: 16 }}>
+                  Draft — This page is only visible in development
+                </div>
+              )}
               {pageDescription && <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 32 }}>{pageDescription}</p>}
               <div style={{ borderTop: "1px solid var(--bd)", paddingTop: 28 }}>
                 {/* TOM-49: Changelog page type */}
@@ -995,7 +1171,19 @@ export function Shell({
                 )}
               </div>
 
-              {/* TOM-48: Edit this page link + TOM-54: Last updated */}
+              {/* TOM-48: Edit this page link + TOM-54: Last updated + Feedback + Prev/Next */}
+              {overrides?.PageFooter ? (
+                <overrides.PageFooter
+                  editUrl={editUrl}
+                  lastUpdated={lastUpdated}
+                  currentPageId={currentPageId}
+                  prev={prev}
+                  next={next}
+                  onNavigate={onNavigate}
+                  mobile={mobile}
+                />
+              ) : (
+              <>
               {(editUrl || lastUpdated) && (
                 <div style={{ marginTop: 40, display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "flex-start" : "center", justifyContent: "space-between", gap: mobile ? 8 : 16 }}>
                   {editUrl && (
@@ -1049,7 +1237,7 @@ export function Shell({
                     border: "1px solid var(--bd)", borderRadius: 2, padding: "10px 16px",
                     cursor: "pointer", color: "var(--tx2)", fontSize: 13, fontFamily: "var(--font-body)",
                     transition: "border-color .15s, color .15s",
-                  }}><ArrowLeft /> {prev.title}</button>
+                  }}>{isRtl ? <ArrowRight /> : <ArrowLeft />} {prev.title}</button>
                 ) : <div />}
                 {next ? (
                   <button onClick={() => onNavigate(next.id)} style={{
@@ -1057,16 +1245,27 @@ export function Shell({
                     border: "1px solid var(--bd)", borderRadius: 2, padding: "10px 16px",
                     cursor: "pointer", color: "var(--tx2)", fontSize: 13, fontFamily: "var(--font-body)",
                     transition: "border-color .15s, color .15s",
-                  }}>{next.title} <ArrowRight /></button>
+                  }}>{next.title} {isRtl ? <ArrowLeft /> : <ArrowRight />}</button>
                 ) : <div />}
               </div>
+              </>
+              )}
             </main>
 
             {/* TOC (TOM-52) */}
-            {showToc && filteredHeadings.length >= 2 && wide && (
-              <aside data-testid="toc-sidebar" style={{ width: 200, padding: "40px 16px 40px 0", position: "sticky", top: 0, alignSelf: "flex-start", flexShrink: 0 }}>
+            {overrides?.Toc ? (
+              showToc && filteredHeadings.length >= 2 && wide && (
+                <overrides.Toc
+                  headings={filteredHeadings}
+                  activeHeadingId={activeHeadingId}
+                  onScrollToHeading={scrollToHeading}
+                />
+              )
+            ) : (
+            showToc && filteredHeadings.length >= 2 && wide && (
+              <aside data-testid="toc-sidebar" style={{ width: 200, padding: isRtl ? "40px 0 40px 16px" : "40px 16px 40px 0", position: "sticky", top: 0, alignSelf: "flex-start", flexShrink: 0 }}>
                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".1em", color: "var(--txM)", marginBottom: 12, fontFamily: "var(--font-code)" }}>On this page</div>
-                <nav aria-label="Table of contents" style={{ borderLeft: "1px solid var(--bd)", paddingLeft: 0 }}>
+                <nav aria-label="Table of contents" style={{ [isRtl ? "borderRight" : "borderLeft"]: "1px solid var(--bd)", [isRtl ? "paddingRight" : "paddingLeft"]: 0 }}>
                   {filteredHeadings.map((h, i) => {
                     const isActive = activeHeadingId === h.id;
                     return (
@@ -1081,21 +1280,32 @@ export function Shell({
                           fontWeight: isActive ? 500 : 400,
                           textDecoration: "none",
                           padding: "4px 12px",
-                          paddingLeft: 12 + (h.depth - 2) * 12,
+                          [isRtl ? "paddingRight" : "paddingLeft"]: 12 + (h.depth - 2) * 12,
                           lineHeight: 1.4,
                           transition: "color .15s, font-weight .15s",
-                          borderLeft: isActive ? "2px solid var(--ac)" : "2px solid transparent",
-                          marginLeft: -1,
+                          [isRtl ? "borderRight" : "borderLeft"]: isActive ? "2px solid var(--ac)" : "2px solid transparent",
+                          [isRtl ? "marginRight" : "marginLeft"]: -1,
                         }}
                       >{h.text}</a>
                     );
                   })}
                 </nav>
               </aside>
+            )
             )}
           </div>
         </div>
       </div>
+
+      {/* Footer override */}
+      {overrides?.Footer && (
+        <overrides.Footer
+          config={config}
+          navigation={navigation}
+          currentPageId={currentPageId}
+          onNavigate={onNavigate}
+        />
+      )}
 
       {/* TOM-32: AI Chat Widget (BYOK) */}
       {config.ai?.enabled && (

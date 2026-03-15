@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { parseOpenApiSpec } from "./openapi.js";
+import { parseOpenApiSpec, generateCodeSamples } from "./openapi.js";
+import type { CodeSample } from "./openapi.js";
 
 // ── HELPERS ──────────────────────────────────────────────
 
@@ -416,5 +417,226 @@ describe("edge cases", () => {
     const r200 = listUsers!.responses.find((r) => r.statusCode === "200");
     const schema = r200!.schema as Record<string, unknown>;
     expect(schema.type).toBe("array");
+  });
+});
+
+// ── Code sample generation ─────────────────────────────
+
+describe("generateCodeSamples", () => {
+  it("generates curl for GET without body", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/users",
+      baseUrl: "https://api.example.com",
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain('curl -X GET "https://api.example.com/users"');
+    expect(curl.code).not.toContain("-d");
+  });
+
+  it("generates curl for POST with JSON body", () => {
+    const samples = generateCodeSamples({
+      method: "post",
+      path: "/users",
+      baseUrl: "https://api.example.com",
+      requestBody: {
+        contentType: "application/json",
+        example: { name: "Alice", email: "alice@test.com" },
+      },
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain('curl -X POST');
+    expect(curl.code).toContain('-H "Content-Type: application/json"');
+    expect(curl.code).toContain("-d '");
+    expect(curl.code).toContain('"name":"Alice"');
+  });
+
+  it("generates JavaScript fetch code", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/items",
+      baseUrl: "https://api.example.com",
+    });
+    const js = samples.find((s) => s.language === "javascript")!;
+    expect(js.label).toBe("JavaScript");
+    expect(js.code).toContain('await fetch("https://api.example.com/items"');
+    expect(js.code).toContain('method: "GET"');
+    expect(js.code).toContain("await response.json()");
+  });
+
+  it("generates Python requests code", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/items",
+      baseUrl: "https://api.example.com",
+    });
+    const py = samples.find((s) => s.language === "python")!;
+    expect(py.label).toBe("Python");
+    expect(py.code).toContain("import requests");
+    expect(py.code).toContain("requests.get(");
+    expect(py.code).toContain("response.json()");
+  });
+
+  it("generates Go net/http code", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/items",
+      baseUrl: "https://api.example.com",
+    });
+    const go = samples.find((s) => s.language === "go")!;
+    expect(go.label).toBe("Go");
+    expect(go.code).toContain('http.NewRequest("GET"');
+    expect(go.code).toContain("client.Do(req)");
+    expect(go.code).toContain("defer resp.Body.Close()");
+  });
+
+  it("includes auth header when auth is configured (bearer)", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/secure",
+      baseUrl: "https://api.example.com",
+      auth: { type: "bearer" },
+    });
+
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain('-H "Authorization: Bearer YOUR_TOKEN"');
+
+    const js = samples.find((s) => s.language === "javascript")!;
+    expect(js.code).toContain('"Authorization": "Bearer YOUR_TOKEN"');
+
+    const py = samples.find((s) => s.language === "python")!;
+    expect(py.code).toContain('"Authorization": "Bearer YOUR_TOKEN"');
+
+    const go = samples.find((s) => s.language === "go")!;
+    expect(go.code).toContain('req.Header.Set("Authorization", "Bearer YOUR_TOKEN")');
+  });
+
+  it("includes custom auth header when specified", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/secure",
+      baseUrl: "https://api.example.com",
+      auth: { type: "apiKey", header: "X-Custom-Key" },
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain('-H "X-Custom-Key: YOUR_API_KEY"');
+  });
+
+  it("substitutes path parameters with example values", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/users/{id}/posts/{postId}",
+      baseUrl: "https://api.example.com",
+      parameters: [
+        { name: "id", in: "path", example: "abc-123" },
+        { name: "postId", in: "path", example: 42 },
+      ],
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain("https://api.example.com/users/abc-123/posts/42");
+    expect(curl.code).not.toContain("{id}");
+    expect(curl.code).not.toContain("{postId}");
+  });
+
+  it("keeps path param placeholder when no example is provided", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/users/{id}",
+      baseUrl: "https://api.example.com",
+      parameters: [{ name: "id", in: "path" }],
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain("/users/{id}");
+  });
+
+  it("includes query parameters in URL", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/users",
+      baseUrl: "https://api.example.com",
+      parameters: [
+        { name: "limit", in: "query", example: 10 },
+        { name: "offset", in: "query", example: 0 },
+      ],
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain("limit=10");
+    expect(curl.code).toContain("offset=0");
+  });
+
+  it("does not include body for GET even if requestBody specified", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/search",
+      baseUrl: "https://api.example.com",
+      requestBody: {
+        contentType: "application/json",
+        example: { q: "test" },
+      },
+    });
+    const curl = samples.find((s) => s.language === "curl")!;
+    expect(curl.code).not.toContain("-d");
+    expect(curl.code).not.toContain("Content-Type");
+  });
+
+  it("returns all four language samples", () => {
+    const samples = generateCodeSamples({
+      method: "get",
+      path: "/test",
+    });
+    expect(samples).toHaveLength(4);
+    expect(samples.map((s) => s.language)).toEqual(["curl", "javascript", "python", "go"]);
+  });
+});
+
+// ── Code samples in parsed endpoint data ────────────────
+
+describe("code samples in parsed endpoints", () => {
+  it("includes codeSamples array on each parsed endpoint", async () => {
+    const specPath = writeSpec(tmpDir, makeSpec());
+    const manifest = await parseOpenApiSpec(specPath);
+    for (const ep of manifest.endpoints) {
+      expect(ep.codeSamples).toBeDefined();
+      expect(Array.isArray(ep.codeSamples)).toBe(true);
+      expect(ep.codeSamples!.length).toBe(4);
+      const languages = ep.codeSamples!.map((s) => s.language);
+      expect(languages).toEqual(["curl", "javascript", "python", "go"]);
+    }
+  });
+
+  it("uses server URL as baseUrl in code samples", async () => {
+    const specPath = writeSpec(tmpDir, makeSpec());
+    const manifest = await parseOpenApiSpec(specPath);
+    const listUsers = manifest.endpoints.find((e) => e.operationId === "listUsers")!;
+    const curl = listUsers.codeSamples!.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain("https://api.example.com/users");
+  });
+
+  it("extracts parameter examples for code sample URL substitution", async () => {
+    const spec = makeSpec({
+      paths: {
+        "/items/{itemId}": {
+          get: {
+            operationId: "getItem",
+            summary: "Get item",
+            parameters: [
+              {
+                name: "itemId",
+                in: "path",
+                required: true,
+                schema: { type: "string" },
+                example: "item-42",
+              },
+            ],
+            responses: { "200": { description: "OK" } },
+          },
+        },
+      },
+    });
+    const specPath = writeSpec(tmpDir, spec);
+    const manifest = await parseOpenApiSpec(specPath);
+    const ep = manifest.endpoints[0];
+    const curl = ep.codeSamples!.find((s) => s.language === "curl")!;
+    expect(curl.code).toContain("/items/item-42");
   });
 });

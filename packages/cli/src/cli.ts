@@ -7,7 +7,16 @@ import { existsSync, mkdirSync, cpSync, readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const VERSION = "0.1.0";
+
+// Read version from package.json at runtime so it's always current
+const VERSION = (() => {
+  try {
+    const pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf-8"));
+    return pkg.version || "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
 
 const logo = `
   ${pc.bold(pc.italic("Tome"))}${pc.red(".")} ${pc.dim(`v${VERSION}`)}
@@ -78,8 +87,8 @@ export default {
             deploy: "tome deploy",
           },
           devDependencies: {
-            "@tomehq/cli": "^0.1.0",
-            "@tomehq/theme": "^0.1.0",
+            "@tomehq/cli": `^${VERSION}`,
+            "@tomehq/theme": `^${VERSION}`,
             "react": "^19.0.0",
             "react-dom": "^19.0.0",
           },
@@ -537,7 +546,7 @@ program
           react(),
         ],
         optimizeDeps: {
-          include: ["react-dom/client"],
+          include: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom", "react-dom/client"],
         },
         resolve: {
           alias: {
@@ -597,7 +606,7 @@ program
           react(),
         ],
         optimizeDeps: {
-          include: ["react-dom/client"],
+          include: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom", "react-dom/client"],
         },
         resolve: {
           alias: {
@@ -1305,6 +1314,34 @@ migrate
       console.log();
     } catch (err) {
       console.error(pc.red("\n  Migration failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+// ── TYPEDOC ────────────────────────────────────────────
+program
+  .command("typedoc")
+  .description("Generate API documentation from TypeScript source files")
+  .argument("<files...>", "TypeScript entry point files to document")
+  .option("-o, --output <dir>", "Output directory for generated .md files", "pages/api")
+  .option("--tsconfig <path>", "Path to tsconfig.json")
+  .action(async (files: string[], opts: { output: string; tsconfig?: string }) => {
+    console.log(logo);
+    console.log(pc.dim("  Generating TypeDoc pages...\n"));
+
+    try {
+      const { generateTypeDocs } = await import("@tomehq/core/typedoc");
+
+      generateTypeDocs({
+        entryPoints: files.map((f) => resolve(process.cwd(), f)),
+        outputDir: opts.output,
+        tsconfig: opts.tsconfig ? resolve(process.cwd(), opts.tsconfig) : undefined,
+      });
+
+      console.log(pc.green("\n  ✓ TypeDoc pages generated\n"));
+    } catch (err) {
+      console.error(pc.red("\n  TypeDoc generation failed:\n"));
       console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
       process.exit(1);
     }
