@@ -1,5 +1,11 @@
 # @tomehq/theme
 
+## 0.3.4
+
+### Patch Changes
+
+- f03e6c2: Fix page scrolling beyond viewport bounds in all directions. Lock layout to 100vh with overflow hidden on html, body, and root container.
+
 ## 0.3.3
 
 ### Patch Changes
