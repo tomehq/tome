@@ -70,7 +70,7 @@ Arrays, enums, and `oneOf`/`anyOf` unions are all supported.
 
 ## Interactive playground
 
-When `playground.enabled` is true in your config, each endpoint gets a "Try it" section where users can:
+When `playground` is true in your config, each endpoint gets a "Try it" section where users can:
 
 - Fill in path and query parameters
 - Edit the request body as JSON
@@ -80,10 +80,8 @@ When `playground.enabled` is true in your config, each endpoint gets a "Try it" 
 ```javascript
 api: {
   spec: "./openapi.yaml",
-  playground: {
-    enabled: true,
-    baseUrl: "https://api.example.com",  // Override base URL
-  },
+  playground: true,
+  baseUrl: "https://api.example.com",  // Override base URL
 },
 ```
 

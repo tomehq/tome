@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="https://tome.center/logo.svg" width="80" alt="Tome" />
+  <img src="./banner.svg" width="100%" alt="Tome — Beautiful documentation that doesn't cost a fortune." />
 </p>
-<h1 align="center"><em>Tome.</em></h1>
-<p align="center">Beautiful documentation that doesn't cost a fortune.</p>
 
 <p align="center">
   <a href="https://github.com/tomehq/tome/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
@@ -42,9 +40,11 @@ That's it. Open [localhost:3000](http://localhost:3000) to see your docs.
 - **Built-in search** — Pagefind (local) or Algolia DocSearch
 - **API references** — Auto-generate from OpenAPI specs with interactive playground
 - **Theming** — Full CSS control, dark/light mode, 6 built-in presets
+- **Content sources** — Pull docs from GitHub repos, Notion databases, or custom APIs
 - **Deploy anywhere** — Static output for Vercel, Netlify, S3, or self-host
 - **AI chat** — Embedded AI assistant with BYOK (OpenAI + Anthropic)
 - **MCP server** — Machine-readable output for AI tools
+- **TypeDoc** — Generate API reference pages from TypeScript source
 - **i18n** — Multi-language support with locale directories
 - **Versioning** — Multi-version docs with version switcher
 - **Analytics** — Privacy-first, no cookies, <1KB script
@@ -74,12 +74,13 @@ tome migrate gitbook <dir>    Migrate from GitBook
 tome migrate mintlify <dir>   Migrate from Mintlify
 tome lint                     Lint content for common issues
 tome login                    Authenticate with Tome Cloud
+tome typedoc <files...>       Generate API docs from TypeScript source
 tome mcp                      Start MCP server for AI tools
 tome algolia:init             Generate Algolia DocSearch config
 tome domains:add              Add a custom domain
 tome domains:remove           Remove a custom domain
 tome domains:list             List configured domains
-tome domains:check            Check DNS status
+tome domains:verify           Check DNS verification status
 ```
 
 ## Configuration
@@ -92,15 +93,15 @@ import { defineConfig } from "@tomehq/core";
 export default defineConfig({
   name: "My Docs",
   theme: { preset: "amber" },
-  search: { provider: "local" },
+  search: { provider: "local" }, // or "algolia"
   // Optional
+  analytics: { provider: "plausible", key: "your-site-id" },
   redirects: [
     { from: "/old-page", to: "/new-page" },
   ],
   webhooks: [
     { url: "https://hooks.slack.com/...", channel: "slack" },
   ],
-  analytics: { enabled: true },
   i18n: { defaultLocale: "en", locales: ["en", "ja"] },
   versioning: { versions: ["v1", "v2"], current: "v2" },
 });
@@ -118,6 +119,7 @@ Visit [tome.center/docs](https://tome.center/docs) for the full documentation.
 | [`@tomehq/cli`](./packages/cli) | Command-line interface |
 | [`@tomehq/theme`](./packages/theme) | Default theme with Shell, AiChat, presets |
 | [`@tomehq/components`](./packages/components) | MDX components (Callout, Tabs, Card, Steps, Accordion, API) |
+| [`@tomehq/dashboard`](./packages/dashboard) | Cloud dashboard (projects, billing, settings) |
 | [`@tomehq/landing`](./packages/landing) | Marketing landing page |
 | [`create-tome`](./packages/create-tome) | Project scaffolding (`npx create-tome`) |
 

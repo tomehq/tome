@@ -93,7 +93,7 @@ theme: {
 },
 ```
 
-See **[Theming](#theming)** for full customization details.
+See **[Theming](./theming)** for full customization details.
 
 ## Base path
 

@@ -62,11 +62,36 @@ type AuthState =
 // ── API helper ─────────────────────────────────────────────
 
 const API_URL = import.meta.env.VITE_API_URL ?? "https://api.tome.center";
+const DEV_MOCK = import.meta.env.DEV && import.meta.env.VITE_MOCK === "1";
+
+const MOCK_USER: User = {
+  id: "usr_1", email: "dev@tome.center", name: "Dev User",
+  plan: "cloud", avatarUrl: null, createdAt: "2025-01-15T00:00:00Z",
+};
+const MOCK_PROJECTS: Project[] = [
+  { id: "prj_1", slug: "acme-docs", name: "Acme Docs", deployStatus: "live", lastDeployAt: "2026-03-14T12:00:00Z", fileCount: 42, totalSize: 1048576, url: "https://acme-docs.tome.sh", createdAt: "2025-06-01T00:00:00Z" },
+  { id: "prj_2", slug: "internal-wiki", name: "Internal Wiki", deployStatus: "building", lastDeployAt: "2026-03-15T08:00:00Z", fileCount: 18, totalSize: 524288, url: null, createdAt: "2025-09-20T00:00:00Z" },
+];
+const MOCK_DEPLOYMENTS: Deployment[] = [
+  { id: "dpl_1", status: "live", fileCount: 42, totalSize: 1048576, createdAt: "2026-03-14T12:00:00Z", finalizedAt: "2026-03-14T12:01:30Z", url: "https://acme-docs.tome.sh" },
+  { id: "dpl_2", status: "superseded", fileCount: 40, totalSize: 1024000, createdAt: "2026-03-12T09:00:00Z", finalizedAt: "2026-03-12T09:01:00Z", url: "https://acme-docs--dpl_2.tome.sh" },
+];
+const MOCK_DATA: Record<string, unknown> = {
+  "/api/auth/me": MOCK_USER,
+  "/api/deploy/projects": MOCK_PROJECTS,
+  "/api/analytics": { totalPageViews: 12453, uniqueVisitors: 3891, avgTimeOnPage: 42, topPages: [{ url: "/quickstart", views: 2341 }, { url: "/guides/search", views: 1102 }, { url: "/reference/config", views: 890 }] },
+};
 
 async function api<T>(
   path: string,
   opts: { method?: string; body?: unknown; token?: string } = {},
 ): Promise<T> {
+  if (DEV_MOCK) {
+    if (path.includes("/deployments")) return MOCK_DEPLOYMENTS as T;
+    const mockKey = Object.keys(MOCK_DATA).find((k) => path.startsWith(k));
+    if (mockKey) return MOCK_DATA[mockKey] as T;
+    return {} as T;
+  }
   const res = await fetch(`${API_URL}${path}`, {
     method: opts.method ?? "GET",
     headers: {
@@ -292,6 +317,7 @@ const CSS = `
 
 /* ── Responsive ────────────────────────────────── */
 @media (max-width: 767px) {
+  /* Header */
   .dash-header { padding: 0 12px !important; height: 48px !important; }
   .dash-header-left { gap: 12px !important; }
   .dash-nav { gap: 12px !important; }
@@ -300,19 +326,57 @@ const CSS = `
   .dash-header-right .dash-separator { display: none !important; }
   .dash-header-right .dash-user-name { display: none !important; }
   .dash-header-right { gap: 8px !important; }
+
+  /* Main content */
   .dash-main { padding: 24px 16px !important; }
+  .section-title { font-size: 20px !important; }
+
+  /* Quick Actions: stack vertically */
+  .dash-quick-actions { flex-direction: column !important; }
+  .dash-quick-actions .code-snippet { width: 100% !important; }
+  .dash-quick-actions .btn-primary { width: 100% !important; justify-content: center !important; }
+
+  /* Danger Zone: stack text + button */
+  .dash-danger-card { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  .dash-danger-card button { align-self: flex-start !important; }
+
+  /* Domain card actions: wrap */
+  .dash-domain-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+
+  /* Tables */
+  .deploy-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-header, .table-row { font-size: 11px !important; min-width: 560px; }
+
+  /* Steps */
   .step-buttons { flex-wrap: wrap !important; }
   .step-buttons button { flex: 1 1 45% !important; min-width: 0 !important; }
-  .table-header, .table-row { font-size: 11px !important; }
-  .deploy-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Token */
   .token-box { flex-wrap: wrap; }
-  .section-title { font-size: 20px !important; }
+
+  /* Billing plan cards grid */
+  .dash-plan-grid { grid-template-columns: 1fr !important; }
+
+  /* Settings info grid */
+  .dash-settings-grid { grid-template-columns: 1fr !important; }
+  .dash-settings-grid > span:nth-child(odd) { font-weight: 600 !important; }
+
+  /* Upgrade tooltip: pin to viewport edge instead of centering */
+  .upgrade-wrap .upgrade-tooltip {
+    left: auto !important; right: 0 !important;
+    transform: none !important; width: min(260px, 80vw) !important;
+  }
+  .upgrade-wrap .upgrade-tooltip::after {
+    left: auto !important; right: 16px !important; transform: none !important;
+  }
 }
 
 @media (max-width: 480px) {
   .dash-nav { gap: 8px !important; }
   .dash-nav .nav-link { font-size: 11px !important; }
   .step-buttons button { flex: 1 1 100% !important; }
+  .card { padding: 16px !important; }
+  .stat-card { padding: 14px !important; }
 }
 `;
 
@@ -792,7 +856,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
+      <div className="dash-quick-actions" style={{ display: "flex", gap: 12, marginBottom: 32 }}>
         <div className="code-snippet" style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: "var(--coral)" }}>$</span>
           <span>cd your-project && tome deploy</span>
@@ -882,7 +946,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
           <div style={{ marginBottom: 20 }}>
             {domains.map((d) => (
               <div key={d.domain} className="card" style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div className="dash-domain-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 14, color: "var(--tx)" }}>{d.domain}</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontFamily: '"Fira Code", monospace', fontSize: 11, color: d.verified ? "var(--green)" : "var(--yellow)" }}>
@@ -918,7 +982,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
       {/* Danger Zone */}
       <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid var(--bd)" }}>
         <h3 className="section-title" style={{ fontSize: 20, color: "var(--red)" }}>Danger Zone</h3>
-        <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderColor: "rgba(239,68,68,0.3)" }}>
+        <div className="card dash-danger-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderColor: "rgba(239,68,68,0.3)" }}>
           <div>
             <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 14, color: "var(--tx)", marginBottom: 4 }}>Delete this project</p>
             <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>Permanently removes all deployments, files, and custom domains.</p>
@@ -1107,7 +1171,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             </p>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: "8px 16px", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13 }}>
+        <div className="dash-settings-grid" style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: "8px 16px", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13 }}>
           <span style={{ color: "var(--txM)" }}>Email</span>
           <span style={{ color: "var(--tx)" }}>{user.email}</span>
           {user.name && <>
@@ -1160,6 +1224,10 @@ export function App() {
 
   // Check for existing token on mount
   useEffect(() => {
+    if (DEV_MOCK) {
+      setAuth({ status: "logged_in", token: "mock", user: MOCK_USER });
+      return;
+    }
     const token = localStorage.getItem("tome_token");
     if (!token) {
       setAuth({ status: "logged_out" });

@@ -14,7 +14,7 @@ export type { PageRoute, NavigationItem, NavigationGroup, I18nConfig, Versioning
 export { default as tomePlugin } from "./vite-plugin.js";
 export type { TomePluginOptions } from "./vite-plugin.js";
 
-export { startMcpServer, loadManifest, searchPages, getPage, listPages } from "./mcp-server.js";
+export { createMcpServer, startMcpServer, loadManifest, searchPages, getPage, listPages } from "./mcp-server.js";
 export type { McpManifest, McpPage } from "./mcp-server.js";
 
 export { parseOpenApiSpec, generateCodeSamples } from "./openapi.js";

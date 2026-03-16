@@ -107,7 +107,9 @@ Six machine-readable files are auto-generated at build time to make your docs di
 
 | Package | Purpose |
 |---------|---------|
-| `@tomehq/cli` | CLI commands (init, dev, build, deploy) |
-| `@tomehq/core` | Config, routing, Vite plugin, markdown processing |
+| `@tomehq/cli` | CLI commands (init, dev, build, deploy, mcp, typedoc) |
+| `@tomehq/core` | Config, routing, Vite plugin, markdown processing, MCP server |
 | `@tomehq/theme` | Shell UI, presets, search, AI chat |
 | `@tomehq/components` | MDX components (Callout, Tabs, Card, etc.) |
+| `@tomehq/landing` | Marketing landing page |
+| `@tomehq/dashboard` | Tome Cloud dashboard |

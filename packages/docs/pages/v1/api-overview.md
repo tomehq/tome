@@ -58,5 +58,5 @@ For the best results, make sure your OpenAPI spec includes:
 
 ## Next steps
 
-- **[Endpoints](#api-endpoints)** for details on how endpoints are rendered
-- **[Authentication](#api-auth)** for configuring auth in the playground
+- **[Endpoints](./api-endpoints)** for details on how endpoints are rendered
+- **[Authentication](./api-auth)** for configuring auth in the playground

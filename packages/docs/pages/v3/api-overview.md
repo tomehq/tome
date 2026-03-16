@@ -15,9 +15,7 @@ export default {
   name: "My API Docs",
   api: {
     spec: "./openapi.yaml",   // Path to your OpenAPI spec
-    playground: {
-      enabled: true,          // Enable interactive playground
-    },
+    playground: true,           // Enable interactive playground
   },
 };
 ```
@@ -58,5 +56,5 @@ For the best results, make sure your OpenAPI spec includes:
 
 ## Next steps
 
-- **[Endpoints](#api-endpoints)** for details on how endpoints are rendered
-- **[Authentication](#api-auth)** for configuring auth in the playground
+- **[Endpoints](./api-endpoints)** for details on how endpoints are rendered
+- **[Authentication](./api-auth)** for configuring auth in the playground

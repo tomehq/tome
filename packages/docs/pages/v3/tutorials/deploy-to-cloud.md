@@ -8,7 +8,7 @@ Tome Cloud hosts your documentation site on a global CDN with automatic SSL, cus
 
 ## Prerequisites
 
-- A Tome documentation project (see [Create your first site](/docs/tutorials/first-site))
+- A Tome documentation project (see [Create your first site](./tutorials/first-site))
 - Node.js 20+
 
 ## 1. Authenticate
@@ -141,5 +141,5 @@ Each deploy creates an immutable snapshot. You can view deployment history and a
 
 ## Next steps
 
-- **[Configuration guide](/docs/guides/configuration)** to customize your site before deploying
-- **[CLI reference](/docs/reference/cli)** for the full list of deployment commands
+- **[Configuration guide](./guides/configuration)** to customize your site before deploying
+- **[CLI reference](./reference/cli)** for the full list of deployment commands

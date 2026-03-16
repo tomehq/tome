@@ -78,6 +78,6 @@ This outputs a static site to `out/` ready to deploy to any hosting provider —
 
 ## Next steps
 
-- **[Installation](#installation)** for detailed setup and prerequisites
-- **[Configuration](#configuration)** to customize your site
-- **[Components](#components)** to use tabs, callouts, and other interactive elements
+- **[Installation](./installation)** for detailed setup and prerequisites
+- **[Configuration](./configuration)** to customize your site
+- **[Components](./components)** to use tabs, callouts, and other interactive elements

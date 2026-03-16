@@ -4,11 +4,12 @@ import {
   rmSync,
   existsSync,
   readFileSync,
+  writeFileSync,
   mkdirSync,
 } from "fs";
 import { join, dirname } from "path";
 import { tmpdir } from "os";
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import { fileURLToPath } from "url";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -271,4 +272,90 @@ describe("CLI deploy command", () => {
       rmSync(fakeHome, { recursive: true, force: true });
     }
   });
+});
+
+// ── mcp command ──────────────────────────────────────────
+
+describe("CLI mcp command", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), "tome-mcp-cli-test-"));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("fails when mcp.json manifest is missing", () => {
+    try {
+      execSync(`${TSX} ${CLI_PATH} mcp --outDir out`, {
+        cwd: tmpDir,
+        encoding: "utf-8",
+        env: { ...process.env, NODE_NO_WARNINGS: "1" },
+      });
+      expect.unreachable("mcp should have failed");
+    } catch (err: any) {
+      expect(err.status).not.toBe(0);
+      expect(err.stderr).toContain("MCP manifest not found");
+    }
+  });
+
+  it("does not write banner to stdout (protocol channel)", () => {
+    try {
+      execSync(`${TSX} ${CLI_PATH} mcp --outDir out`, {
+        cwd: tmpDir,
+        encoding: "utf-8",
+        env: { ...process.env, NODE_NO_WARNINGS: "1" },
+      });
+    } catch (err: any) {
+      // stdout must be clean — banner goes to stderr
+      const stdout = err.stdout || "";
+      expect(stdout).not.toContain("Tome");
+      expect(stdout).not.toContain("Starting MCP server");
+      // stderr should have the banner
+      expect(err.stderr).toContain("Starting MCP server");
+    }
+  });
+
+  it("starts server and responds to MCP protocol", async () => {
+    // Create a minimal manifest
+    const outDir = join(tmpDir, "out");
+    mkdirSync(outDir, { recursive: true });
+    writeFileSync(join(outDir, "mcp.json"), JSON.stringify({
+      name: "Test Docs",
+      version: "1.0.0",
+      pages: [{ url: "/hello", title: "Hello", description: "Test page", headings: [], tags: [] }],
+    }));
+
+    const proc = spawn(TSX, [CLI_PATH, "mcp", "--outDir", "out"], {
+      cwd: tmpDir,
+      stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env, NODE_NO_WARNINGS: "1" },
+    });
+
+    const stdout = await new Promise<string>((resolve) => {
+      let output = "";
+      proc.stdout.on("data", (d: Buffer) => { output += d.toString(); });
+
+      // Send initialize message (newline-delimited JSON per MCP SDK)
+      setTimeout(() => {
+        const msg = JSON.stringify({
+          jsonrpc: "2.0", id: 1, method: "initialize",
+          params: { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "test", version: "1.0" } },
+        });
+        proc.stdin.write(msg + "\n");
+      }, 2000);
+
+      setTimeout(() => {
+        proc.kill();
+        resolve(output);
+      }, 4000);
+    });
+
+    const response = JSON.parse(stdout.trim().split("\n")[0]);
+    expect(response.result.serverInfo.name).toBe("Test Docs");
+    expect(response.result.capabilities).toHaveProperty("tools");
+    expect(response.result.capabilities).toHaveProperty("resources");
+  }, 10000);
 });

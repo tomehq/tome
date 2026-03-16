@@ -59,4 +59,4 @@ During `tome build`, Tome emits two types of redirect outputs to ensure compatib
 
 ## Migration redirects
 
-When migrating from GitBook or Mintlify, the migration tools automatically extract redirects from the source project configuration and add them to your `tome.config.js`. See the [Migration guide](/docs/guides/migration) for details.
+When migrating from GitBook or Mintlify, the migration tools automatically extract redirects from the source project configuration and add them to your `tome.config.js`. See the [Migration guide](./guides/migration) for details.

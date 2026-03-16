@@ -126,7 +126,7 @@ When an OpenAPI spec is configured, additional components are auto-generated:
 - **ApiPlayground** — Interactive request builder
 - **ApiResponse** — Formatted response viewer
 
-See the [API reference guide](/docs/guides/api-reference) for setup.
+See the [API reference guide](./guides/api-reference) for setup.
 
 ---
 

@@ -149,7 +149,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     routes = await discoverPages(pagesDir, config.versioning ?? undefined, i18nConfig);
 
     // ── Content Sources: fetch remote pages and merge with local ──
-    const contentSources: ContentSource[] = (config as any).contentSources || [];
+    const contentSources: ContentSource[] = config.contentSources || [];
     if (contentSources.length > 0) {
       const remotePages = await fetchRemoteContent(contentSources);
       const remoteDir = resolve(root, ".tome", "remote");
@@ -268,6 +268,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
   }
 
   async function getPage(id: string): Promise<ProcessedPage | null> {
+    if (id === "api-reference") return null; // synthetic route — no file on disk
     if (pageCache.has(id)) return pageCache.get(id)!;
 
     const route = routes.find((r) => r.id === id);
@@ -276,6 +277,24 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     const source = readFileSync(route.absolutePath, "utf-8");
     const mathOpts: MarkdownMathOptions = { math: config.math === true };
     const processed = await processMarkdown(source, route.absolutePath, resolvedPlugins, mathOpts);
+
+    // Resolve relative `./pageId` links to bare page IDs.
+    // Vite's import analysis scans module source for "./" and "/" patterns and rewrites
+    // them as if they are module imports, corrupting href values inside JSON-stringified
+    // HTML. Using bare page IDs (e.g. "quickstart") avoids this — the Shell's content
+    // link interceptor resolves them to the correct URL at runtime.
+    // For versioned pages, prefix with the version directory so the Shell can resolve
+    // cross-version links correctly (e.g. "v2/quickstart").
+    const versionPrefix = route.version && route.version !== (config.versioning?.current || "") ? `${route.version}/` : "";
+    processed.html = processed.html.replace(
+      /href="\.\/([^"]+)"/g,
+      (_match, relPath) => `href="${versionPrefix}${relPath}"`
+    );
+    processed.raw = processed.raw.replace(
+      /\]\(\.\/([^)]+)\)/g,
+      (_match, relPath) => `](${versionPrefix}${relPath})`
+    );
+
     pageCache.set(id, processed);
     return processed;
   }
@@ -695,6 +714,7 @@ export default { ${exportNames.join(", ")} };
           pages: await Promise.all(
             routes
               .filter((r) => !r.frontmatter.hidden && !r.frontmatter.draft)
+              .filter((r) => r.filePath !== "__api-reference__")
               .filter((r) => !config.mcp?.excludePages?.includes(r.id))
               .map(async (r) => {
                 const page = r.isMdx ? null : await getPage(r.id);
@@ -819,6 +839,7 @@ export default { ${exportNames.join(", ")} };
 
       for (const route of routes) {
         if (route.frontmatter.hidden || route.frontmatter.draft) continue;
+        if (route.filePath === "__api-reference__") continue;
         // Skip root index — Vite already generates it
         if (route.urlPath === "/" || route.urlPath === "") continue;
 

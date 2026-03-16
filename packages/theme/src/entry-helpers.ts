@@ -7,6 +7,7 @@ export interface HtmlPage {
   frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
   headings: Array<{ depth: number; text: string; id: string }>;
   changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
+  isApiReference?: false;
 }
 
 export interface MdxPage {
@@ -14,9 +15,20 @@ export interface MdxPage {
   component: React.ComponentType<{ components?: Record<string, React.ComponentType> }>;
   frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
   headings: Array<{ depth: number; text: string; id: string }>;
+  isApiReference?: false;
 }
 
-export type LoadedPage = HtmlPage | MdxPage;
+export interface ApiReferencePage {
+  isMdx: false;
+  isApiReference: true;
+  html: string;
+  frontmatter: { title: string; description?: string; toc?: boolean; type?: string };
+  headings: Array<{ depth: number; text: string; id: string }>;
+  changelogEntries?: undefined;
+  apiManifest: any;
+}
+
+export type LoadedPage = HtmlPage | MdxPage | ApiReferencePage;
 
 // ── EDIT URL COMPUTATION ──────────────────────────────────
 export interface EditLinkConfig {
@@ -81,6 +93,11 @@ export async function loadPage(
 
     // Regular .md page — mod.default is { html, frontmatter, headings }
     if (!mod.default) return null;
+
+    // API reference page (synthetic route from OpenAPI spec)
+    if (mod.isApiReference && mod.apiManifest) {
+      return { isMdx: false, isApiReference: true, ...mod.default, apiManifest: mod.apiManifest };
+    }
 
     // Changelog page type
     if (mod.isChangelog && mod.changelogEntries) {

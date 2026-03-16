@@ -912,8 +912,9 @@ program
   .description("Start MCP server for AI agents to query your docs")
   .option("-o, --outDir <dir>", "Build output directory", "out")
   .action(async (opts: { outDir: string }) => {
-    console.log(logo);
-    console.log(pc.dim("  Starting MCP server...\n"));
+    // MCP uses stdout for JSON-RPC — all human-readable output must go to stderr
+    process.stderr.write(logo + "\n");
+    process.stderr.write(pc.dim("  Starting MCP server...\n\n"));
 
     try {
       const { startMcpServer } = await import("@tomehq/core/mcp-server");

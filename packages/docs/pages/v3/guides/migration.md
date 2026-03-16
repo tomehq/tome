@@ -101,7 +101,7 @@ export default defineConfig({
 });
 ```
 
-See the [Redirects guide](/docs/guides/redirects) for more on how redirects work.
+See the [Redirects guide](./guides/redirects) for more on how redirects work.
 
 ### Start the dev server
 

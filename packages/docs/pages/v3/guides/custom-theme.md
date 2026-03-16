@@ -30,7 +30,7 @@ theme: {
 }
 ```
 
-See [Theme presets reference](/docs/reference/theme-presets) for the exact color values.
+See [Theme presets reference](./reference/theme-presets) for the exact color values.
 
 ## Accent color
 
@@ -88,7 +88,7 @@ For fine-grained control, override CSS variables in a custom stylesheet. The key
 | `--tx2` | Secondary text |
 | `--txM` | Muted text |
 
-See the [Theme presets reference](/docs/reference/theme-presets) for the complete variable list with values per preset.
+See the [Theme presets reference](./reference/theme-presets) for the complete variable list with values per preset.
 
 ## Border radius
 

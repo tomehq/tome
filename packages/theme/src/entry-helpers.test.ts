@@ -271,6 +271,82 @@ describe("loadPage", () => {
     expect(page!.isMdx).toBe(false);
   });
 
+  it("loads an API reference page with manifest", async () => {
+    const apiManifest = {
+      title: "My API",
+      servers: [{ url: "https://api.example.com" }],
+      tags: [{ name: "Users", description: "User endpoints" }],
+      endpoints: [],
+    };
+    const mockLoader = vi.fn().mockResolvedValue({
+      default: {
+        html: "",
+        frontmatter: { title: "API Reference" },
+        headings: [{ depth: 2, text: "Users", id: "users" }],
+      },
+      isApiReference: true,
+      apiManifest,
+    });
+    const apiRoutes = [...routesWithMeta, { id: "api-reference", urlPath: "/api", isMdx: false }];
+    const page = await loadPage("api-reference", apiRoutes, mockLoader);
+    expect(page).not.toBeNull();
+    expect(page!.isMdx).toBe(false);
+    expect((page as any).isApiReference).toBe(true);
+    expect((page as any).apiManifest).toEqual(apiManifest);
+    expect(page!.frontmatter.title).toBe("API Reference");
+  });
+
+  it("does not treat page as API reference when isApiReference is false", async () => {
+    const mockLoader = vi.fn().mockResolvedValue({
+      default: {
+        html: "<p>Regular</p>",
+        frontmatter: { title: "Regular Page" },
+        headings: [],
+      },
+      isApiReference: false,
+    });
+    const page = await loadPage("quickstart", routesWithMeta, mockLoader);
+    expect(page).not.toBeNull();
+    expect(page!.isMdx).toBe(false);
+    expect((page as any).isApiReference).toBeFalsy();
+    expect((page as any).apiManifest).toBeUndefined();
+  });
+
+  it("does not treat page as API reference when apiManifest is missing", async () => {
+    const mockLoader = vi.fn().mockResolvedValue({
+      default: {
+        html: "",
+        frontmatter: { title: "API Reference" },
+        headings: [],
+      },
+      isApiReference: true,
+      // apiManifest is undefined
+    });
+    const page = await loadPage("api-reference", routesWithMeta, mockLoader);
+    expect(page).not.toBeNull();
+    // Without apiManifest, falls through to regular page handling
+    expect((page as any).isApiReference).toBeFalsy();
+  });
+
+  it("API reference page preserves headings from module", async () => {
+    const headings = [
+      { depth: 2, text: "Users", id: "users" },
+      { depth: 2, text: "Posts", id: "posts" },
+    ];
+    const mockLoader = vi.fn().mockResolvedValue({
+      default: {
+        html: "",
+        frontmatter: { title: "API Reference" },
+        headings,
+      },
+      isApiReference: true,
+      apiManifest: { endpoints: [], tags: [], servers: [] },
+    });
+    const apiRoutes = [...routesWithMeta, { id: "api-reference", urlPath: "/api", isMdx: false }];
+    const page = await loadPage("api-reference", apiRoutes, mockLoader);
+    expect(page!.headings).toEqual(headings);
+  });
+
   it("does not treat non-MDX route as MDX even if mod.meta exists", async () => {
     // A markdown route shouldn't be treated as MDX even if the module has meta
     const mockLoader = vi.fn().mockResolvedValue({

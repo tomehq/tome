@@ -13,8 +13,7 @@ export default {
   },
   socialLinks: [
     { platform: "github", url: "https://github.com/tomehq/tome" },
-    { platform: "twitter", url: "https://x.com/AaronCoinworthy" },
-    { platform: "discord", url: "https://discord.gg/tome" },
+    { platform: "twitter", url: "https://x.com/tomedocs" },
   ],
   topNav: [
     { label: "Home", href: "/" },

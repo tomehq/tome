@@ -334,3 +334,50 @@ describe("Navigation", () => {
     expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 });
+
+// ── Responsive CSS Classes ──────────────────────────────────
+
+describe("Responsive layout", () => {
+  it("applies responsive class names to layout elements", async () => {
+    localStorage.setItem("tome_token", "tome_test123");
+    vi.stubGlobal("fetch", mockFetch());
+    const { container } = render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Projects")).toBeInTheDocument();
+    });
+
+    // Header elements have responsive classes
+    expect(container.querySelector(".dash-header")).toBeInTheDocument();
+    expect(container.querySelector(".dash-header-left")).toBeInTheDocument();
+    expect(container.querySelector(".dash-header-right")).toBeInTheDocument();
+    expect(container.querySelector(".dash-nav")).toBeInTheDocument();
+    expect(container.querySelector(".dash-main")).toBeInTheDocument();
+  });
+
+  it("applies responsive class to settings grid", async () => {
+    localStorage.setItem("tome_token", "tome_test123");
+    window.history.replaceState(null, "", "/dashboard/settings");
+    vi.stubGlobal("fetch", mockFetch());
+    const { container } = render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Member since")).toBeInTheDocument();
+    });
+
+    expect(container.querySelector(".dash-settings-grid")).toBeInTheDocument();
+  });
+
+  it("injects responsive CSS with media queries", async () => {
+    vi.stubGlobal("fetch", mockFetch());
+    const { container } = render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Loading…")).toBeInTheDocument();
+    });
+
+    const styleTag = container.closest("body")?.querySelector("style");
+    expect(styleTag?.textContent).toContain("@media (max-width: 767px)");
+    expect(styleTag?.textContent).toContain("@media (max-width: 480px)");
+  });
+});

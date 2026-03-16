@@ -88,24 +88,13 @@ export function listPages(
 
 // ── SERVER ──────────────────────────────────────────────
 
-export async function startMcpServer(
-  options: { root?: string; outDir?: string } = {}
-) {
-  const root = options.root || process.cwd();
-  const outDir = options.outDir || "out";
-  const manifestPath = resolve(root, outDir, "mcp.json");
-
-  const manifest = loadManifest(manifestPath);
-
-  if (!manifest) {
-    console.error(
-      `MCP manifest not found at ${manifestPath}. Run 'tome build' first.`
-    );
-    process.exit(1);
-  }
-
+/**
+ * Create an MCP server instance with all tools and resources registered.
+ * Exported separately for testing with InMemoryTransport.
+ */
+export function createMcpServer(manifest: McpManifest): Server {
   const server = new Server(
-    { name: `${manifest.name} Docs`, version: manifest.version },
+    { name: manifest.name, version: manifest.version },
     { capabilities: { tools: {}, resources: {} } }
   );
 
@@ -216,8 +205,46 @@ export async function startMcpServer(
     };
   });
 
-  // ── CONNECT ───────────────────────────────────────────
+  return server;
+}
 
+/**
+ * Start an MCP server over stdio. Loads the manifest from disk,
+ * creates the server, connects via stdio, and registers shutdown handlers.
+ */
+export async function startMcpServer(
+  options: { root?: string; outDir?: string } = {}
+) {
+  const root = options.root || process.cwd();
+  const outDir = options.outDir || "out";
+  const manifestPath = resolve(root, outDir, "mcp.json");
+
+  const manifest = loadManifest(manifestPath);
+
+  if (!manifest) {
+    console.error(
+      `MCP manifest not found at ${manifestPath}. Run 'tome build' first.`
+    );
+    process.exit(1);
+  }
+
+  const server = createMcpServer(manifest);
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
+  // ── GRACEFUL SHUTDOWN ──────────────────────────────────
+
+  const shutdown = async () => {
+    try {
+      await server.close();
+    } catch {
+      // Ignore errors during shutdown
+    }
+    process.exit(0);
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+
+  return { server, transport };
 }

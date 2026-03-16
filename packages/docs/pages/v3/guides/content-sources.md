@@ -11,7 +11,7 @@ Content sources let you pull documentation from external services — GitHub rep
 Add content sources to the `contentSources` array in your config:
 
 ```javascript
-import { githubSource, notionSource } from "@tomehq/core";
+import { githubSource, notionSource } from "@tomehq/core/content-source";
 
 export default {
   name: "My Docs",
@@ -30,7 +30,7 @@ export default {
 Pull `.md` and `.mdx` files from a GitHub repository:
 
 ```javascript
-import { githubSource } from "@tomehq/core";
+import { githubSource } from "@tomehq/core/content-source";
 
 githubSource({
   owner: "acme",          // GitHub org or user
@@ -60,7 +60,7 @@ githubSource({
 Pull pages from a Notion database:
 
 ```javascript
-import { notionSource } from "@tomehq/core";
+import { notionSource } from "@tomehq/core/content-source";
 
 notionSource({
   databaseId: "abc123...",           // Notion database ID
@@ -86,7 +86,7 @@ Each page in the database is converted to Markdown:
 Use `defineContentSource` to create your own source with full type checking:
 
 ```javascript
-import { defineContentSource } from "@tomehq/core";
+import { defineContentSource } from "@tomehq/core/content-source";
 
 const apiSource = defineContentSource({
   name: "my-api",
@@ -137,7 +137,7 @@ defineContentSource({
 You can combine any number of content sources. Remote pages are merged with local files — if a remote page has the same ID as a local page, the local page takes priority.
 
 ```javascript
-import { githubSource, notionSource } from "@tomehq/core";
+import { githubSource, notionSource } from "@tomehq/core/content-source";
 
 export default {
   name: "My Docs",
@@ -149,3 +149,7 @@ export default {
 ```
 
 Content is fetched once at build time (and on startup in dev mode). Failed sources log a warning but don't block the build — your local pages will still work.
+
+## External group in the sidebar
+
+When you use an explicit `navigation` array in your config, remote pages that are **not** listed in the navigation will automatically appear under an "External" group at the bottom of the sidebar. This ensures fetched content is always accessible even if you haven't manually added every remote page to your navigation config. If you want full control over placement, add the remote page IDs to your `navigation` array and they will appear in the specified group instead.

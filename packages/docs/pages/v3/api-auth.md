@@ -14,11 +14,9 @@ Add auth settings to your API config:
 export default {
   api: {
     spec: "./openapi.yaml",
-    playground: {
-      enabled: true,
-      auth: {
-        type: "bearer",  // "bearer", "apiKey", or "basic"
-      },
+    playground: true,
+    auth: {
+      type: "bearer",  // "bearer", "apiKey", or "basic"
     },
   },
 };

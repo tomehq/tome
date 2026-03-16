@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import {
   MethodBadge,
@@ -372,5 +372,93 @@ describe("ApiReference", () => {
     render(<ApiReference manifest={manifest} />);
     expect(screen.getByText("User management endpoints")).toBeInTheDocument();
     expect(screen.getByText("Pet management endpoints")).toBeInTheDocument();
+  });
+
+  it("passes showPlayground and playgroundAuth to EndpointCards", () => {
+    render(
+      <ApiReference
+        manifest={manifest}
+        showPlayground={true}
+        playgroundAuth={{ type: "bearer" }}
+      />,
+    );
+    // Expand the first endpoint card — the first button in each tag section is the endpoint header
+    const sections = screen.getAllByTestId("tag-section");
+    const firstButton = within(sections[0]).getAllByRole("button")[0];
+    fireEvent.click(firstButton);
+    // ApiPlayground renders with data-testid="api-playground" and a "Try it out" toggle
+    expect(screen.getByTestId("api-playground")).toBeInTheDocument();
+    expect(screen.getByText("Try it out")).toBeInTheDocument();
+  });
+});
+
+// ── EndpointCard playground props ───────────────────────
+
+describe("EndpointCard playground props", () => {
+  it("shows playground when showPlayground is true and expanded", () => {
+    render(
+      <EndpointCard
+        endpoint={sampleEndpoint}
+        showPlayground={true}
+        defaultExpanded
+      />,
+    );
+    expect(screen.getByTestId("api-playground")).toBeInTheDocument();
+    expect(screen.getByText("Try it out")).toBeInTheDocument();
+  });
+
+  it("hides playground when showPlayground is false", () => {
+    render(
+      <EndpointCard
+        endpoint={sampleEndpoint}
+        showPlayground={false}
+        defaultExpanded
+      />,
+    );
+    expect(screen.queryByTestId("api-playground")).not.toBeInTheDocument();
+  });
+
+  it("hides playground when showPlayground is undefined", () => {
+    render(
+      <EndpointCard endpoint={sampleEndpoint} defaultExpanded />,
+    );
+    expect(screen.queryByTestId("api-playground")).not.toBeInTheDocument();
+  });
+
+  it("has id attribute for anchor navigation", () => {
+    const { container } = render(<EndpointCard endpoint={sampleEndpoint} />);
+    const card = container.firstChild as HTMLElement;
+    expect(card.id).toBe("getuser");
+  });
+});
+
+// ── TOC anchor navigation ───────────────────────────────
+
+describe("ApiReference TOC anchor navigation", () => {
+  const manifest: ApiManifest = {
+    title: "Nav API",
+    version: "1.0.0",
+    servers: [{ url: "https://api.example.com" }],
+    endpoints: [sampleEndpoint],
+    tags: [{ name: "Users", description: "User endpoints" }],
+  };
+
+  beforeAll(() => {
+    // jsdom does not implement scrollIntoView; stub it to avoid unhandled errors
+    Element.prototype.scrollIntoView = () => {};
+  });
+
+  it("TOC links use onClick handler (not bare href navigation)", () => {
+    render(<ApiReference manifest={manifest} />);
+    const toc = screen.getByTestId("api-toc");
+    const links = toc.querySelectorAll("a");
+    // All links should have an onClick and an href starting with #
+    for (const link of links) {
+      expect(link.getAttribute("href")).toMatch(/^#/);
+      // Clicking should not cause default navigation (onClick calls preventDefault)
+      const prevented = fireEvent.click(link);
+      // fireEvent.click returns false when preventDefault was called
+      expect(prevented).toBe(false);
+    }
   });
 });

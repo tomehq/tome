@@ -121,6 +121,6 @@ This outputs a static site to `out/` with a pre-built search index. The output i
 
 ## Next steps
 
-- **[Deploy to Tome Cloud](/docs/tutorials/deploy-to-cloud)** to publish with a single command
-- **[Configuration guide](/docs/guides/configuration)** for all available options
-- **[Components reference](/docs/reference/components)** for the full list of MDX components
+- **[Deploy to Tome Cloud](./tutorials/deploy-to-cloud)** to publish with a single command
+- **[Configuration guide](./guides/configuration)** for all available options
+- **[Components reference](./reference/components)** for the full list of MDX components

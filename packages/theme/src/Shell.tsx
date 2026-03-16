@@ -444,6 +444,16 @@ interface ShellProps {
   editUrl?: string;
   lastUpdated?: string;
   changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
+  apiManifest?: any;
+  apiBaseUrl?: string;
+  apiPlayground?: boolean;
+  apiAuth?: { type: "bearer" | "apiKey"; header?: string };
+  ApiReferenceComponent?: React.ComponentType<{
+    manifest: any;
+    baseUrl?: string;
+    showPlayground?: boolean;
+    playgroundAuth?: { type: "bearer" | "apiKey"; header?: string };
+  }>;
   onNavigate: (id: string) => void;
   allPages: Array<{ id: string; title: string; description?: string }>;
   versioning?: VersioningInfo;
@@ -465,7 +475,8 @@ interface ShellProps {
 
 export function Shell({
   config, navigation, currentPageId, pageHtml, pageComponent, mdxComponents,
-  pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries, onNavigate, allPages,
+  pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries,
+  apiManifest, apiBaseUrl, apiPlayground, apiAuth, ApiReferenceComponent, onNavigate, allPages,
   versioning, currentVersion, i18n, currentLocale, docContext, basePath = "", isDraft, dir: dirProp, overrides,
 }: ShellProps) {
   // RTL support: resolve text direction from prop, i18n.localeDirs, or default to "ltr"
@@ -1387,8 +1398,11 @@ export function Shell({
               )}
               {pageDescription && <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 32 }}>{pageDescription}</p>}
               <div style={{ borderTop: "1px solid var(--bd)", paddingTop: 28 }}>
-                {/* TOM-49: Changelog page type */}
-                {changelogEntries && changelogEntries.length > 0 ? (
+                {/* TOM-19: API Reference page */}
+                {apiManifest && ApiReferenceComponent ? (
+                  <ApiReferenceComponent manifest={apiManifest} baseUrl={apiBaseUrl} showPlayground={apiPlayground} playgroundAuth={apiAuth} />
+                ) : /* TOM-49: Changelog page type */
+                changelogEntries && changelogEntries.length > 0 ? (
                   <ChangelogView entries={changelogEntries} />
                 ) : PageComponent ? (
                   <div className="tome-content">
