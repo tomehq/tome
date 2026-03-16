@@ -5,7 +5,7 @@ import type { Plugin, ViteDevServer } from "vite";
 
 const _require = createRequire(import.meta.url);
 import { loadConfig, type TomeConfig, type TomePlugin } from "./config.js";
-import { discoverPages, buildNavigation, type PageRoute, type NavigationGroup, type I18nConfig } from "./routes.js";
+import { discoverPages, buildNavigation, type PageRoute, type Navigation, type I18nConfig } from "./routes.js";
 import { fetchRemoteContent, type ContentSource } from "./content-source.js";
 import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions, type MarkdownMathOptions } from "./markdown.js";
 import { parseOpenApiSpec, type ApiManifest } from "./openapi.js";
@@ -80,7 +80,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
   let config: TomeConfig;
   let routes: PageRoute[] = [];
-  let navigation: NavigationGroup[] = [];
+  let navigation: Navigation = [];
   let server: ViteDevServer | undefined;
   let apiManifest: ApiManifest | null = null;
   let isDevMode = false;

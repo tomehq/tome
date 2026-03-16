@@ -50,9 +50,18 @@ export interface NavigationItem {
 }
 
 export interface NavigationGroup {
+  menuType: "group";
   section: string;
-  pages: NavigationItem[];
+  pages: (NavigationItem | NavigationGroup)[];
 }
+
+export interface NavigationTab {
+  menuType: "tab";
+  section: string;
+  pages: (NavigationItem | NavigationGroup)[];
+}
+
+export type Navigation = (NavigationGroup | NavigationTab)[];
 
 // ── VERSIONING CONFIG TYPE ────────────────────────────────
 export interface VersioningConfig {
@@ -298,30 +307,69 @@ export async function discoverPages(
 }
 
 // ── NAVIGATION BUILDER ───────────────────────────────────
+function normalizePageKey(value: string) {
+  return value
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/\.(md|mdx)$/, "")
+    .replace(/\/?index$/, "") || "index";
+}
+
+function buildPage(pageId: string, routes: PageRoute[]) {
+  const normalizedPageId = normalizePageKey(pageId);
+  const route = routes.find((r) => {
+    const routeKeys = new Set([
+      normalizePageKey(r.id),
+      normalizePageKey(r.filePath),
+      normalizePageKey(r.urlPath),
+    ]);
+    return routeKeys.has(normalizedPageId);
+  });
+  if (!route || route.frontmatter.hidden) return null;
+
+  return {
+    title: route.frontmatter.sidebarTitle || route.frontmatter.title,
+    id: route.id,
+    urlPath: route.urlPath,
+    icon: route.frontmatter.icon,
+    badge: normalizeBadge(route.frontmatter.badge),
+  };
+}
+
+function isGroup(
+  menu: TomeConfig["navigation"][number],
+): menu is Extract<TomeConfig["navigation"][number], { group: string }> {
+  return "group" in menu;
+}
+
+function buildMenu(
+  menu: TomeConfig["navigation"][number],
+  routes: PageRoute[]
+): Navigation[number] {
+  return {
+    menuType: isGroup(menu) ? "group" : "tab",
+    section: isGroup(menu) ? menu.group : menu.tab,
+    pages: menu.pages
+      .map((page) => {
+        if (typeof page !== "string") {
+          return buildMenu(page, routes);
+        }
+
+        return buildPage(page, routes);
+      })
+      .filter(Boolean) as Array<NavigationItem | NavigationGroup>,
+  };
+}
+
 export function buildNavigation(
   routes: PageRoute[],
   config: TomeConfig
-): NavigationGroup[] {
+): Navigation {
   // If config has explicit navigation, use it to order pages
   if (config.navigation && config.navigation.length > 0) {
-    return config.navigation.map((group) => ({
-      section: group.group,
-      pages: (group.pages as string[])
-        .map((pageId) => {
-          const route = routes.find(
-            (r) => r.id === pageId || r.filePath.replace(/\.(md|mdx)$/, "") === pageId
-          );
-          if (!route || route.frontmatter.hidden) return null;
-          return {
-            title: route.frontmatter.sidebarTitle || route.frontmatter.title,
-            id: route.id,
-            urlPath: route.urlPath,
-            icon: route.frontmatter.icon,
-            badge: normalizeBadge(route.frontmatter.badge),
-          };
-        })
-        .filter(Boolean) as NavigationItem[],
-    }));
+    return config.navigation.map((node) =>
+      buildMenu(node, routes)
+    );
   }
 
   // Fallback: auto-generate navigation from file structure
@@ -349,17 +397,29 @@ export function buildNavigation(
   }
 
   return Array.from(groups.entries()).map(([section, pages]) => ({
+    menuType: "group",
     section,
     pages,
   }));
 }
 
+function flatten(navigation: Navigation): NavigationItem[] {
+  if (navigation.length === 0) return [];
+
+  const walk = (
+    nodes: Array<NavigationItem | NavigationGroup | NavigationTab>
+  ): NavigationItem[] =>
+    nodes.flatMap((n) => ("menuType" in n ? walk(n.pages) : [n]));
+
+  return walk(navigation);
+}
+
 // ── PREV/NEXT HELPERS ────────────────────────────────────
 export function getPrevNext(
-  navigation: NavigationGroup[],
+  navigation: Navigation,
   currentId: string
 ): { prev: NavigationItem | null; next: NavigationItem | null } {
-  const allPages = navigation.flatMap((g) => g.pages);
+  const allPages = flatten(navigation);
   const idx = allPages.findIndex((p) => p.id === currentId);
 
   if (idx === -1) return { prev: null, next: null };

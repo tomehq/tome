@@ -21,13 +21,32 @@ type NavigationGroup = {
   pages: Array<string | NavigationGroup>;
 };
 
-export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.object({
+type NavigationTab = {
+  tab: string;
+  pages: Array<string | NavigationGroup>;
+};
+
+export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.lazy(() => z.object({
   group: z.string(),
   pages: z.array(z.union([
     z.string(),
     z.lazy(() => NavigationGroupSchema),
   ])),
-});
+}));
+
+export const NavigationTabSchema: z.ZodType<NavigationTab> = z.lazy(() => z.object({
+  tab: z.string(),
+  pages: z.array(z.union([
+    z.string(),
+    z.lazy(() => NavigationGroupSchema),
+  ])),
+}));
+
+// ── CONFIG NAVIGATION ────────────────────────────────────────
+export const NavigationSchema = z.union([
+  z.array(NavigationGroupSchema),
+  z.array(NavigationTabSchema),
+]).default([]);
 
 export const SearchSchema = z.object({
   provider: z.enum(["local", "algolia"]).default("local"),
@@ -136,7 +155,7 @@ export const TomeConfigSchema = z.object({
   baseUrl: z.string().optional(),
   basePath: z.string().optional(),
   theme: ThemeSchema,
-  navigation: z.array(NavigationGroupSchema).default([]),
+  navigation: NavigationSchema,
   search: SearchSchema,
   api: ApiSchema,
   ai: AiSchema,

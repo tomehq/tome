@@ -312,32 +312,112 @@ function ChangelogView({ entries }: { entries: ChangelogViewEntry[] }) {
   );
 }
 
+// ── NAVIGATION ──────────────────────────────────────────
+type NavigationLeaf = { title: string; id: string; urlPath: string; icon?: string; badge?: { text: string; variant: string } };
+type NavigationMenu = {
+  menuType?: "group" | "tab";
+  section: string;
+  pages: Array<NavigationLeaf | NavigationMenu>;
+};
+
+function isNavigationMenu(node: NavigationLeaf | NavigationMenu): node is NavigationMenu {
+  return "pages" in node;
+}
+
+function flattenNavigationPages(nodes: Array<NavigationLeaf | NavigationMenu>): NavigationLeaf[] {
+  return nodes.flatMap((node) => isNavigationMenu(node) ? flattenNavigationPages(node.pages) : [node]);
+}
+
+function findNavigationLeaf(nodes: Array<NavigationLeaf | NavigationMenu>, pageId: string): NavigationLeaf | null {
+  for (const node of nodes) {
+    if (isNavigationMenu(node)) {
+      const found = findNavigationLeaf(node.pages, pageId);
+      if (found) return found;
+    } else if (node.id === pageId) {
+      return node;
+    }
+  }
+  return null;
+}
+
+function findContainingTopLevelSection(navigation: NavigationMenu[], pageId: string): NavigationMenu | null {
+  for (const section of navigation) {
+    if (findNavigationLeaf(section.pages, pageId)) return section;
+  }
+  return null;
+}
+
+function findNavigationPath(
+  nodes: Array<NavigationLeaf | NavigationMenu>,
+  pageId: string,
+): Array<NavigationLeaf | NavigationMenu> | null {
+  for (const node of nodes) {
+    if (isNavigationMenu(node)) {
+      const childPath = findNavigationPath(node.pages, pageId);
+      if (childPath) return [node, ...childPath];
+    } else if (node.id === pageId) {
+      return [node];
+    }
+  }
+  return null;
+}
+
+function getNavigationMenuKey(node: NavigationMenu, parentKey = ""): string {
+  return parentKey ? `${parentKey}/${node.section}` : node.section;
+}
+
+function getExpandableNodeKeys(
+  nodes: Array<NavigationLeaf | NavigationMenu>,
+  parentKey = "",
+): string[] {
+  return nodes.flatMap((node) => {
+    if (!isNavigationMenu(node)) return [];
+    const key = getNavigationMenuKey(node, parentKey);
+    return [key, ...getExpandableNodeKeys(node.pages, key)];
+  });
+}
+
+function getFirstNavigationLeaf(nodes: Array<NavigationLeaf | NavigationMenu>): NavigationLeaf | null {
+  for (const node of nodes) {
+    if (isNavigationMenu(node)) {
+      const found = getFirstNavigationLeaf(node.pages);
+      if (found) return found;
+    } else {
+      return node;
+    }
+  }
+  return null;
+}
+
 // ── BREADCRUMBS ─────────────────────────────────────────
 type BreadcrumbItem = { label: string; href: string | null };
 
 function getBreadcrumbs(
-  navigation: Array<{ section: string; pages: Array<{ title: string; id: string; urlPath: string }> }>,
+  navigation: NavigationMenu[],
   currentPageId: string,
   pageTitle: string,
 ): BreadcrumbItem[] {
   if (currentPageId === "index") return [];
 
-  for (const section of navigation) {
-    const found = section.pages.find(p => p.id === currentPageId);
-    if (found) {
-      const crumbs: BreadcrumbItem[] = [];
-      // Section label — link to first page in section
-      const firstPage = section.pages[0];
-      crumbs.push({
-        label: section.section,
-        href: firstPage ? firstPage.urlPath : null,
-      });
-      // Current page (last crumb, not a link)
-      crumbs.push({ label: pageTitle, href: null });
-      return crumbs;
+  const path = findNavigationPath(navigation, currentPageId);
+  if (!path || path.length === 0) return [];
+
+  return path.map((node, index) => {
+    const isLast = index === path.length - 1;
+
+    if (isNavigationMenu(node)) {
+      const firstPage = getFirstNavigationLeaf(node.pages);
+      return {
+        label: node.section,
+        href: isLast ? null : (firstPage ? firstPage.urlPath : null),
+      };
     }
-  }
-  return [];
+
+    return {
+      label: isLast ? pageTitle : node.title,
+      href: isLast ? null : node.urlPath,
+    };
+  });
 }
 
 interface ShellProps {
@@ -352,10 +432,7 @@ interface ShellProps {
     socialLinks?: Array<{ platform: string; url: string; label?: string; icon?: string }>;
     [key: string]: unknown;
   };
-  navigation: Array<{
-    section: string;
-    pages: Array<{ title: string; id: string; urlPath: string; icon?: string; badge?: { text: string; variant: string } }>;
-  }>;
+  navigation: NavigationMenu[];
   currentPageId: string;
   pageHtml?: string;
   pageComponent?: React.ComponentType<{ components?: Record<string, React.ComponentType> }>;
@@ -422,7 +499,7 @@ export function Shell({
 
   // TOM-30: Determine if viewing an old version
   const isOldVersion = versioning && currentVersion && currentVersion !== versioning.current;
-  const [expanded, setExpanded] = useState<string[]>(navigation.map(n => n.section));
+  const [expanded, setExpanded] = useState<string[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
   const htmlContentRef = useRef<HTMLDivElement>(null);
   const lastHtmlRef = useRef<string>("");
@@ -630,8 +707,34 @@ export function Shell({
     return () => window.removeEventListener("keydown", h);
   }, []);
 
+  const tabsEnabled = navigation.length > 0 && navigation.every((item) => item.menuType === "tab");
+  const activeTopLevelSection = findContainingTopLevelSection(navigation, currentPageId) || navigation[0] || null;
+  const sidebarItems = tabsEnabled
+    ? (activeTopLevelSection?.pages || [])
+    : navigation;
+
+
+  useEffect(() => {
+    setExpanded(getExpandableNodeKeys(sidebarItems));
+  }, [sidebarItems]);
+
+  useEffect(() => {
+    const path = findNavigationPath(sidebarItems, currentPageId);
+    if (!path) return;
+
+    let parentKey = "";
+    const pathKeys = path.flatMap((node) => {
+      if (!isNavigationMenu(node)) return [];
+      const key = getNavigationMenuKey(node, parentKey);
+      parentKey = key;
+      return [key];
+    });
+
+    setExpanded((prev) => Array.from(new Set([...prev, ...pathKeys])));
+  }, [sidebarItems, currentPageId]);
+
   // Prev / Next
-  const allNavPages = navigation.flatMap(g => g.pages);
+  const allNavPages = flattenNavigationPages(navigation);
   const idx = allNavPages.findIndex(p => p.id === currentPageId);
   const prev = idx > 0 ? allNavPages[idx - 1] : null;
   const next = idx < allNavPages.length - 1 ? allNavPages[idx + 1] : null;
@@ -769,55 +872,119 @@ export function Shell({
             </button>
           </div>
 
-          <nav style={{ flex: 1, overflow: "auto", padding: "4px 10px 20px" }}>
-            {navigation.map(sec => (
-              <div key={sec.section} style={{ marginBottom: 8 }}>
-                <button onClick={() => togSec(sec.section)} style={{
-                  display: "flex", alignItems: "center", gap: 6, width: "100%",
-                  background: "none", border: "none", padding: "8px 10px", cursor: "pointer",
-                  borderRadius: 2, color: "var(--txM)", fontSize: 10, fontWeight: 600,
-                  textTransform: "uppercase", letterSpacing: ".1em", fontFamily: "var(--font-code)",
-                }}>
-                  {expanded.includes(sec.section) ? <ChevDown /> : <ChevRight />}{sec.section}
-                </button>
-                {expanded.includes(sec.section) && <div style={{ [isRtl ? "marginRight" : "marginLeft"]: 8, [isRtl ? "borderRight" : "borderLeft"]: "1px solid var(--bd)", [isRtl ? "paddingRight" : "paddingLeft"]: 0 }}>
-                  {sec.pages.map(p => {
-                    const active = currentPageId === p.id;
-                    return (
-                      <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
-                        display: "flex", alignItems: "center", gap: 10, width: "100%",
-                        textAlign: isRtl ? "right" : "left", background: "none",
-                        border: "none", borderRadius: 0,
-                        [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
-                        padding: "7px 14px", cursor: "pointer",
-                        color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
-                        fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
-                        transition: "all .12s",
-                      }}>
-                        {p.title}
-                        {p.badge && (() => {
-                          const badgeColors: Record<string, { bg: string; text: string }> = {
-                            default: { bg: "var(--sf)", text: "var(--tx2)" },
-                            info: { bg: "rgba(59,130,246,0.15)", text: "rgb(59,130,246)" },
-                            success: { bg: "rgba(34,197,94,0.15)", text: "rgb(34,197,94)" },
-                            warning: { bg: "rgba(234,179,8,0.15)", text: "rgb(202,138,4)" },
-                            danger: { bg: "rgba(239,68,68,0.15)", text: "rgb(239,68,68)" },
-                          };
-                          const bc = badgeColors[p.badge!.variant || "default"] || badgeColors.default;
-                          return (
-                            <span style={{
-                              fontSize: 10, fontWeight: 600, padding: "2px 6px",
-                              borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
-                              background: bc.bg, color: bc.text,
-                            }}>{p.badge!.text}</span>
-                          );
-                        })()}
-                      </button>
+                    {mobile && tabsEnabled && navigation.length > 1 && (
+            <div style={{ padding: "0 14px 12px" }}>
+              <div style={{ position: "relative" }}>
+                <select
+                  id="mobile-tab-switcher"
+                  value={activeTopLevelSection?.section || ""}
+                  onChange={(e) => {
+                    const selectedSection = navigation.find(
+                      (item) => item.section === e.target.value
                     );
-                  })}
-                </div>}
+                    const targetPage = selectedSection
+                      ? getFirstNavigationLeaf(selectedSection.pages)
+                      : null;
+                    if (targetPage) onNavigate(targetPage.id);
+                  }}
+                  style={{
+                    width: "100%",
+                    appearance: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    background: "var(--cdBg)",
+                    border: "1px solid var(--bd)",
+                    borderRadius: 2,
+                    padding: "8px 36px 8px 12px",
+                    color: "var(--tx)",
+                    fontSize: 13,
+                    fontFamily: "var(--font-body)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {navigation.map((tab) => (
+                    <option key={tab.section} value={tab.section}>
+                      {tab.section}
+                    </option>
+                  ))}
+                </select>
+
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    right: 12,
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                    color: "var(--txM)",
+                    display: "flex",
+                  }}
+                >
+                  <ChevDown />
+                </div>
               </div>
-            ))}
+            </div>
+          )}
+
+          <nav style={{ flex: 1, overflow: "auto", padding: "4px 10px 20px" }}>
+            {(() => {
+              const badgeColors: Record<string, { bg: string; text: string }> = {
+                default: { bg: "var(--sf)", text: "var(--tx2)" },
+                info: { bg: "rgba(59,130,246,0.15)", text: "rgb(59,130,246)" },
+                success: { bg: "rgba(34,197,94,0.15)", text: "rgb(34,197,94)" },
+                warning: { bg: "rgba(234,179,8,0.15)", text: "rgb(202,138,4)" },
+                danger: { bg: "rgba(239,68,68,0.15)", text: "rgb(239,68,68)" },
+              };
+
+              const renderSidebarItems = (items: Array<NavigationLeaf | NavigationMenu>, parentKey = ""): React.ReactNode => items.map((item) => {
+                if (!isNavigationMenu(item)) {
+                  const active = currentPageId === item.id;
+                  return (
+                    <button key={item.id} onClick={() => { onNavigate(item.id); if (mobile) setSb(false); }} style={{
+                      display: "flex", alignItems: "center", gap: 10, width: "100%",
+                      textAlign: isRtl ? "right" : "left", background: "none",
+                      border: "none", borderRadius: 0,
+                      [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
+                      padding: "7px 14px", cursor: "pointer",
+                      color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
+                      fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
+                      transition: "all .12s",
+                    }}>
+                      {item.title}
+                      {item.badge && (() => {
+                        const bc = badgeColors[item.badge.variant || "default"] || badgeColors.default;
+                        return (
+                          <span style={{
+                            fontSize: 10, fontWeight: 600, padding: "2px 6px",
+                            borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
+                            background: bc.bg, color: bc.text,
+                          }}>{item.badge.text}</span>
+                        );
+                      })()}
+                    </button>
+                  );
+                }
+
+                const itemKey = getNavigationMenuKey(item, parentKey);
+                return (
+                  <div key={itemKey} style={{ marginBottom: 8 }}>
+                    <button onClick={() => togSec(itemKey)} style={{
+                      display: "flex", alignItems: "center", gap: 6, width: "100%",
+                      background: "none", border: "none", padding: "8px 10px", cursor: "pointer",
+                      borderRadius: 2, color: "var(--txM)", fontSize: 10, fontWeight: 600,
+                      textTransform: "uppercase", letterSpacing: ".1em", fontFamily: "var(--font-code)",
+                    }}>
+                      {expanded.includes(itemKey) ? <ChevDown /> : <ChevRight />}{item.section}
+                    </button>
+                    {expanded.includes(itemKey) && <div style={{ [isRtl ? "marginRight" : "marginLeft"]: 8, [isRtl ? "borderRight" : "borderLeft"]: "1px solid var(--bd)", [isRtl ? "paddingRight" : "paddingLeft"]: 0 }}>
+                      {renderSidebarItems(item.pages, itemKey)}
+                    </div>}
+                  </div>
+                );
+              });
+
+              return renderSidebarItems(sidebarItems);
+            })()}
           </nav>
 
           {/* Mobile version switcher in sidebar footer */}
@@ -863,44 +1030,108 @@ export function Shell({
           {/* Header */}
           {overrides?.Header ? (
             <overrides.Header
-              config={config}
-              navigation={navigation}
-              currentPageId={currentPageId}
-              onNavigate={onNavigate}
-              mobile={mobile}
-              sbOpen={sbOpen}
-              setSbOpen={setSb}
-              isDark={isDark}
-              setDark={setDark}
-              versioning={versioning}
-              currentVersion={currentVersion}
-              i18n={i18n}
-              currentLocale={currentLocale}
-              onSearchOpen={() => setSearch(true)}
-              basePath={basePath}
+            config={config}
+            navigation={navigation}
+            currentPageId={currentPageId}
+            onNavigate={onNavigate}
+            mobile={mobile}
+            sbOpen={sbOpen}
+            setSbOpen={setSb}
+            isDark={isDark}
+            setDark={setDark}
+            versioning={versioning}
+            currentVersion={currentVersion}
+            i18n={i18n}
+            currentLocale={currentLocale}
+            onSearchOpen={() => setSearch(true)}
+            basePath={basePath}
             />
           ) : (
-          <header style={{
-            display: "flex", alignItems: "center", gap: mobile ? 8 : 12, padding: mobile ? "8px 12px" : "10px 24px",
-            borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
-            maxWidth: "100vw", overflow: "visible", position: "relative", zIndex: 200,
-          }}>
+            <header style={{
+              display: "flex", alignItems: "center", gap: mobile ? 8 : 12, padding: mobile ? "8px 12px" : "10px 24px",
+              borderBottom: "1px solid var(--bd)", background: "var(--hdBg)", backdropFilter: "blur(12px)",
+              maxWidth: "100vw", overflow: "visible", position: "relative", zIndex: 200,
+            }}>
             <button aria-label={sbOpen ? "Close sidebar" : "Open sidebar"} onClick={() => setSb(!sbOpen)} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex" }}>
               {sbOpen ? <XIcon /> : <MenuIcon />}
             </button>
             {mobile ? (
               <span style={{ fontSize: 13, color: "var(--ac)", fontFamily: "var(--font-code)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {navigation.flatMap(s => s.pages).find(p => p.id === currentPageId)?.title || ""}
+                {findNavigationLeaf(navigation, currentPageId)?.title || ""}
               </span>
             ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-code)", fontSize: 11, color: "var(--txM)", letterSpacing: ".03em", flex: 1 }}>
-                {navigation.map(s => {
-                  const f = s.pages.find(p => p.id === currentPageId);
-                  if (!f) return null;
-                  return <span key={s.section} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span>{s.section}</span><ChevRight /><span style={{ color: "var(--ac)" }}>{f.title}</span>
-                  </span>;
-                })}
+              <div style={{ display: "flex-col", alignItems: "center", flex: 1 }}>
+                {tabsEnabled && !mobile && (
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontFamily: "var(--font-body)",
+                    fontSize: 11,
+                    color: "var(--txM)",
+                    letterSpacing: ".03em",
+                    flex: 1
+                  }}>
+                    {navigation.map((tab) => {
+                      const active = activeTopLevelSection?.section === tab.section;
+                      const targetPage = getFirstNavigationLeaf(tab.pages);
+                      return (
+                        <button
+                          key={tab.section}
+                          onClick={() => targetPage && onNavigate(targetPage.id)}
+                          disabled={!targetPage}
+                          style={{
+                            whiteSpace: "nowrap",
+                            background: "none",
+                            border: "none",
+                            borderBottom: active ? "1px solid var(--ac)" : "1px solid transparent",
+                            marginBottom: -1,
+                            padding: "8px 12px",
+                            cursor: targetPage ? "pointer" : "default",
+                            color: active ? "var(--ac)" : "var(--txM)",
+                            fontSize: 11,
+                            letterSpacing: ".03em",
+                            fontWeight: active ? 600 : 500,
+                            fontFamily: "var(--font-code)",
+                            opacity: targetPage ? 1 : 0.5,
+                          }}
+                        >
+                          {tab.section}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontFamily: "var(--font-code)",
+                  fontSize: 11,
+                  color: "var(--txM)",
+                  letterSpacing: ".03em",
+                  marginTop: tabsEnabled ? 10 : 0,
+                  flex: 1
+                  }}>
+                  {(() => {
+                    const path = activeTopLevelSection ? findNavigationPath(activeTopLevelSection.pages, currentPageId) : null;
+                    if (!activeTopLevelSection || !path) return null;
+
+                    return (
+                      <span key={activeTopLevelSection.section} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span>{activeTopLevelSection.section}</span>
+                        {path.map((node, index) => (
+                          <React.Fragment key={isNavigationMenu(node) ? `${node.menuType}:${node.section}:${index}` : node.id}>
+                            <ChevRight />
+                            <span style={index === path.length - 1 ? { color: "var(--ac)" } : undefined}>
+                              {isNavigationMenu(node) ? node.section : node.title}
+                            </span>
+                          </React.Fragment>
+                        ))}
+                      </span>
+                    );
+                  })()}
+                </div>
               </div>
             )}
 
@@ -912,22 +1143,22 @@ export function Shell({
                   const isExternal = !isInternal;
                   return (
                     <a
-                      key={link.label}
-                      href={isInternal && link.href.startsWith("#") ? (basePath + "/" + link.href.slice(1)) : link.href}
-                      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                      onClick={isInternal ? (e: React.MouseEvent) => {
-                        e.preventDefault();
-                        const pageId = link.href.startsWith("#") ? link.href.slice(1) : link.href.replace(new RegExp("^" + basePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "/?"), "");
-                        onNavigate(pageId);
-                      } : undefined}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 4,
-                        color: "var(--txM)", textDecoration: "none", fontSize: 12,
-                        fontFamily: "var(--font-body)", fontWeight: 500,
-                        transition: "color .15s",
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "var(--ac)")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "var(--txM)")}
+                    key={link.label}
+                    href={isInternal && link.href.startsWith("#") ? (basePath + "/" + link.href.slice(1)) : link.href}
+                    {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    onClick={isInternal ? (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      const pageId = link.href.startsWith("#") ? link.href.slice(1) : link.href.replace(new RegExp("^" + basePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "/?"), "");
+                      onNavigate(pageId);
+                    } : undefined}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      color: "var(--txM)", textDecoration: "none", fontSize: 12,
+                      fontFamily: "var(--font-body)", fontWeight: 500,
+                      transition: "color .15s",
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.color = "var(--ac)")}
+                    onMouseOut={(e) => (e.currentTarget.style.color = "var(--txM)")}
                     >
                       {link.label}
                       {isExternal && <ExtLinkIcon />}
@@ -943,18 +1174,18 @@ export function Shell({
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {config.socialLinks.map((link) => (
                   <a
-                    key={link.url}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={link.label || link.platform}
-                    data-testid={`social-link-${link.platform}`}
-                    style={{
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "var(--tx2)", cursor: "pointer", transition: "color .15s",
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.color = "var(--tx)")}
-                    onMouseOut={(e) => (e.currentTarget.style.color = "var(--tx2)")}
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={link.label || link.platform}
+                  data-testid={`social-link-${link.platform}`}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "var(--tx2)", cursor: "pointer", transition: "color .15s",
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.color = "var(--tx)")}
+                  onMouseOut={(e) => (e.currentTarget.style.color = "var(--tx2)")}
                   >
                     <SocialIcon platform={link.platform} customIcon={link.icon} />
                   </a>
@@ -981,38 +1212,38 @@ export function Shell({
                     padding: "5px 10px", cursor: "pointer", color: "var(--tx2)", fontSize: 12,
                     fontFamily: "var(--font-code)",
                   }}
-                >
+                  >
                   <VersionIcon />
                   {currentVersion || versioning.current}
                   <ChevDown />
                 </button>
                 {versionDropdownOpen && (
                   <div
-                    data-testid="version-dropdown"
-                    style={{
-                      position: "absolute", top: "100%", right: 0, marginTop: 4,
-                      background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.2)", overflow: "hidden", zIndex: 100,
-                      minWidth: 120,
-                    }}
+                  data-testid="version-dropdown"
+                  style={{
+                    position: "absolute", top: "100%", right: 0, marginTop: 4,
+                    background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.2)", overflow: "hidden", zIndex: 100,
+                    minWidth: 120,
+                  }}
                   >
                     {versioning.versions.map(v => (
                       <button
-                        key={v}
-                        onClick={() => {
-                          setVersionDropdown(false);
-                          // Navigate to the version's index page via hash routing
-                          const targetId = v === versioning.current ? "index" : `${v}/index`;
-                          onNavigate(targetId);
-                        }}
-                        style={{
-                          display: "block", width: "100%", textAlign: "left",
-                          background: v === (currentVersion || versioning.current) ? "var(--acD)" : "none",
-                          border: "none", padding: "8px 14px", cursor: "pointer",
-                          color: v === (currentVersion || versioning.current) ? "var(--ac)" : "var(--tx2)",
-                          fontSize: 12, fontFamily: "var(--font-code)",
-                          fontWeight: v === versioning.current ? 600 : 400,
-                        }}
+                      key={v}
+                      onClick={() => {
+                        setVersionDropdown(false);
+                        // Navigate to the version's index page via hash routing
+                        const targetId = v === versioning.current ? "index" : `${v}/index`;
+                        onNavigate(targetId);
+                      }}
+                      style={{
+                        display: "block", width: "100%", textAlign: "left",
+                        background: v === (currentVersion || versioning.current) ? "var(--acD)" : "none",
+                        border: "none", padding: "8px 14px", cursor: "pointer",
+                        color: v === (currentVersion || versioning.current) ? "var(--ac)" : "var(--tx2)",
+                        fontSize: 12, fontFamily: "var(--font-code)",
+                        fontWeight: v === versioning.current ? 600 : 400,
+                      }}
                       >
                         {v}{v === versioning.current ? " (latest)" : ""}
                       </button>
@@ -1034,25 +1265,25 @@ export function Shell({
                     padding: "5px 10px", cursor: "pointer", color: "var(--tx2)", fontSize: 12,
                     fontFamily: "var(--font-body)",
                   }}
-                >
+                  >
                   <GlobeIcon />
                   {i18n.localeNames?.[currentLocale || i18n.defaultLocale] || currentLocale || i18n.defaultLocale}
                   <ChevDown />
                 </button>
                 {localeDropdownOpen && (
                   <div
-                    data-testid="language-dropdown"
-                    style={{
-                      position: "absolute", top: "100%", right: 0, marginTop: 4,
-                      background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.2)", overflow: "hidden", zIndex: 100,
-                      minWidth: 120,
-                    }}
+                  data-testid="language-dropdown"
+                  style={{
+                    position: "absolute", top: "100%", right: 0, marginTop: 4,
+                    background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.2)", overflow: "hidden", zIndex: 100,
+                    minWidth: 120,
+                  }}
                   >
                     {i18n.locales.map(locale => {
                       const isActive = locale === (currentLocale || i18n.defaultLocale);
                       const displayName = i18n.localeNames?.[locale] || locale;
-
+                      
                       // Compute the target URL: switch locale but keep the same page
                       const activeLocale = currentLocale || i18n.defaultLocale;
                       // Get the base page path (strip locale prefix from current page ID)
@@ -1061,24 +1292,24 @@ export function Shell({
                         basePageId = currentPageId.slice(activeLocale.length + 1);
                       }
                       const targetId = locale === i18n.defaultLocale
-                        ? basePageId
-                        : `${locale}/${basePageId}`;
-
+                      ? basePageId
+                      : `${locale}/${basePageId}`;
+                      
                       return (
                         <button
-                          key={locale}
-                          onClick={() => {
-                            setLocaleDropdown(false);
-                            onNavigate(targetId);
-                          }}
-                          style={{
-                            display: "block", width: "100%", textAlign: "left",
-                            background: isActive ? "var(--acD)" : "none",
-                            border: "none", padding: "8px 14px", cursor: "pointer",
-                            color: isActive ? "var(--ac)" : "var(--tx2)",
-                            fontSize: 12, fontFamily: "var(--font-body)",
-                            fontWeight: isActive ? 600 : 400,
-                          }}
+                        key={locale}
+                        onClick={() => {
+                          setLocaleDropdown(false);
+                          onNavigate(targetId);
+                        }}
+                        style={{
+                          display: "block", width: "100%", textAlign: "left",
+                          background: isActive ? "var(--acD)" : "none",
+                          border: "none", padding: "8px 14px", cursor: "pointer",
+                          color: isActive ? "var(--ac)" : "var(--tx2)",
+                          fontSize: 12, fontFamily: "var(--font-body)",
+                          fontWeight: isActive ? 600 : 400,
+                        }}
                         >
                           {displayName}
                         </button>
@@ -1132,7 +1363,7 @@ export function Shell({
                           onClick={(e: React.MouseEvent) => {
                             e.preventDefault();
                             // Find the page id for this href
-                            const page = navigation.flatMap(s => s.pages).find(p => p.urlPath === crumb.href);
+                            const page = flattenNavigationPages(navigation).find(p => p.urlPath === crumb.href);
                             if (page) onNavigate(page.id);
                           }}
                           style={{ color: "var(--tx2)", textDecoration: "none", cursor: "pointer" }}
