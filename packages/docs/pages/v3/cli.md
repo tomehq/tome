@@ -128,6 +128,19 @@ Initialize an Algolia DocSearch index. Prompts for credentials and creates a cra
 
 ---
 
+### `tome typedoc <files...>`
+
+Generate API reference documentation from TypeScript source files.
+
+```bash
+tome typedoc src/index.ts
+tome typedoc src/index.ts src/utils.ts
+```
+
+Parses exported functions, interfaces, and type aliases using the TypeScript compiler API. Generates a Markdown page per export with signatures, parameters, return types, and JSDoc descriptions.
+
+---
+
 ### `tome mcp`
 
 Start the MCP (Model Context Protocol) stdio server for AI tool integration. Exposes documentation content as MCP resources and tools.

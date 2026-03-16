@@ -167,7 +167,7 @@ Add social media icons to the site header. Each entry specifies a platform and U
 socialLinks: [
   { platform: "github", url: "https://github.com/my-org/my-repo" },
   { platform: "discord", url: "https://discord.gg/my-server" },
-  { platform: "twitter", url: "https://twitter.com/my-handle" },
+  { platform: "twitter", url: "https://x.com/my-handle" },
   { platform: "custom", url: "https://mastodon.social/@me", icon: "mastodon" },
 ]
 ```
