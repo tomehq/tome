@@ -582,6 +582,7 @@ export interface EndpointCardProps {
 
 export function EndpointCard({ endpoint, baseUrl, defaultExpanded = false, showPlayground, playgroundAuth }: EndpointCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const endpointId = (endpoint.operationId || `${endpoint.method}-${endpoint.path}`).toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const hasDetails =
     endpoint.parameters.length > 0 ||
@@ -590,11 +591,13 @@ export function EndpointCard({ endpoint, baseUrl, defaultExpanded = false, showP
 
   return (
     <div
+      id={endpointId}
       style={{
         border: "1px solid var(--bd)",
         borderRadius: 8,
         marginBottom: 12,
         overflow: "hidden",
+        scrollMarginTop: 24,
       }}
     >
       {/* Header — always visible */}
@@ -753,9 +756,11 @@ export function EndpointCard({ endpoint, baseUrl, defaultExpanded = false, showP
 export interface ApiReferenceProps {
   manifest: ApiManifest;
   baseUrl?: string;
+  showPlayground?: boolean;
+  playgroundAuth?: ApiPlaygroundProps["auth"];
 }
 
-export function ApiReference({ manifest, baseUrl }: ApiReferenceProps) {
+export function ApiReference({ manifest, baseUrl, showPlayground, playgroundAuth }: ApiReferenceProps) {
   const effectiveBaseUrl =
     baseUrl || (manifest.servers.length > 0 ? manifest.servers[0].url : "https://api.example.com");
 
@@ -799,54 +804,68 @@ export function ApiReference({ manifest, baseUrl }: ApiReferenceProps) {
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--txM)", marginBottom: 12, letterSpacing: "0.05em" }}>
           Endpoints
         </div>
-        {orderedTags.map((tag) => (
-          <div key={tag} style={{ marginBottom: 14 }}>
-            <a
-              href={`#${tag.toLowerCase().replace(/\s+/g, "-")}`}
-              style={{
-                display: "block",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--tx)",
-                textDecoration: "none",
-                marginBottom: 4,
-              }}
-            >
-              {tag}
-            </a>
-            {(grouped.get(tag) || []).map((ep) => (
+        {orderedTags.map((tag) => {
+          const tagId = tag.toLowerCase().replace(/\s+/g, "-");
+          return (
+            <div key={tag} style={{ marginBottom: 14 }}>
               <a
-                key={`${ep.method}-${ep.path}`}
-                href={`#${(ep.operationId || `${ep.method}-${ep.path}`).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                href={`#${tagId}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(tagId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 12,
-                  color: "var(--tx2)",
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--tx)",
                   textDecoration: "none",
-                  padding: "3px 0",
+                  marginBottom: 4,
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    fontFamily: "var(--font-code, monospace)",
-                    color: methodColors[ep.method] || "#6b7280",
-                    width: 36,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {ep.method}
-                </span>
-                <span style={{ fontFamily: "var(--font-code, monospace)" }}>
-                  {ep.path}
-                </span>
+                {tag}
               </a>
-            ))}
-          </div>
-        ))}
+              {(grouped.get(tag) || []).map((ep) => {
+                const epId = (ep.operationId || `${ep.method}-${ep.path}`).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                return (
+                  <a
+                    key={`${ep.method}-${ep.path}`}
+                    href={`#${epId}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById(epId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontSize: 12,
+                      color: "var(--tx2)",
+                      textDecoration: "none",
+                      padding: "3px 0",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        fontFamily: "var(--font-code, monospace)",
+                        color: methodColors[ep.method] || "#6b7280",
+                        width: 36,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {ep.method}
+                    </span>
+                    <span style={{ fontFamily: "var(--font-code, monospace)" }}>
+                      {ep.path}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          );
+        })}
       </nav>
 
       {/* Main content */}
@@ -907,6 +926,8 @@ export function ApiReference({ manifest, baseUrl }: ApiReferenceProps) {
                 key={`${ep.method}-${ep.path}`}
                 endpoint={ep}
                 baseUrl={effectiveBaseUrl}
+                showPlayground={showPlayground}
+                playgroundAuth={playgroundAuth}
               />
             ))}
           </section>

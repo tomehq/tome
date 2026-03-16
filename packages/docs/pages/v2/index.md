@@ -45,7 +45,7 @@ cd my-docs && npm install && npm run dev
 
 ## Learn more
 
-- **[Quickstart](#quickstart)** — Get a docs site running in under a minute.
-- **[Installation](#installation)** — Detailed setup instructions and prerequisites.
-- **[Configuration](#configuration)** — Customize your site name, navigation, theme, and more.
-- **[CLI Reference](#cli)** — Every command and flag available in the `tome` CLI.
+- **[Quickstart](./quickstart)** — Get a docs site running in under a minute.
+- **[Installation](./installation)** — Detailed setup instructions and prerequisites.
+- **[Configuration](./configuration)** — Customize your site name, navigation, theme, and more.
+- **[CLI Reference](./cli)** — Every command and flag available in the `tome` CLI.

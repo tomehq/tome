@@ -36,17 +36,7 @@ export default defineConfig({
           setupFiles: [resolve(root("components"), "src/test-setup.ts")],
         },
       },
-      {
-        extends: true,
-        test: {
-          name: "theme",
-          root: root("theme"),
-          environment: "jsdom",
-          globals: true,
-          include: ["src/**/*.test.tsx", "src/**/*.test.ts"],
-          setupFiles: [resolve(root("theme"), "src/test-setup.ts")],
-        },
-      },
+      resolve(root("theme"), "vitest.config.ts"),
       {
         extends: true,
         test: {

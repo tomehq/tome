@@ -611,3 +611,65 @@ describe("buildNavigation with badges", () => {
     expect(nav[0].pages[0].badge).toEqual({ text: "New", variant: "default" });
   });
 });
+
+// ── buildNavigation with remote/content-source pages ─────
+
+describe("buildNavigation with remote pages", () => {
+  it("appends remote pages not in explicit navigation under 'External' group", () => {
+    const routes = [
+      makeRoute({ id: "index", filePath: "index.md", urlPath: "/" }),
+      makeRoute({ id: "quickstart", filePath: "quickstart.md" }),
+      makeRoute({ id: "remote-guide", filePath: "__remote__/remote-guide.md", urlPath: "/remote-guide", frontmatter: { title: "Remote Guide" } }),
+    ];
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [{ group: "Start", pages: ["index", "quickstart"] }],
+    };
+    const nav = buildNavigation(routes, config);
+    expect(nav).toHaveLength(2);
+    expect(nav[0].section).toBe("Start");
+    expect(nav[0].pages).toHaveLength(2);
+    expect(nav[1].section).toBe("External");
+    expect(nav[1].pages).toHaveLength(1);
+    expect(nav[1].pages[0].id).toBe("remote-guide");
+  });
+
+  it("does not add External group when no remote pages exist", () => {
+    const routes = [
+      makeRoute({ id: "index", filePath: "index.md", urlPath: "/" }),
+    ];
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [{ group: "Docs", pages: ["index"] }],
+    };
+    const nav = buildNavigation(routes, config);
+    expect(nav).toHaveLength(1);
+    expect(nav[0].section).toBe("Docs");
+  });
+
+  it("excludes hidden remote pages from External group", () => {
+    const routes = [
+      makeRoute({ id: "index", filePath: "index.md", urlPath: "/" }),
+      makeRoute({ id: "hidden-remote", filePath: "__remote__/hidden-remote.md", urlPath: "/hidden-remote", frontmatter: { title: "Hidden", hidden: true } }),
+    ];
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [{ group: "Docs", pages: ["index"] }],
+    };
+    const nav = buildNavigation(routes, config);
+    expect(nav).toHaveLength(1); // No External group since hidden
+  });
+
+  it("includes remote pages in auto-generated navigation without separate group", () => {
+    const routes = [
+      makeRoute({ id: "index", filePath: "index.md", urlPath: "/" }),
+      makeRoute({ id: "remote-page", filePath: "__remote__/remote-page.md", urlPath: "/remote-page", frontmatter: { title: "Remote Page" } }),
+    ];
+    // No explicit navigation — auto-generate
+    const nav = buildNavigation(routes, emptyConfig);
+    // Both should be in the same auto-generated group
+    const allIds = nav.flatMap((g) => g.pages.map((p) => p.id));
+    expect(allIds).toContain("index");
+    expect(allIds).toContain("remote-page");
+  });
+});

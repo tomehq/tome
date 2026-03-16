@@ -37,6 +37,7 @@ import {
   CodeSamples,
   LinkCard,
   CardGrid,
+  ApiReference,
 } from "@tomehq/components";
 
 const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -549,6 +550,11 @@ function App() {
         editUrl={editUrl}
         lastUpdated={currentRoute?.lastUpdated}
         changelogEntries={!pageData?.isMdx ? pageData?.changelogEntries : undefined}
+        apiManifest={(!pageData?.isMdx && pageData?.isApiReference) ? pageData.apiManifest : undefined}
+        apiBaseUrl={config.api?.baseUrl}
+        apiPlayground={config.api?.playground}
+        apiAuth={config.api?.auth}
+        ApiReferenceComponent={ApiReference}
         onNavigate={navigateTo}
         allPages={allPages}
         docContext={docContext}

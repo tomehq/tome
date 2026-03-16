@@ -304,7 +304,12 @@ export function buildNavigation(
 ): NavigationGroup[] {
   // If config has explicit navigation, use it to order pages
   if (config.navigation && config.navigation.length > 0) {
-    return config.navigation.map((group) => ({
+    // Collect IDs referenced in explicit navigation
+    const explicitIds = new Set(
+      config.navigation.flatMap((g) => g.pages as string[])
+    );
+
+    const groups = config.navigation.map((group) => ({
       section: group.group,
       pages: (group.pages as string[])
         .map((pageId) => {
@@ -322,6 +327,31 @@ export function buildNavigation(
         })
         .filter(Boolean) as NavigationItem[],
     }));
+
+    // Append remote/content-source pages not listed in explicit navigation.
+    // These come from githubSource, notionSource, etc. and won't be in the
+    // user's config.navigation — group them under "External" by default.
+    const remotePagesNotInNav = routes.filter(
+      (r) =>
+        !explicitIds.has(r.id) &&
+        !r.frontmatter.hidden &&
+        r.filePath.startsWith("__remote__/")
+    );
+
+    if (remotePagesNotInNav.length > 0) {
+      groups.push({
+        section: "External",
+        pages: remotePagesNotInNav.map((r) => ({
+          title: r.frontmatter.sidebarTitle || r.frontmatter.title,
+          id: r.id,
+          urlPath: r.urlPath,
+          icon: r.frontmatter.icon,
+          badge: normalizeBadge(r.frontmatter.badge),
+        })),
+      });
+    }
+
+    return groups;
   }
 
   // Fallback: auto-generate navigation from file structure

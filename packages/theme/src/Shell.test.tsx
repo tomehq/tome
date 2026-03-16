@@ -1052,3 +1052,225 @@ describe("Shell RTL support", () => {
     ).not.toThrow();
   });
 });
+
+// ── API Reference (TOM-19) ──────────────────────────────
+
+describe("Shell API reference rendering", () => {
+  const mockManifest = {
+    title: "Test API",
+    version: "1.0.0",
+    servers: [{ url: "https://api.example.com" }],
+    tags: [{ name: "Users", description: "User management" }],
+    endpoints: [
+      {
+        method: "GET",
+        path: "/users",
+        summary: "List all users",
+        tags: ["Users"],
+        parameters: [],
+        responses: [{ status: "200", description: "OK" }],
+      },
+    ],
+  };
+
+  function MockApiRef({ manifest, baseUrl, showPlayground, playgroundAuth }: { manifest: any; baseUrl?: string; showPlayground?: boolean; playgroundAuth?: { type: string; header?: string } }) {
+    return (
+      <div data-testid="api-reference">
+        <span data-testid="api-title">{manifest.title}</span>
+        {baseUrl && <span data-testid="api-base-url">{baseUrl}</span>}
+        {showPlayground && <span data-testid="api-playground">playground-enabled</span>}
+        {playgroundAuth && <span data-testid="api-auth">{playgroundAuth.type}</span>}
+      </div>
+    );
+  }
+
+  it("renders ApiReferenceComponent when both apiManifest and component are provided", () => {
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      pageHtml: undefined,
+    });
+    expect(screen.getByTestId("api-reference")).toBeInTheDocument();
+    expect(screen.getByTestId("api-title")).toHaveTextContent("Test API");
+  });
+
+  it("passes baseUrl to ApiReferenceComponent", () => {
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      apiBaseUrl: "https://api.example.com",
+      pageHtml: undefined,
+    });
+    expect(screen.getByTestId("api-base-url")).toHaveTextContent("https://api.example.com");
+  });
+
+  it("does not render API reference when only apiManifest is provided (no component)", () => {
+    renderShell({
+      apiManifest: mockManifest,
+      pageHtml: "<p>Fallback content</p>",
+    });
+    expect(screen.queryByTestId("api-reference")).not.toBeInTheDocument();
+  });
+
+  it("does not render API reference when only component is provided (no manifest)", () => {
+    renderShell({
+      ApiReferenceComponent: MockApiRef,
+      pageHtml: "<p>Fallback content</p>",
+    });
+    expect(screen.queryByTestId("api-reference")).not.toBeInTheDocument();
+  });
+
+  it("falls back to pageHtml when no apiManifest", () => {
+    const { container } = renderShell({
+      pageHtml: "<p>Regular page content</p>",
+    });
+    expect(container.querySelector(".tome-content")).toBeInTheDocument();
+    expect(screen.queryByTestId("api-reference")).not.toBeInTheDocument();
+  });
+
+  it("API reference takes precedence over changelog entries", () => {
+    const changelogEntries = [
+      { version: "1.0.0", sections: [{ type: "Added", items: ["Feature"] }] },
+    ];
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      changelogEntries,
+      pageHtml: undefined,
+    });
+    // API reference should render, not changelog
+    expect(screen.getByTestId("api-reference")).toBeInTheDocument();
+    expect(screen.queryByTestId("changelog-timeline")).not.toBeInTheDocument();
+  });
+
+  it("API reference takes precedence over pageComponent", () => {
+    const PageComp = () => <div data-testid="page-comp">MDX content</div>;
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      pageComponent: PageComp,
+      pageHtml: undefined,
+    });
+    expect(screen.getByTestId("api-reference")).toBeInTheDocument();
+    expect(screen.queryByTestId("page-comp")).not.toBeInTheDocument();
+  });
+
+  it("passes showPlayground prop to ApiReferenceComponent", () => {
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      apiPlayground: true,
+      pageHtml: undefined,
+    });
+    expect(screen.getByTestId("api-playground")).toHaveTextContent("playground-enabled");
+  });
+
+  it("passes playgroundAuth prop to ApiReferenceComponent", () => {
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      apiPlayground: true,
+      apiAuth: { type: "bearer" },
+      pageHtml: undefined,
+    });
+    expect(screen.getByTestId("api-auth")).toHaveTextContent("bearer");
+  });
+
+  it("does not pass playground props when not provided", () => {
+    renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      pageHtml: undefined,
+    });
+    expect(screen.getByTestId("api-reference")).toBeInTheDocument();
+    expect(screen.queryByTestId("api-playground")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("api-auth")).not.toBeInTheDocument();
+  });
+});
+
+// ── Content link interception ───────────────────────────────
+
+describe("Content link interception", () => {
+  it("intercepts internal bare page ID links and calls onNavigate", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      pageHtml: '<p><a href="quickstart">Go to quickstart</a></p>',
+    });
+    const link = screen.getByText("Go to quickstart");
+    fireEvent.click(link);
+    expect(onNavigate).toHaveBeenCalledWith("quickstart");
+  });
+
+  it("intercepts ./relative links and strips the prefix", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      pageHtml: '<p><a href="./installation">Install</a></p>',
+    });
+    fireEvent.click(screen.getByText("Install"));
+    expect(onNavigate).toHaveBeenCalledWith("installation");
+  });
+
+  it("does not intercept external http links", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      pageHtml: '<p><a href="https://example.com">External</a></p>',
+    });
+    fireEvent.click(screen.getByText("External"));
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("does not intercept mailto links", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      pageHtml: '<p><a href="mailto:test@example.com">Email</a></p>',
+    });
+    fireEvent.click(screen.getByText("Email"));
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("does not intercept pure anchor links", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      pageHtml: '<p><a href="#section-1">Jump to section</a></p>',
+    });
+    fireEvent.click(screen.getByText("Jump to section"));
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("strips basePath prefix from links", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      basePath: "/docs/",
+      pageHtml: '<p><a href="/docs/quickstart">Go</a></p>',
+    });
+    fireEvent.click(screen.getByText("Go"));
+    expect(onNavigate).toHaveBeenCalledWith("quickstart");
+  });
+
+  it("resolves basePath-only link to index", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      basePath: "/docs/",
+      pageHtml: '<p><a href="/docs/">Home</a></p>',
+    });
+    fireEvent.click(screen.getByText("Home"));
+    expect(onNavigate).toHaveBeenCalledWith("index");
+  });
+
+  it("resolves empty path to index", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      onNavigate,
+      pageHtml: '<p><a href="./">Home</a></p>',
+    });
+    fireEvent.click(screen.getByText("Home"));
+    expect(onNavigate).toHaveBeenCalledWith("index");
+  });
+});
