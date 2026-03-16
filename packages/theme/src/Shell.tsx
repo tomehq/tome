@@ -669,7 +669,7 @@ export function Shell({
   const bannerIsInternal = bannerLink ? (bannerLink.startsWith("#") || (basePath && bannerLink.startsWith(basePath + "/"))) : false;
 
   return (
-    <div dir={dir} className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", minHeight: "100vh", overflow: "hidden" }}>
+    <div dir={dir} className="tome-grain" style={{ ...cssVars as React.CSSProperties, color: "var(--tx)", background: "var(--bg)", fontFamily: "var(--font-body)", height: "100vh", overflow: "hidden" }}>
       {/* Banner */}
       {config.banner?.text && !bannerDismissed && (
         <div style={{
