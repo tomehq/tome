@@ -26,21 +26,21 @@ type NavigationTab = {
   pages: Array<string | NavigationGroup>;
 };
 
-export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.lazy(() => z.object({
+export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.object({
   group: z.string(),
   pages: z.array(z.union([
     z.string(),
     z.lazy(() => NavigationGroupSchema),
   ])),
-}));
+});
 
-export const NavigationTabSchema: z.ZodType<NavigationTab> = z.lazy(() => z.object({
+export const NavigationTabSchema: z.ZodType<NavigationTab> = z.object({
   tab: z.string(),
   pages: z.array(z.union([
     z.string(),
     z.lazy(() => NavigationGroupSchema),
   ])),
-}));
+});
 
 // ── CONFIG NAVIGATION ────────────────────────────────────────
 export const NavigationSchema = z.union([
