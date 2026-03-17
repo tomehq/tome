@@ -361,6 +361,16 @@ function buildMenu(
   };
 }
 
+type TreeNode<T> = T | { pages: TreeNode<T>[] };
+
+function flatten<T>(nodes: TreeNode<T>[]): T[] {
+  return nodes.flatMap((node) =>
+    node && (typeof node === "object") && "pages" in node
+      ? flatten(node.pages)
+      : [node]
+  );
+}
+
 export function buildNavigation(
   routes: PageRoute[],
   config: TomeConfig
@@ -369,7 +379,7 @@ export function buildNavigation(
   if (config.navigation && config.navigation.length > 0) {
     // Collect IDs referenced in explicit navigation
     const explicitIds = new Set(
-      config.navigation.flatMap((g) => g.pages as string[])
+      flatten<string>(config.navigation)
     );
 
     const menus = config.navigation.map((node) =>
@@ -434,23 +444,12 @@ export function buildNavigation(
   }));
 }
 
-function flatten(navigation: Navigation): NavigationItem[] {
-  if (navigation.length === 0) return [];
-
-  const walk = (
-    nodes: Array<NavigationItem | NavigationGroup | NavigationTab>
-  ): NavigationItem[] =>
-    nodes.flatMap((n) => ("menuType" in n ? walk(n.pages) : [n]));
-
-  return walk(navigation);
-}
-
 // ── PREV/NEXT HELPERS ────────────────────────────────────
 export function getPrevNext(
   navigation: Navigation,
   currentId: string
 ): { prev: NavigationItem | null; next: NavigationItem | null } {
-  const allPages = flatten(navigation);
+  const allPages = flatten<NavigationItem>(navigation);
   const idx = allPages.findIndex((p) => p.id === currentId);
 
   if (idx === -1) return { prev: null, next: null };
