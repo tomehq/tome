@@ -247,6 +247,61 @@ describe("migrateFromMintlify", () => {
     expect(existsSync(join(out, "pages"))).toBe(false);
   });
 
+  it("reads docs.json when present (Mintlify new format)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "mint-docs-json-"));
+    writeFileSync(
+      join(dir, "docs.json"),
+      JSON.stringify({
+        name: "Docs JSON Project",
+        colors: { primary: "#FF6600" },
+        navigation: [{ group: "Guide", pages: ["intro"] }],
+      }),
+    );
+    writeFileSync(
+      join(dir, "intro.mdx"),
+      "---\ntitle: Introduction\n---\n<Note>Hello</Note>\n",
+    );
+    const out = mkdtempSync(join(tmpdir(), "tome-out-"));
+
+    const result = await migrateFromMintlify(dir, out);
+
+    expect(result.pages).toBe(1);
+    expect(existsSync(join(out, "tome.config.js"))).toBe(true);
+    const configContent = readFileSync(join(out, "tome.config.js"), "utf-8");
+    expect(configContent).toContain('"name": "Docs JSON Project"');
+    expect(configContent).toContain('"accent": "#FF6600"');
+  });
+
+  it("prefers docs.json over mint.json when both exist", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "mint-both-"));
+    writeFileSync(
+      join(dir, "docs.json"),
+      JSON.stringify({
+        name: "From docs.json",
+        navigation: [{ group: "Guide", pages: ["intro"] }],
+      }),
+    );
+    writeFileSync(
+      join(dir, "mint.json"),
+      JSON.stringify({
+        name: "From mint.json",
+        navigation: [{ group: "Guide", pages: ["intro"] }],
+      }),
+    );
+    writeFileSync(
+      join(dir, "intro.mdx"),
+      "---\ntitle: Introduction\n---\nHello\n",
+    );
+    const out = mkdtempSync(join(tmpdir(), "tome-out-"));
+
+    const result = await migrateFromMintlify(dir, out);
+
+    expect(result.pages).toBe(1);
+    const configContent = readFileSync(join(out, "tome.config.js"), "utf-8");
+    expect(configContent).toContain('"name": "From docs.json"');
+    expect(configContent).not.toContain('"name": "From mint.json"');
+  });
+
   it("full run creates pages/ directory and tome.config.js", async () => {
     const src = createMintProject();
     const out = mkdtempSync(join(tmpdir(), "tome-out-"));

@@ -55,16 +55,18 @@ npx @tomehq/cli migrate gitbook ./gitbook-docs --dry-run
 npx @tomehq/cli migrate mintlify ./path-to-mintlify-project
 ```
 
+Both `docs.json` (Mintlify's current config format) and `mint.json` (deprecated) are supported. The migration tool automatically detects which file is present, preferring `docs.json` if both exist.
+
 ### What gets converted
 
 | Mintlify | Tome |
 |----------|------|
-| `mint.json` navigation | `tome.config.js` navigation array |
-| `mint.json` colors | `tome.config.js` theme accent |
-| `mint.json` logo / favicon | `tome.config.js` logo / favicon |
-| `mint.json` topbar links | `tome.config.js` topNav |
-| `mint.json` redirects | `tome.config.js` redirects |
-| `mint.json` openapi | `tome.config.js` api.spec |
+| `docs.json` / `mint.json` navigation | `tome.config.js` navigation array |
+| `docs.json` / `mint.json` colors | `tome.config.js` theme accent |
+| `docs.json` / `mint.json` logo / favicon | `tome.config.js` logo / favicon |
+| `docs.json` / `mint.json` topbar links | `tome.config.js` topNav |
+| `docs.json` / `mint.json` redirects | `tome.config.js` redirects |
+| `docs.json` / `mint.json` openapi | `tome.config.js` api.spec |
 | `<Note>` / `<Info>` | `<Callout type="info">` |
 | `<Warning>` | `<Callout type="warning">` |
 | `<Tip>` / `<Check>` | `<Callout type="tip">` |
