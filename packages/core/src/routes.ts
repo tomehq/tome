@@ -61,6 +61,7 @@ export interface NavigationTab {
   pages: (NavigationItem | NavigationGroup)[];
 }
 
+export type NavigationNode<T> = T | { pages: NavigationNode<T>[] };
 export type Navigation = (NavigationGroup | NavigationTab)[];
 
 // ── VERSIONING CONFIG TYPE ────────────────────────────────
@@ -307,24 +308,10 @@ export async function discoverPages(
 }
 
 // ── NAVIGATION BUILDER ───────────────────────────────────
-function normalizePageKey(value: string) {
-  return value
-    .replace(/\\/g, "/")
-    .replace(/^\/+/, "")
-    .replace(/\.(md|mdx)$/, "")
-    .replace(/\/?index$/, "") || "index";
-}
-
 function buildPage(pageId: string, routes: PageRoute[]) {
-  const normalizedPageId = normalizePageKey(pageId);
-  const route = routes.find((r) => {
-    const routeKeys = new Set([
-      normalizePageKey(r.id),
-      normalizePageKey(r.filePath),
-      normalizePageKey(r.urlPath),
-    ]);
-    return routeKeys.has(normalizedPageId);
-  });
+  const route = routes.find(
+    (r) => r.id === pageId || r.filePath.replace(/\.(md|mdx)$/, "") === pageId
+  );
   if (!route || route.frontmatter.hidden) return null;
 
   return {
@@ -361,9 +348,7 @@ function buildMenu(
   };
 }
 
-type TreeNode<T> = T | { pages: TreeNode<T>[] };
-
-function flatten<T>(nodes: TreeNode<T>[]): T[] {
+function flatten<T>(nodes: NavigationNode<T>[]): T[] {
   return nodes.flatMap((node) =>
     node && (typeof node === "object") && "pages" in node
       ? flatten(node.pages)
