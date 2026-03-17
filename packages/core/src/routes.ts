@@ -49,20 +49,23 @@ export interface NavigationItem {
   badge?: Badge;
 }
 
-export interface NavigationGroup {
-  menuType: "group";
+export type NavigationTree<T> = T | { pages: NavigationTree<T>[] };
+
+export interface NavigationMenuMetadata<T extends "group" | "tab"> {
+  menuType: T;
   section: string;
+}
+
+export interface NavigationGroup extends NavigationMenuMetadata<"group"> {
   pages: (NavigationItem | NavigationGroup)[];
 }
 
-export interface NavigationTab {
-  menuType: "tab";
-  section: string;
+export interface NavigationTab extends NavigationMenuMetadata<"tab"> {
   pages: (NavigationItem | NavigationGroup)[];
 }
 
-export type NavigationNode<T> = T | { pages: NavigationNode<T>[] };
-export type Navigation = (NavigationGroup | NavigationTab)[];
+export type NavigationMenu = NavigationGroup | NavigationTab;
+export type Navigation = NavigationMenu[];
 
 // ── VERSIONING CONFIG TYPE ────────────────────────────────
 export interface VersioningConfig {
@@ -323,19 +326,29 @@ function buildPage(pageId: string, routes: PageRoute[]) {
   };
 }
 
-function isGroup(
-  menu: TomeConfig["navigation"][number],
-): menu is Extract<TomeConfig["navigation"][number], { group: string }> {
-  return "group" in menu;
+function getMenuMetadata(
+  menu: TomeConfig["navigation"][number]
+): NavigationMenuMetadata<"group" | "tab"> {
+  if ("group" in menu) {
+    return { menuType: "group", section: menu.group };
+  }
+
+  if ("tab" in menu) {
+    return { menuType: "tab", section: menu.tab };
+  }
+
+  throw new Error("Unsupported navigation menu type");
 }
 
 function buildMenu(
   menu: TomeConfig["navigation"][number],
   routes: PageRoute[]
 ): Navigation[number] {
+  const { menuType, section } = getMenuMetadata(menu);
+
   return {
-    menuType: isGroup(menu) ? "group" : "tab",
-    section: isGroup(menu) ? menu.group : menu.tab,
+    menuType,
+    section,
     pages: menu.pages
       .map((page) => {
         if (typeof page !== "string") {
@@ -348,7 +361,7 @@ function buildMenu(
   };
 }
 
-function flatten<T>(nodes: NavigationNode<T>[]): T[] {
+function flatten<T>(nodes: NavigationTree<T>[]): T[] {
   return nodes.flatMap((node) =>
     node && (typeof node === "object") && "pages" in node
       ? flatten(node.pages)
