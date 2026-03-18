@@ -37,7 +37,7 @@ The config file (`tome.config.js`, `.mjs`, or `.ts`) is validated at startup. In
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `preset` | `"amber" \| "editorial"` | `"amber"` | Base theme preset |
+| `preset` | `"amber" \| "editorial" \| "cipher" \| "mint"` | `"amber"` | Base theme preset |
 | `accent` | `string` | — | Custom accent color (hex, e.g., `"#ff6b4a"`) |
 | `mode` | `"light" \| "dark" \| "auto"` | `"auto"` | Color mode |
 | `fonts.heading` | `string` | — | Heading font family |

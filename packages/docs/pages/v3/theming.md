@@ -4,7 +4,7 @@ description: Customize the look of your Tome site — presets, colors, fonts, da
 icon: palette
 ---
 
-Tome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.
+Tome ships with four theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.
 
 ## Presets
 
@@ -20,11 +20,31 @@ theme: {
 
 ### Editorial
 
-Swiss poster-inspired design with a brutalist edge. Coral accent color, grotesque typography.
+Swiss poster-inspired design with a coral accent, grotesque typography, and deep navy dark mode.
 
 ```javascript
 theme: {
   preset: "editorial",
+}
+```
+
+### Cipher
+
+Cyberpunk aesthetic with acid yellow-green text, vibrant blue accents, and high-contrast serif display headings.
+
+```javascript
+theme: {
+  preset: "cipher",
+}
+```
+
+### Mint
+
+Mintlify-inspired design with emerald green accents, Inter typography, and a clean SaaS-docs feel.
+
+```javascript
+theme: {
+  preset: "mint",
 }
 ```
 
@@ -47,13 +67,13 @@ Control the color scheme:
 
 ```javascript
 theme: {
-  mode: "auto",   // Follows system preference
+  mode: "auto",   // Follows system preference (default)
   // mode: "light",  // Always light
   // mode: "dark",   // Always dark
 }
 ```
 
-When set to `auto`, a theme toggle appears in the header.
+When set to `auto`, a theme toggle appears in the sidebar. The default fallback is light mode when system preference is unavailable.
 
 ## Custom fonts
 
@@ -90,7 +110,7 @@ For fine-grained control, override CSS variables directly. Add a `<style>` block
   :root {
     --ac: #2563eb;      /* Accent */
     --acD: #dbeafe;     /* Accent dim */
-    --acT: #1e40af;     /* Accent dark */
+    --acT: #1e40af;     /* Accent hover */
     --bg: #ffffff;      /* Background */
     --sf: #f8f8f6;      /* Surface */
     --sfH: #f0efe8;     /* Surface hover */
@@ -103,13 +123,6 @@ For fine-grained control, override CSS variables directly. Add a `<style>` block
     --sbBg: #fafaf8;    /* Sidebar background */
     --hdBg: #ffffff;    /* Header background */
   }
-
-  html.dark {
-    --bg: #1a1a1a;
-    --sf: #222;
-    --tx: #e5e5e5;
-    /* ... dark mode overrides */
-  }
 </style>
 ```
 
@@ -118,8 +131,8 @@ For fine-grained control, override CSS variables directly. Add a `<style>` block
 | Variable | Purpose |
 |----------|---------|
 | `--ac` | Accent color (links, highlights) |
-| `--acD` | Accent dim (callout backgrounds) |
-| `--acT` | Accent dark (hover states) |
+| `--acD` | Accent dim (callout backgrounds, subtle tints) |
+| `--acT` | Accent hover (transition state) |
 | `--bg` | Page background |
 | `--sf` / `--sfH` | Surface and surface hover |
 | `--tx` / `--tx2` / `--txM` | Text primary, secondary, muted |

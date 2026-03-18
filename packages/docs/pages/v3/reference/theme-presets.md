@@ -4,7 +4,7 @@ description: Detailed reference for Tome's built-in theme presets — color toke
 icon: swatches
 ---
 
-Tome ships with two theme presets. Each defines color tokens for dark and light modes plus font families.
+Tome ships with four theme presets. Each defines color tokens for dark and light modes plus font families. All presets are WCAG 2.1 AA compliant.
 
 ## Amber
 
@@ -14,31 +14,39 @@ The default preset. Warm, approachable tones with a golden accent.
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `--bg` | `#1a1a1a` | Page background |
-| `--sf` | `#242424` | Surface (cards, sidebar) |
-| `--sfH` | `#2e2e2e` | Surface hover |
-| `--bd` | `#333333` | Border |
-| `--tx` | `#e5e5e5` | Primary text |
-| `--tx2` | `#999999` | Secondary text |
-| `--txM` | `#666666` | Muted text |
+| `--bg` | `#09090b` | Page background |
+| `--sf` | `#111114` | Surface |
+| `--sfH` | `#18181c` | Surface hover |
+| `--bd` | `#1e1e24` | Border |
+| `--tx` | `#e4e4e7` | Primary text |
+| `--tx2` | `#a1a1aa` | Secondary text |
+| `--txM` | `#919199` | Muted text |
 | `--ac` | `#e8a845` | Accent |
-| `--acD` | `#d4922e` | Accent dark |
-| `--acT` | `#2a2318` | Accent tint |
+| `--acD` | `rgba(232,168,69,0.12)` | Accent dim |
+| `--acT` | `#fbbf24` | Accent hover |
+| `--cdBg` | `#0c0c0f` | Code background |
+| `--cdTx` | `#c4c4cc` | Code text |
+| `--sbBg` | `#0c0c0e` | Sidebar background |
+| `--hdBg` | `rgba(9,9,11,0.85)` | Header background |
 
 ### Light mode
 
 | Variable | Value | Description |
 |----------|-------|-------------|
 | `--bg` | `#fafaf9` | Page background |
-| `--sf` | `#f5f5f4` | Surface |
-| `--sfH` | `#e7e5e4` | Surface hover |
-| `--bd` | `#d6d3d1` | Border |
+| `--sf` | `#ffffff` | Surface |
+| `--sfH` | `#f5f5f4` | Surface hover |
+| `--bd` | `#e7e5e4` | Border |
 | `--tx` | `#1c1917` | Primary text |
 | `--tx2` | `#57534e` | Secondary text |
-| `--txM` | `#a8a29e` | Muted text |
-| `--ac` | `#d97706` | Accent |
-| `--acD` | `#b45309` | Accent dark |
-| `--acT` | `#fef3c7` | Accent tint |
+| `--txM` | `#706b66` | Muted text |
+| `--ac` | `#96640a` | Accent |
+| `--acD` | `rgba(150,100,10,0.08)` | Accent dim |
+| `--acT` | `#7a5208` | Accent hover |
+| `--cdBg` | `#f5f3f0` | Code background |
+| `--cdTx` | `#2c2520` | Code text |
+| `--sbBg` | `#f5f5f3` | Sidebar background |
+| `--hdBg` | `rgba(250,250,249,0.85)` | Header background |
 
 ### Fonts
 
@@ -52,37 +60,45 @@ The default preset. Warm, approachable tones with a golden accent.
 
 ## Editorial
 
-A refined, high-contrast preset inspired by Swiss poster design.
+A refined preset inspired by Swiss poster design. Deep navy dark mode with a coral accent.
 
 ### Dark mode
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `--bg` | `#0f0f0f` | Page background |
-| `--sf` | `#1a1a1a` | Surface |
-| `--sfH` | `#252525` | Surface hover |
-| `--bd` | `#2a2a2a` | Border |
-| `--tx` | `#f0f0f0` | Primary text |
-| `--tx2` | `#888888` | Secondary text |
-| `--txM` | `#555555` | Muted text |
+| `--bg` | `#080c1f` | Page background |
+| `--sf` | `#0e1333` | Surface |
+| `--sfH` | `#141940` | Surface hover |
+| `--bd` | `#1a2050` | Border |
+| `--tx` | `#e8e6f0` | Primary text |
+| `--tx2` | `#b5b1c8` | Secondary text |
+| `--txM` | `#9490ae` | Muted text |
 | `--ac` | `#ff6b4a` | Accent (coral) |
-| `--acD` | `#e85a3a` | Accent dark |
-| `--acT` | `#1f1512` | Accent tint |
+| `--acD` | `rgba(255,107,74,0.1)` | Accent dim |
+| `--acT` | `#ff8a70` | Accent hover |
+| `--cdBg` | `#0a0e27` | Code background |
+| `--cdTx` | `#b8b4cc` | Code text |
+| `--sbBg` | `#0a0e27` | Sidebar background |
+| `--hdBg` | `rgba(8,12,31,0.9)` | Header background |
 
 ### Light mode
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `--bg` | `#faf9f7` | Page background |
-| `--sf` | `#f2f0ed` | Surface |
-| `--sfH` | `#e8e5e1` | Surface hover |
-| `--bd` | `#d8d4cf` | Border |
-| `--tx` | `#1a1a1a` | Primary text |
-| `--tx2` | `#6b6560` | Secondary text |
-| `--txM` | `#a09890` | Muted text |
-| `--ac` | `#e85a3a` | Accent (coral) |
-| `--acD` | `#d04a2a` | Accent dark |
-| `--acT` | `#fef0ec` | Accent tint |
+| `--bg` | `#f6f4f0` | Page background |
+| `--sf` | `#ffffff` | Surface |
+| `--sfH` | `#eeece6` | Surface hover |
+| `--bd` | `#ddd9d0` | Border |
+| `--tx` | `#1a1716` | Primary text |
+| `--tx2` | `#4a443e` | Secondary text |
+| `--txM` | `#706960` | Muted text |
+| `--ac` | `#b83d22` | Accent (rust) |
+| `--acD` | `rgba(184,61,34,0.07)` | Accent dim |
+| `--acT` | `#9c3019` | Accent hover |
+| `--cdBg` | `#edeae4` | Code background |
+| `--cdTx` | `#3a3530` | Code text |
+| `--sbBg` | `#f0ede8` | Sidebar background |
+| `--hdBg` | `rgba(246,244,240,0.92)` | Header background |
 
 ### Fonts
 
@@ -94,15 +110,104 @@ A refined, high-contrast preset inspired by Swiss poster design.
 
 ---
 
-## Additional variables
+## Cipher
 
-Both presets also define:
+A cyberpunk aesthetic with acid yellow-green text and vibrant blue accents.
 
-| Variable | Description |
-|----------|-------------|
-| `--cdBg` | Code block background |
-| `--cdTx` | Code block text |
-| `--sbBg` | Sidebar background |
-| `--hdBg` | Header background |
+### Dark mode
 
-Override any variable in custom CSS to fine-tune the theme.
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#050508` | Page background |
+| `--sf` | `#0c0c12` | Surface |
+| `--sfH` | `#12121a` | Surface hover |
+| `--bd` | `#1a1a25` | Border |
+| `--tx` | `#d4ff00` | Primary text (acid yellow-green) |
+| `--tx2` | `#8a90a0` | Secondary text |
+| `--txM` | `#6a7080` | Muted text |
+| `--ac` | `#6666ff` | Accent (vibrant blue) |
+| `--acD` | `rgba(102,102,255,0.10)` | Accent dim |
+| `--acT` | `#8080ff` | Accent hover |
+| `--cdBg` | `#08080e` | Code background |
+| `--cdTx` | `#b0c870` | Code text |
+| `--sbBg` | `#08080d` | Sidebar background |
+| `--hdBg` | `rgba(5,5,8,0.88)` | Header background |
+
+### Light mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#f0f2f5` | Page background |
+| `--sf` | `#ffffff` | Surface |
+| `--sfH` | `#e8eaef` | Surface hover |
+| `--bd` | `#d0d4db` | Border |
+| `--tx` | `#0f1219` | Primary text |
+| `--tx2` | `#4a5060` | Secondary text |
+| `--txM` | `#6a7080` | Muted text |
+| `--ac` | `#2020cc` | Accent (deep blue) |
+| `--acD` | `rgba(32,32,204,0.08)` | Accent dim |
+| `--acT` | `#1a1aa8` | Accent hover |
+| `--cdBg` | `#e6e9ef` | Code background |
+| `--cdTx` | `#2a3520` | Code text |
+| `--sbBg` | `#ebedf2` | Sidebar background |
+| `--hdBg` | `rgba(240,242,245,0.90)` | Header background |
+
+### Fonts
+
+| Variable | Value |
+|----------|-------|
+| `--font-heading` | `'Bodoni Moda', serif` |
+| `--font-body` | `'Space Grotesk', sans-serif` |
+| `--font-code` | `'Source Code Pro', monospace` |
+
+---
+
+## Mint
+
+A Mintlify-inspired preset with emerald green accents and clean Inter typography.
+
+### Dark mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#0d1117` | Page background |
+| `--sf` | `#161b22` | Surface |
+| `--sfH` | `#1c2129` | Surface hover |
+| `--bd` | `#21262d` | Border |
+| `--tx` | `#e6edf3` | Primary text |
+| `--tx2` | `#8b949e` | Secondary text |
+| `--txM` | `#6e7681` | Muted text |
+| `--ac` | `#0ea371` | Accent (emerald green) |
+| `--acD` | `rgba(14,163,113,0.10)` | Accent dim |
+| `--acT` | `#2dd4a0` | Accent hover |
+| `--cdBg` | `#0a0e14` | Code background |
+| `--cdTx` | `#adbac7` | Code text |
+| `--sbBg` | `#0d1117` | Sidebar background |
+| `--hdBg` | `rgba(13,17,23,0.88)` | Header background |
+
+### Light mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#ffffff` | Page background |
+| `--sf` | `#f6f8fa` | Surface |
+| `--sfH` | `#eef1f5` | Surface hover |
+| `--bd` | `#d8dee4` | Border |
+| `--tx` | `#1f2328` | Primary text |
+| `--tx2` | `#59636e` | Secondary text |
+| `--txM` | `#6e7681` | Muted text |
+| `--ac` | `#0a7b53` | Accent (darker emerald) |
+| `--acD` | `rgba(10,123,83,0.07)` | Accent dim |
+| `--acT` | `#087a50` | Accent hover |
+| `--cdBg` | `#f0f3f6` | Code background |
+| `--cdTx` | `#24292f` | Code text |
+| `--sbBg` | `#f6f8fa` | Sidebar background |
+| `--hdBg` | `rgba(255,255,255,0.90)` | Header background |
+
+### Fonts
+
+| Variable | Value |
+|----------|-------|
+| `--font-heading` | `'Inter', sans-serif` |
+| `--font-body` | `'Inter', sans-serif` |
+| `--font-code` | `'Fira Code', monospace` |
