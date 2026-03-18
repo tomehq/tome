@@ -180,6 +180,18 @@ describe("Shell theme mode", () => {
     const buttons = footer?.querySelectorAll("button");
     expect(buttons?.length).toBeGreaterThan(0);
   });
+
+  it("defaults to light mode when mode is 'auto' and system preference is unavailable", () => {
+    const { container } = renderShell({
+      config: { ...baseConfig, theme: { preset: "amber", mode: "auto" } },
+    });
+    // matchMedia mock returns matches: false → light mode
+    // In light mode, the root container uses light theme background
+    const root = container.firstElementChild as HTMLElement;
+    const bg = root?.style.getPropertyValue("--bg");
+    // Amber light bg is #fafaf9 (not dark bg #09090b)
+    expect(bg).toBe("#fafaf9");
+  });
 });
 
 // ── TOC (TOM-52) ──────────────────────────────────────────
@@ -1210,6 +1222,24 @@ describe("Shell API reference rendering", () => {
     expect(screen.getByTestId("api-reference")).toBeInTheDocument();
     expect(screen.queryByTestId("api-playground")).not.toBeInTheDocument();
     expect(screen.queryByTestId("api-auth")).not.toBeInTheDocument();
+  });
+
+  it("uses wider max-width for API reference pages", () => {
+    const { container } = renderShell({
+      apiManifest: mockManifest,
+      ApiReferenceComponent: MockApiRef,
+      pageHtml: undefined,
+    });
+    const main = container.querySelector("main") as HTMLElement;
+    expect(main.style.maxWidth).toBe("1100px");
+  });
+
+  it("uses standard max-width for non-API pages", () => {
+    const { container } = renderShell({
+      pageHtml: "<p>Regular prose content</p>",
+    });
+    const main = container.querySelector("main") as HTMLElement;
+    expect(main.style.maxWidth).toBe("760px");
   });
 });
 

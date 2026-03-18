@@ -1212,7 +1212,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
 
 export function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
-  const [isDark, setDark] = useState(true);
+  const [isDark, setDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
   const [route, setRoute] = useState(window.location.pathname || `${BASE}/`);
 
   // Listen for popstate (back/forward + navigate() calls)

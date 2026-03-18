@@ -11,12 +11,14 @@ const TOKEN_KEYS = [
 
 const FONT_KEYS = ["heading", "body", "code"] as const;
 
-const PRESET_NAMES: PresetName[] = ["amber", "editorial"];
+const PRESET_NAMES: PresetName[] = ["amber", "editorial", "cipher", "mint"];
 
 describe("THEME_PRESETS", () => {
-  it("contains both amber and editorial presets", () => {
+  it("contains all presets", () => {
     expect(THEME_PRESETS).toHaveProperty("amber");
     expect(THEME_PRESETS).toHaveProperty("editorial");
+    expect(THEME_PRESETS).toHaveProperty("cipher");
+    expect(THEME_PRESETS).toHaveProperty("mint");
   });
 
   for (const name of PRESET_NAMES) {

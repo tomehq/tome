@@ -579,7 +579,7 @@ function Footer() {
 // ── App ─────────────────────────────────────────────────
 
 export function App() {
-  const [isDark, setDark] = useState(true);
+  const [isDark, setDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
   const theme = isDark ? THEMES.dark : THEMES.light;
   const toggle = () => setDark((d) => !d);
 

@@ -5,7 +5,7 @@ import { pathToFileURL } from "url";
 
 // ── CONFIG SCHEMA ────────────────────────────────────────
 export const ThemeSchema = z.object({
-  preset: z.enum(["amber", "editorial"]).default("amber"),
+  preset: z.enum(["amber", "editorial", "cipher", "mint"]).default("amber"),
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   mode: z.enum(["light", "dark", "auto"]).default("auto"),
   fonts: z.object({

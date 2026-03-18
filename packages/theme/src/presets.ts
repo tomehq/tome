@@ -46,6 +46,36 @@ export const THEME_PRESETS = {
     },
     fonts: { heading: "Cormorant Garamond", body: "Bricolage Grotesque", code: "Fira Code" },
   },
+  cipher: {
+    dark: {
+      bg:"#050508",sf:"#0c0c12",sfH:"#12121a",bd:"#1a1a25",
+      tx:"#d4ff00",tx2:"#8a90a0",txM:"#6a7080",
+      ac:"#6666ff",acD:"rgba(102,102,255,0.10)",acT:"#8080ff",
+      cdBg:"#08080e",cdTx:"#b0c870",sbBg:"#08080d",hdBg:"rgba(5,5,8,0.88)",
+    },
+    light: {
+      bg:"#f0f2f5",sf:"#ffffff",sfH:"#e8eaef",bd:"#d0d4db",
+      tx:"#0f1219",tx2:"#4a5060",txM:"#6a7080",
+      ac:"#2020cc",acD:"rgba(32,32,204,0.08)",acT:"#1a1aa8",
+      cdBg:"#e6e9ef",cdTx:"#2a3520",sbBg:"#ebedf2",hdBg:"rgba(240,242,245,0.90)",
+    },
+    fonts: { heading: "Bodoni Moda", body: "Space Grotesk", code: "Source Code Pro" },
+  },
+  mint: {
+    dark: {
+      bg:"#0d1117",sf:"#161b22",sfH:"#1c2129",bd:"#21262d",
+      tx:"#e6edf3",tx2:"#8b949e",txM:"#6e7681",
+      ac:"#0ea371",acD:"rgba(14,163,113,0.10)",acT:"#2dd4a0",
+      cdBg:"#0a0e14",cdTx:"#adbac7",sbBg:"#0d1117",hdBg:"rgba(13,17,23,0.88)",
+    },
+    light: {
+      bg:"#ffffff",sf:"#f6f8fa",sfH:"#eef1f5",bd:"#d8dee4",
+      tx:"#1f2328",tx2:"#59636e",txM:"#6e7681",
+      ac:"#0a7b53",acD:"rgba(10,123,83,0.07)",acT:"#087a50",
+      cdBg:"#f0f3f6",cdTx:"#24292f",sbBg:"#f6f8fa",hdBg:"rgba(255,255,255,0.90)",
+    },
+    fonts: { heading: "Inter", body: "Inter", code: "Fira Code" },
+  },
 } as const satisfies Record<string, ThemePreset>;
 
 export type PresetName = keyof typeof THEME_PRESETS;

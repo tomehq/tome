@@ -413,7 +413,7 @@ export function Shell({
   const [isDark, setDark] = useState(() => {
     if (themeMode === "dark") return true;
     if (themeMode === "light") return false;
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
 
   const [mobile, setMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
@@ -1127,7 +1127,7 @@ export function Shell({
 
           {/* Content + TOC */}
           <div ref={contentRef} style={{ flex: 1, overflow: "auto", display: "flex" }}>
-            <main style={{ flex: 1, maxWidth: mobile ? "100%" : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
+            <main style={{ flex: 1, maxWidth: mobile ? "100%" : apiManifest ? 1100 : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
               {breadcrumbs.length > 0 && (
                 <nav aria-label="Breadcrumbs" data-testid="breadcrumbs" style={{
                   display: "flex", alignItems: "center", gap: 6,
