@@ -149,23 +149,29 @@ const ExternalLinkIcon = () => (
 // ── Theme tokens ───────────────────────────────────────────
 
 const THEMES = {
-  dark: {
-    "--bg": "#080c1f", "--sf": "#0e1333", "--sfH": "#141940",
-    "--bd": "#1a2050", "--bdA": "#252d66",
-    "--tx": "#e8e6f0", "--tx2": "#b5b1c8", "--txM": "#9490ae",
-    "--coral": "#ff6b4a", "--coralD": "rgba(255,107,74,0.1)", "--coralT": "#ff8a70",
-    "--coralBtn": "#c0402a",
-    "--green": "#22c55e", "--yellow": "#eab308", "--red": "#f87171",
-    "--cdBg": "#0a0e27", "--cdTx": "#b8b4cc", "--cdBd": "#1a2050",
-  },
   light: {
-    "--bg": "#f6f4f0", "--sf": "#ffffff", "--sfH": "#eeece6",
-    "--bd": "#ddd9d0", "--bdA": "#c8c3b8",
-    "--tx": "#1a1716", "--tx2": "#4a443e", "--txM": "#706960",
-    "--coral": "#a33520", "--coralD": "rgba(184,61,34,0.07)", "--coralT": "#8a2c18",
-    "--coralBtn": "#a33520",
+    "--bg": "#f5f2ed", "--sf": "#ffffff", "--sfH": "#eeece6",
+    "--bd": "#ddd9d0", "--bdA": "#c8c3b8", "--bdLight": "#e8e4dc",
+    "--tx": "#1a1716", "--tx2": "#4a443e", "--txM": "#8a847c",
+    "--accent": "#8b3a2f", "--accentLight": "#a34838",
+    "--accentFaint": "rgba(139,58,47,0.08)", "--accentGlow": "rgba(139,58,47,0.25)",
+    "--coralBtn": "#8b3a2f", "--coral": "#8b3a2f",
+    "--coralD": "rgba(139,58,47,0.08)", "--coralT": "#a34838",
     "--green": "#15803d", "--yellow": "#a16207", "--red": "#b91c1c",
     "--cdBg": "#edeae4", "--cdTx": "#3a3530", "--cdBd": "#ddd9d0",
+    "--shadowColor": "rgba(0,0,0,0.12)", "--shadowHeavy": "rgba(0,0,0,0.2)",
+  },
+  dark: {
+    "--bg": "#0e0c0a", "--sf": "#1e1c19", "--sfH": "#2a2520",
+    "--bd": "#2e2a25", "--bdA": "#3a352f", "--bdLight": "#3a352f",
+    "--tx": "#e8e4dc", "--tx2": "#b5b0a8", "--txM": "#8a847c",
+    "--accent": "#c4624f", "--accentLight": "#d47560",
+    "--accentFaint": "rgba(196,98,79,0.12)", "--accentGlow": "rgba(196,98,79,0.35)",
+    "--coralBtn": "#c4624f", "--coral": "#c4624f",
+    "--coralD": "rgba(196,98,79,0.12)", "--coralT": "#d47560",
+    "--green": "#22c55e", "--yellow": "#eab308", "--red": "#f87171",
+    "--cdBg": "#1a1816", "--cdTx": "#b5b0a8", "--cdBd": "#2e2a25",
+    "--shadowColor": "rgba(0,0,0,0.3)", "--shadowHeavy": "rgba(0,0,0,0.5)",
   },
 } as const;
 
@@ -180,7 +186,7 @@ const PLANS: Record<string, { name: string; price: string; features: string[] }>
 // ── CSS ────────────────────────────────────────────────────
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,700&family=Fira+Code:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -196,7 +202,7 @@ const CSS = `
 
 .input-field{
   width:100%;padding:10px 14px;background:var(--sf);color:var(--tx);
-  border:1px solid var(--bd);font-family:"Bricolage Grotesque",sans-serif;
+  border:1px solid var(--bd);border-radius:6px;font-family:Inter,sans-serif;
   font-size:14px;outline:none;transition:border-color .2s;
 }
 .input-field:focus{border-color:var(--coral)}
@@ -204,90 +210,96 @@ const CSS = `
 
 .btn-primary{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 24px;background:var(--coralBtn);color:#fff;border:none;
-  font-family:"Bricolage Grotesque",sans-serif;font-size:13px;
-  font-weight:600;letter-spacing:.5px;text-transform:uppercase;
-  cursor:pointer;transition:all .2s cubic-bezier(.22,1,.36,1);
-  text-decoration:none;
+  padding:12px 24px;background:var(--coralBtn);color:#fff;border:none;border-radius:6px;
+  font-family:Inter,sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;text-decoration:none;
+  box-shadow:0 4px 14px var(--shadowColor);
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-primary:hover{background:var(--coralT);transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,107,74,0.25)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-primary:active{transform:translateY(0);box-shadow:0 2px 8px var(--shadowColor)}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
 .btn-ghost{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 24px;background:transparent;color:var(--tx);
-  border:1px solid var(--bd);font-family:"Bricolage Grotesque",sans-serif;
-  font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;
-  text-decoration:none;
+  padding:12px 24px;background:transparent;color:var(--tx);
+  border:1px solid var(--bd);border-radius:6px;font-family:Inter,sans-serif;
+  font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;
+  box-shadow:0 2px 8px var(--shadowColor);
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-ghost:hover{border-color:var(--coral);color:var(--coral)}
+.btn-ghost:hover{border-color:var(--coral);transform:translateY(-2px);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-ghost:active{transform:translateY(0)}
 
 .btn-sm{padding:6px 14px;font-size:12px}
 
 .btn-oauth{
   display:flex;align-items:center;justify-content:center;gap:10px;
-  width:100%;padding:11px 16px;background:var(--sf);color:var(--tx);
-  border:1px solid var(--bd);font-family:"Bricolage Grotesque",sans-serif;
-  font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;
-  text-decoration:none;
+  width:100%;padding:12px 16px;background:var(--sf);color:var(--tx);
+  border:1px solid var(--bd);border-radius:6px;font-family:Inter,sans-serif;
+  font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;
+  box-shadow:0 2px 8px var(--shadowColor);
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-oauth:hover{border-color:var(--coral);background:var(--sfH)}
+.btn-oauth:hover{border-color:var(--coral);transform:translateY(-2px);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-oauth:active{transform:translateY(0)}
 
 .nav-link{
-  color:var(--txM);text-decoration:none;font-size:13px;
-  font-family:"Bricolage Grotesque",sans-serif;
+  color:var(--txM);text-decoration:none;font-size:14px;
+  font-family:Inter,sans-serif;font-weight:400;
   transition:color .2s;cursor:pointer;background:none;border:none;
 }
 .nav-link:hover{color:var(--coral)}
-.nav-link[data-active="true"]{color:var(--coral)}
+.nav-link[data-active="true"]{color:var(--coral);text-decoration:underline;text-underline-offset:4px}
 
 .status-live{color:var(--green)}
 .status-uploading{color:var(--yellow)}
 .status-failed{color:var(--red)}
 
 .card{
-  background:var(--sf);border:1px solid var(--bd);padding:24px;
-  transition:all .25s cubic-bezier(.22,1,.36,1);
+  background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:24px;
+  box-shadow:0 4px 16px var(--shadowColor);
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.card:hover{border-color:var(--bdA);background:var(--sfH)}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 40px var(--shadowHeavy)}
 
 .stat-card{
-  background:var(--sf);border:1px solid var(--bd);padding:20px;
-  text-align:center;
+  background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;
+  text-align:center;box-shadow:0 2px 8px var(--shadowColor);
 }
 
 .token-box{
-  background:var(--cdBg);border:1px solid var(--cdBd);padding:12px 16px;
+  background:var(--cdBg);border:1px solid var(--cdBd);border-radius:6px;padding:12px 16px;
   font-family:"Fira Code",monospace;font-size:13px;color:var(--cdTx);
   display:flex;align-items:center;gap:12px;
 }
 
 .dns-record{
-  background:var(--cdBg);border:1px solid var(--cdBd);padding:10px 14px;
+  background:var(--cdBg);border:1px solid var(--cdBd);border-radius:6px;padding:10px 14px;
   font-family:"Fira Code",monospace;font-size:12px;color:var(--cdTx);
   margin:4px 0;
 }
 
 .section-title{
   font-family:"Cormorant Garamond",serif;font-weight:400;font-style:italic;
-  font-size:24px;color:var(--tx);margin-bottom:16px;
+  font-size:28px;color:var(--tx);margin-bottom:20px;
 }
 
 .table-header{
   display:grid;padding:8px 0;border-bottom:1px solid var(--bd);
   font-size:11px;text-transform:uppercase;letter-spacing:1px;
-  font-family:"Bricolage Grotesque",sans-serif;color:var(--txM);font-weight:600;
+  font-family:Inter,sans-serif;color:var(--txM);font-weight:600;
 }
 .table-row{
   display:grid;padding:12px 0;border-bottom:1px solid var(--bd);
-  font-size:13px;font-family:"Bricolage Grotesque",sans-serif;color:var(--tx2);
+  font-size:13px;font-family:Inter,sans-serif;color:var(--tx2);
   align-items:center;
 }
-.table-row:hover{background:var(--coralD)}
+.table-row:hover{background:var(--coralD);border-radius:6px}
 
 .divider-text{
   display:flex;align-items:center;gap:12px;margin:16px 0;
-  font-family:"Bricolage Grotesque",sans-serif;font-size:11px;
+  font-family:Inter,sans-serif;font-size:11px;
   color:var(--txM);text-transform:uppercase;letter-spacing:1px;
 }
 .divider-text::before,.divider-text::after{
@@ -295,7 +307,7 @@ const CSS = `
 }
 
 .code-snippet{
-  background:var(--cdBg);border:1px solid var(--cdBd);padding:14px 16px;
+  background:var(--cdBg);border:1px solid var(--cdBd);border-radius:6px;padding:14px 16px;
   font-family:"Fira Code",monospace;font-size:12.5px;color:var(--cdTx);
   line-height:1.6;overflow-x:auto;
 }
@@ -477,7 +489,7 @@ function LoginPage({ onLogin }: { onLogin: (token: string, user: User) => void }
           <span style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic", fontSize: 36, color: "var(--tx)", fontWeight: 300 }}>
             Tome<span style={{ color: "var(--coral)" }}>.</span>
           </span>
-          <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, color: "var(--txM)", marginTop: 24, animation: "pulse 2s infinite" }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)", marginTop: 24, animation: "pulse 2s infinite" }}>
             Completing sign in…
           </p>
         </div>
@@ -495,18 +507,18 @@ function LoginPage({ onLogin }: { onLogin: (token: string, user: User) => void }
             </span>
           </a>
         </div>
-        <div style={{ border: "1px solid var(--bd)", background: "var(--sf)", padding: 32 }}>
-          <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)", marginBottom: 20, textTransform: "uppercase", letterSpacing: 1 }}>
+        <div style={{ border: "1px solid var(--bd)", background: "var(--sf)", padding: 32, borderRadius: 12, boxShadow: "0 4px 16px var(--shadowColor)" }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)", marginBottom: 20 }}>
             Sign in to your account
           </p>
 
           {error && (
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--red)", marginBottom: 16 }}>{error}</p>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--red)", marginBottom: 16 }}>{error}</p>
           )}
 
           {/* OAuth Providers */}
           {!providersLoaded ? (
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)", textAlign: "center", padding: "16px 0", animation: "pulse 2s infinite" }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", textAlign: "center", padding: "16px 0", animation: "pulse 2s infinite" }}>
               Loading…
             </p>
           ) : providers.length > 0 ? (
@@ -520,17 +532,17 @@ function LoginPage({ onLogin }: { onLogin: (token: string, user: User) => void }
               ))}
             </div>
           ) : (
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)", textAlign: "center", padding: "16px 0" }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", textAlign: "center", padding: "16px 0" }}>
               No sign-in providers available. Please contact the administrator.
             </p>
           )}
         </div>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, padding: "0 4px" }}>
-          <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)" }}>
             No account? One will be created automatically.
           </p>
-          <a href="/" style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)", textDecoration: "none", transition: "color .2s" }}
+          <a href="/" style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)", textDecoration: "none", transition: "color .2s" }}
             onMouseOver={(e) => (e.currentTarget.style.color = "var(--coral)")}
             onMouseOut={(e) => (e.currentTarget.style.color = "var(--txM)")}>
             &larr; Home
@@ -559,7 +571,7 @@ function Shell({
       <header className="dash-header" style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px", height: 56, borderBottom: "1px solid var(--bd)",
-        background: "var(--sf)", position: "sticky", top: 0, zIndex: 100,
+        background: "var(--bg)", position: "sticky", top: 0, zIndex: 100,
       }}>
         <div className="dash-header-left" style={{ display: "flex", alignItems: "center", gap: 32 }}>
           <a href={`${BASE}/`} onClick={(e) => { e.preventDefault(); navigate("/"); }} style={{ textDecoration: "none" }}>
@@ -592,18 +604,18 @@ function Shell({
               <div style={{
                 width: 24, height: 24, borderRadius: "50%", background: "var(--coral)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, fontWeight: 600, color: "#fff",
+                fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: "#fff",
               }}>
                 {(user.name || user.email).charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="dash-user-name" style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
+            <span className="dash-user-name" style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)" }}>
               {user.name || user.email}
             </span>
           </a>
           <button
             onClick={() => setDark(!isDark)}
-            style={{ background: "none", border: "1px solid var(--bd)", padding: "6px 8px", cursor: "pointer", color: "var(--txM)", display: "flex", alignItems: "center", transition: "border-color .2s" }}
+            style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--txM)", display: "flex", alignItems: "center", transition: "color .2s" }}
             aria-label="Toggle theme"
           >
             {isDark ? <SunIcon /> : <MoonIcon />}
@@ -650,7 +662,7 @@ function GettingStartedCard() {
       <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontStyle: "italic", fontSize: 22, color: "var(--tx)", marginBottom: 4 }}>
         Get started with Tome
       </h3>
-      <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)", marginBottom: 24 }}>
+      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", marginBottom: 24 }}>
         Deploy your first documentation site in under 5 minutes.
       </p>
 
@@ -663,7 +675,7 @@ function GettingStartedCard() {
             style={{
               flex: 1, padding: "8px 12px", background: i === step ? "var(--coralD)" : "var(--cdBg)",
               border: i === step ? "1px solid var(--coral)" : "1px solid var(--bd)",
-              cursor: "pointer", fontFamily: '"Bricolage Grotesque", sans-serif',
+              cursor: "pointer", fontFamily: "Inter, sans-serif",
               fontSize: 11, fontWeight: 600, letterSpacing: ".5px", textTransform: "uppercase",
               color: i === step ? "var(--coral)" : "var(--txM)", transition: "all .2s",
             }}
@@ -673,7 +685,7 @@ function GettingStartedCard() {
         ))}
       </div>
 
-      <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--tx2)", marginBottom: 12 }}>
+      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--tx2)", marginBottom: 12 }}>
         {steps[step].description}
       </p>
       <div className="code-snippet">
@@ -720,13 +732,13 @@ function ProjectsPage({ token }: { token: string }) {
     <div className="rv">
       <h2 className="section-title">Your Projects</h2>
       {loading ? (
-        <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading projects…</p>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading projects…</p>
       ) : projects.length === 0 ? (
         <>
           <GettingStartedCard />
           <div className="card" style={{ textAlign: "center", padding: 48 }}>
             <p style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic", fontSize: 20, color: "var(--tx)", marginBottom: 12 }}>No projects yet</p>
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)" }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)" }}>
               Deploy your first docs site with <code style={{ fontFamily: '"Fira Code", monospace', background: "var(--cdBg)", padding: "2px 6px", fontSize: 12 }}>tome deploy</code>
             </p>
           </div>
@@ -736,7 +748,7 @@ function ProjectsPage({ token }: { token: string }) {
           {projects.map((p) => (
             <a key={p.id} href={`${BASE}/project/${p.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/project/${p.slug}`); }} className="card" style={{ textDecoration: "none", cursor: "pointer" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 15, color: "var(--tx)" }}>{p.slug}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 15, color: "var(--tx)" }}>{p.slug}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span className={`status-${p.deployStatus ?? "none"}`} style={{ fontFamily: '"Fira Code", monospace', fontSize: 11, textTransform: "uppercase" }}>
                     {p.deployStatus ?? "No deploys"}
@@ -751,7 +763,7 @@ function ProjectsPage({ token }: { token: string }) {
                   </button>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 16, fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
+              <div style={{ display: "flex", gap: 16, fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)" }}>
                 <span>{p.fileCount} files</span>
                 <span>{formatBytes(p.totalSize)}</span>
                 <span>{timeAgo(p.lastDeployAt)}</span>
@@ -840,7 +852,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
   };
 
   if (loading) {
-    return <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading…</p>;
+    return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading…</p>;
   }
 
   const gridCols = "2fr 1fr 1fr 1fr 1.5fr auto";
@@ -883,20 +895,20 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
               <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
                 {analytics.totalPageViews.toLocaleString()}
               </div>
-              <div style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1 }}>Page Views</div>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1 }}>Page Views</div>
             </div>
             <div className="stat-card">
               <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
                 {analytics.uniqueVisitors.toLocaleString()}
               </div>
-              <div style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1 }}>Visitors</div>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1 }}>Visitors</div>
             </div>
           </div>
           {analytics.topPages.length > 0 && (
             <div>
-              <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top Pages</p>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top Pages</p>
               {analytics.topPages.slice(0, 5).map((p) => (
-                <div key={p.url} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--bd)", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13 }}>
+                <div key={p.url} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--bd)", fontFamily: "Inter, sans-serif", fontSize: 13 }}>
                   <span style={{ color: "var(--tx2)" }}>{p.url}</span>
                   <span style={{ color: "var(--txM)", fontFamily: '"Fira Code", monospace', fontSize: 12 }}>{p.views}</span>
                 </div>
@@ -910,7 +922,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
       <div style={{ marginBottom: 40 }}>
         <h3 className="section-title" style={{ fontSize: 20 }}>Deployments</h3>
         {deployments.length === 0 ? (
-          <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--txM)" }}>No deployments yet.</p>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)" }}>No deployments yet.</p>
         ) : (
           <div className="deploy-table-wrap">
             <div className="table-header" style={{ gridTemplateColumns: gridCols }}>
@@ -947,7 +959,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
             {domains.map((d) => (
               <div key={d.domain} className="card" style={{ marginBottom: 12 }}>
                 <div className="dash-domain-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 14, color: "var(--tx)" }}>{d.domain}</span>
+                  <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, color: "var(--tx)" }}>{d.domain}</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontFamily: '"Fira Code", monospace', fontSize: 11, color: d.verified ? "var(--green)" : "var(--yellow)" }}>
                       {d.verified ? "VERIFIED" : "PENDING"}
@@ -975,7 +987,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
           <button className="btn-primary btn-sm" type="submit">Add Domain</button>
         </form>
         {domainError && (
-          <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--red)", marginTop: 8 }}>{domainError}</p>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--red)", marginTop: 8 }}>{domainError}</p>
         )}
       </div>
 
@@ -984,8 +996,8 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
         <h3 className="section-title" style={{ fontSize: 20, color: "var(--red)" }}>Danger Zone</h3>
         <div className="card dash-danger-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderColor: "rgba(239,68,68,0.3)" }}>
           <div>
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontWeight: 600, fontSize: 14, color: "var(--tx)", marginBottom: 4 }}>Delete this project</p>
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>Permanently removes all deployments, files, and custom domains.</p>
+            <p style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, color: "var(--tx)", marginBottom: 4 }}>Delete this project</p>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)" }}>Permanently removes all deployments, files, and custom domains.</p>
           </div>
           <button
             className="btn-ghost btn-sm"
@@ -1062,24 +1074,24 @@ function BillingPage({ token, user }: { token: string; user: User }) {
     <div className="rv">
       <h2 className="section-title">Billing</h2>
       {success && (
-        <div style={{ padding: "12px 16px", marginBottom: 16, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--green)" }}>
+        <div style={{ padding: "12px 16px", marginBottom: 16, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--green)" }}>
           {success}
         </div>
       )}
       {error && (
-        <div style={{ padding: "12px 16px", marginBottom: 16, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.3)", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--red)" }}>
+        <div style={{ padding: "12px 16px", marginBottom: 16, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.3)", fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--red)" }}>
           {error}
         </div>
       )}
       <div className="card" style={{ marginBottom: 24 }}>
-        <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Current Plan</p>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Current Plan</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
           <span style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>{plan.name}</span>
           <span style={{ fontFamily: '"Fira Code", monospace', fontSize: 14, color: "var(--coral)" }}>{plan.price}</span>
         </div>
         <ul style={{ listStyle: "none", padding: 0 }}>
           {plan.features.map((f) => (
-            <li key={f} style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13, color: "var(--tx2)", padding: "4px 0", borderBottom: "1px solid var(--bd)" }}>
+            <li key={f} style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--tx2)", padding: "4px 0", borderBottom: "1px solid var(--bd)" }}>
               {f}
             </li>
           ))}
@@ -1163,15 +1175,15 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             </div>
           )}
           <div>
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 16, fontWeight: 600, color: "var(--tx)" }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 16, fontWeight: 600, color: "var(--tx)" }}>
               {user.name || user.email}
             </p>
-            <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)" }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)" }}>
               {user.name ? user.email : ""}
             </p>
           </div>
         </div>
-        <div className="dash-settings-grid" style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: "8px 16px", fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 13 }}>
+        <div className="dash-settings-grid" style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: "8px 16px", fontFamily: "Inter, sans-serif", fontSize: 13 }}>
           <span style={{ color: "var(--txM)" }}>Email</span>
           <span style={{ color: "var(--tx)" }}>{user.email}</span>
           {user.name && <>
@@ -1186,7 +1198,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
       </div>
 
       <div className="card" style={{ marginBottom: 24 }}>
-        <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>API Token</p>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>API Token</p>
         <div className="token-box">
           <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {showToken ? token : "\u2022".repeat(32)}
@@ -1198,7 +1210,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             {copied ? "Copied!" : "Copy"}
           </button>
         </div>
-        <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 12, color: "var(--txM)", marginTop: 8 }}>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)", marginTop: 8 }}>
           Use this token with <code style={{ fontFamily: '"Fira Code", monospace', background: "var(--cdBg)", padding: "2px 6px", fontSize: 11 }}>tome login</code>
         </p>
       </div>
@@ -1268,7 +1280,7 @@ export function App() {
       <>
         <style>{CSS}</style>
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)" }}>
-          <p style={{ fontFamily: '"Bricolage Grotesque", sans-serif', fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading…</p>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)", animation: "pulse 2s infinite" }}>Loading…</p>
         </div>
       </>
     );
