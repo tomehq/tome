@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/theme",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Tome default theme and React app shell",
   "type": "module",
   "main": "./src/index.tsx",
