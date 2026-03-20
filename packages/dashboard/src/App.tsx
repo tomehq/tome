@@ -159,7 +159,9 @@ const THEMES = {
     "--coralD": "rgba(139,58,47,0.08)", "--coralT": "#a34838",
     "--green": "#15803d", "--yellow": "#a16207", "--red": "#b91c1c",
     "--cdBg": "#edeae4", "--cdTx": "#3a3530", "--cdBd": "#ddd9d0",
-    "--shadowColor": "rgba(0,0,0,0.12)", "--shadowHeavy": "rgba(0,0,0,0.2)",
+    "--shadowColor": "rgba(0,0,0,0.18)", "--shadowHeavy": "rgba(0,0,0,0.3)",
+    "--shadowFloat": "0 8px 32px rgba(0,0,0,0.14), 0 3px 12px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.12)",
+    "--shadowFloatHover": "0 20px 60px rgba(0,0,0,0.22), 0 8px 28px rgba(0,0,0,0.14), 0 0 1px rgba(0,0,0,0.12)",
     "--btnGlow": "rgba(0,0,0,0.2)",
   },
   dark: {
@@ -172,8 +174,10 @@ const THEMES = {
     "--coralD": "rgba(255,107,74,0.1)", "--coralT": "#ff8a70",
     "--green": "#22c55e", "--yellow": "#eab308", "--red": "#f87171",
     "--cdBg": "#0a0e27", "--cdTx": "#b8b4cc", "--cdBd": "#1a2050",
-    "--shadowColor": "rgba(0,0,0,0.3)", "--shadowHeavy": "rgba(0,0,0,0.5)",
-    "--btnGlow": "rgba(255,255,255,0.15)",
+    "--shadowColor": "rgba(0,0,0,0.4)", "--shadowHeavy": "rgba(0,0,0,0.6)",
+    "--shadowFloat": "0 8px 32px rgba(0,0,0,0.5), 0 3px 12px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.4)",
+    "--shadowFloatHover": "0 20px 60px rgba(0,0,0,0.6), 0 8px 28px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.5)",
+    "--btnGlow": "rgba(0,0,0,0.4)",
   },
 } as const;
 
@@ -219,10 +223,10 @@ const CSS = `
   padding:12px 24px;background:var(--coralBtn);color:#fff;border:none;border-radius:6px;
   font-family:Inter,sans-serif;font-size:14px;font-weight:600;
   cursor:pointer;text-decoration:none;
-  box-shadow:0 4px 14px var(--shadowColor);
+  box-shadow:var(--shadowFloat);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-primary:hover{box-shadow:0 8px 30px var(--btnGlow)}
+.btn-primary:hover{box-shadow:var(--shadowFloatHover)}
 .btn-primary:active{box-shadow:0 2px 8px var(--shadowColor)}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
@@ -231,10 +235,15 @@ const CSS = `
   padding:12px 24px;background:transparent;color:var(--tx);
   border:1px solid var(--bd);border-radius:6px;font-family:Inter,sans-serif;
   font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;
-  box-shadow:0 2px 8px var(--shadowColor);
+  box-shadow:var(--shadowFloat);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-ghost:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--btnGlow)}
+.btn-ghost:hover{border-color:var(--coral);box-shadow:var(--shadowFloatHover);transform:translateY(-2px)}
+.btn-danger{color:var(--red);border-color:rgba(239,68,68,0.3)}
+.btn-danger:hover{border-color:var(--red) !important;color:var(--red) !important}
+
+.card-accent{transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+.card-accent:hover{transform:translateY(-3px);filter:brightness(1.08)}
 .btn-on-accent:hover{border-color:#fff !important;box-shadow:0 8px 30px rgba(0,0,0,0.25) !important}
 .btn-ghost:active{box-shadow:0 2px 8px var(--shadowColor)}
 
@@ -245,10 +254,10 @@ const CSS = `
   width:100%;padding:12px 16px;background:var(--sf);color:var(--tx);
   border:1px solid var(--bd);border-radius:6px;font-family:Inter,sans-serif;
   font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;
-  box-shadow:0 2px 8px var(--shadowColor);
+  box-shadow:var(--shadowFloat);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-oauth:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--btnGlow)}
+.btn-oauth:hover{border-color:var(--coral);box-shadow:var(--shadowFloatHover)}
 .btn-oauth:active{box-shadow:0 2px 8px var(--shadowColor)}
 
 .nav-link{
@@ -265,14 +274,14 @@ const CSS = `
 
 .card{
   background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:24px;
-  box-shadow:0 4px 16px var(--shadowColor);
+  box-shadow:var(--shadowFloat);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.card:hover{transform:translateY(-3px);box-shadow:0 12px 40px var(--shadowHeavy)}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadowFloatHover)}
 
 .stat-card{
   background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;
-  text-align:center;box-shadow:0 2px 8px var(--shadowColor);
+  text-align:center;box-shadow:var(--shadowFloat);
 }
 
 .token-box{
@@ -603,39 +612,39 @@ const HomeIcon = () => (
 
 // ── LiquidRing ────────────────────────────────────────────
 
-function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, style, darkRing }: {
+function LiquidRing({ children, bg, radius = 6, block, style, onAccent }: {
   children: React.ReactNode;
-  color?: string;
   bg?: string;
   radius?: number;
   block?: boolean;
   style?: React.CSSProperties;
-  darkRing?: boolean;
+  onAccent?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Tag = block ? "div" : "span";
   const InnerTag = block ? "div" : "span";
 
-  const hotspot = darkRing ? "#888888" : "#ffffff";
-  const base = darkRing ? "#1a1a1a" : color;
-
-  const gradient = `conic-gradient(
-    from 0deg,
-    transparent 0%,
-    ${base} 10%,
-    transparent 20%,
-    transparent 30%,
-    ${base} 40%,
-    ${hotspot} 44%,
-    ${base} 48%,
-    transparent 58%,
-    transparent 68%,
-    ${base} 78%,
-    ${hotspot} 82%,
-    ${base} 86%,
-    transparent 96%,
-    transparent 100%
-  )`;
+  const gradient = onAccent
+    ? `conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 35%,
+      #000000 42%,
+      #ffffff 50%,
+      #000000 58%,
+      transparent 65%,
+      transparent 100%
+    )`
+    : `conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 35%,
+      #1a1a1a 42%,
+      #777777 50%,
+      #1a1a1a 58%,
+      transparent 65%,
+      transparent 100%
+    )`;
 
   return (
     <Tag
@@ -648,6 +657,8 @@ function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, s
         padding: 2,
         overflow: "hidden",
         background: bg ?? "transparent",
+        boxShadow: "var(--shadowFloat)",
+        transition: "box-shadow .4s ease",
         ...style,
       }}
     >
@@ -667,9 +678,9 @@ function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, s
         position: "absolute",
         inset: -2,
         borderRadius: radius + 4,
-        background: color,
+        background: onAccent ? "#ffffff" : "#1a1a1a",
         filter: "blur(8px)",
-        opacity: hovered ? 0.15 : 0,
+        opacity: hovered ? (onAccent ? 0.25 : 0.15) : 0,
         transition: "opacity 0.4s ease",
         pointerEvents: "none",
       }} />
@@ -1444,8 +1455,8 @@ function BillingPage({ token, user }: { token: string; user: User }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Upgrade card (if not on highest tier) */}
           {nextPlan && (
-            <LiquidRing block radius={12} bg="var(--coral)">
-            <div style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
+            <LiquidRing block radius={12} bg="var(--coral)" onAccent>
+            <div className="card-accent" style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -1654,8 +1665,8 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
       {/* Bottom row: Plan + Danger Zone */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         {/* Active Plan */}
-        <LiquidRing block radius={12} bg="var(--coral)">
-        <div style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
+        <LiquidRing block radius={12} bg="var(--coral)" onAccent>
+        <div className="card-accent" style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.8, marginBottom: 8 }}>Active Plan</div>
           <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 28, fontWeight: 400, marginBottom: 4 }}>
             {plan.name}
@@ -1671,7 +1682,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
         </LiquidRing>
 
         {/* Danger Zone */}
-        <LiquidRing block radius={12} bg="var(--sf)" color="var(--red)">
+        <LiquidRing block radius={12} bg="var(--sf)">
         <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--red)", marginBottom: 12 }}>
             Danger Zone
@@ -1679,7 +1690,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
           <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", marginBottom: 16, lineHeight: 1.5 }}>
             Sign out of your account. Your projects and data will remain intact.
           </p>
-          <button className="btn-ghost" onClick={onLogout} style={{ color: "var(--red)", borderColor: "rgba(239,68,68,0.4)", padding: "8px 20px", fontSize: 13, borderRadius: 4 }}>
+          <button className="btn-ghost btn-danger" onClick={onLogout} style={{ padding: "8px 20px", fontSize: 13, borderRadius: 6 }}>
             Sign Out
           </button>
         </div>

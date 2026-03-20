@@ -95,39 +95,39 @@ const SunIcon = () => (
 // ── Liquid border ring component ─────────────────────────
 // Wrapper that shows a spinning gradient border on hover
 
-function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, style, darkRing }: {
+function LiquidRing({ children, bg, radius = 6, block, style, onAccent }: {
   children: React.ReactNode;
-  color?: string;
   bg?: string;
   radius?: number;
   block?: boolean;
   style?: React.CSSProperties;
-  darkRing?: boolean;
+  onAccent?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Tag = block ? "div" : "span";
   const InnerTag = block ? "div" : "span";
 
-  const hotspot = darkRing ? "#888888" : "#ffffff";
-  const base = darkRing ? "#1a1a1a" : color;
-
-  const gradient = `conic-gradient(
-    from 0deg,
-    transparent 0%,
-    ${base} 10%,
-    transparent 20%,
-    transparent 30%,
-    ${base} 40%,
-    ${hotspot} 44%,
-    ${base} 48%,
-    transparent 58%,
-    transparent 68%,
-    ${base} 78%,
-    ${hotspot} 82%,
-    ${base} 86%,
-    transparent 96%,
-    transparent 100%
-  )`;
+  const gradient = onAccent
+    ? `conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 35%,
+      #000000 42%,
+      #ffffff 50%,
+      #000000 58%,
+      transparent 65%,
+      transparent 100%
+    )`
+    : `conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 35%,
+      #1a1a1a 42%,
+      #777777 50%,
+      #1a1a1a 58%,
+      transparent 65%,
+      transparent 100%
+    )`;
 
   return (
     <Tag
@@ -140,6 +140,8 @@ function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, 
         padding: 2,
         overflow: "hidden",
         background: bg ?? "transparent",
+        boxShadow: "var(--shadowFloat)",
+        transition: "box-shadow .4s ease",
         ...style,
       }}
     >
@@ -159,9 +161,9 @@ function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, 
         position: "absolute",
         inset: -2,
         borderRadius: radius + 4,
-        background: color,
+        background: onAccent ? "#ffffff" : "#1a1a1a",
         filter: "blur(8px)",
-        opacity: hovered ? 0.15 : 0,
+        opacity: hovered ? (onAccent ? 0.25 : 0.15) : 0,
         transition: "opacity 0.4s ease",
         pointerEvents: "none",
       }} />
@@ -182,8 +184,9 @@ const THEMES = {
     "--accent": "#8b3a2f", "--accentLight": "#a34838",
     "--accentFaint": "rgba(139,58,47,0.08)", "--accentGlow": "rgba(139,58,47,0.25)",
     "--hdBg": "rgba(245,242,237,0.92)",
-    "--shadowColor": "rgba(0,0,0,0.12)", "--shadowColorLight": "rgba(0,0,0,0.06)",
-    "--shadowHeavy": "rgba(0,0,0,0.2)",
+    "--shadowColor": "rgba(0,0,0,0.18)", "--shadowColorLight": "rgba(0,0,0,0.1)",
+    "--shadowHeavy": "rgba(0,0,0,0.3)", "--shadowFloat": "0 8px 32px rgba(0,0,0,0.14), 0 3px 12px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.12)",
+    "--shadowFloatHover": "0 20px 60px rgba(0,0,0,0.22), 0 8px 28px rgba(0,0,0,0.14), 0 0 1px rgba(0,0,0,0.12)",
   },
   dark: {
     "--bg": "#080c1f", "--bgAlt": "#0e1333", "--sf": "#0e1333",
@@ -192,8 +195,9 @@ const THEMES = {
     "--accent": "#ff6b4a", "--accentLight": "#ff8a70",
     "--accentFaint": "rgba(255,107,74,0.1)", "--accentGlow": "rgba(255,107,74,0.3)",
     "--hdBg": "rgba(8,12,31,0.92)",
-    "--shadowColor": "rgba(0,0,0,0.3)", "--shadowColorLight": "rgba(0,0,0,0.15)",
-    "--shadowHeavy": "rgba(0,0,0,0.5)",
+    "--shadowColor": "rgba(0,0,0,0.4)", "--shadowColorLight": "rgba(0,0,0,0.2)",
+    "--shadowHeavy": "rgba(0,0,0,0.5)", "--shadowFloat": "0 8px 32px rgba(0,0,0,0.5), 0 3px 12px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.4)",
+    "--shadowFloatHover": "0 20px 60px rgba(0,0,0,0.6), 0 8px 28px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.5)",
   },
 } as const;
 
@@ -291,11 +295,11 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .btn-liquid{
   position:relative;overflow:hidden;
-  box-shadow:0 4px 14px var(--shadowColor),0 1px 4px var(--shadowColorLight);
+  box-shadow:var(--shadowFloat);
   transition:box-shadow .4s ease;
 }
 .btn-liquid:hover{
-  box-shadow:0 10px 36px var(--shadowHeavy),0 4px 14px var(--shadowColor);
+  box-shadow:var(--shadowFloatHover);
 }
 .btn-liquid:active{
   box-shadow:0 2px 8px var(--shadowColor);
@@ -304,12 +308,12 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .btn-liquid-outline{
   position:relative;overflow:hidden;
-  box-shadow:0 4px 14px var(--shadowColor),0 1px 4px var(--shadowColorLight);
+  box-shadow:var(--shadowFloat);
   transition:box-shadow .4s ease,border-color .3s ease;
 }
 .btn-liquid-outline:hover{
   border-color:var(--accent)!important;
-  box-shadow:0 10px 36px var(--shadowHeavy),0 4px 14px var(--shadowColor);
+  box-shadow:var(--shadowFloatHover);
 }
 .btn-liquid-outline:active{
   box-shadow:0 2px 8px var(--shadowColor);
@@ -319,11 +323,11 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .btn-cta-white{
   position:relative;overflow:hidden;
-  box-shadow:0 4px 14px rgba(0,0,0,0.15),0 1px 4px rgba(0,0,0,0.08);
+  box-shadow:0 6px 24px rgba(0,0,0,0.15),0 2px 8px rgba(0,0,0,0.1),0 0 1px rgba(0,0,0,0.1);
   transition:box-shadow .4s ease;
 }
 .btn-cta-white:hover{
-  box-shadow:0 10px 36px rgba(0,0,0,0.3),0 4px 14px rgba(0,0,0,0.15);
+  box-shadow:0 16px 48px rgba(0,0,0,0.25),0 6px 20px rgba(0,0,0,0.15),0 0 1px rgba(0,0,0,0.1);
 }
 .btn-cta-white:active{
   box-shadow:0 2px 8px rgba(0,0,0,0.12);
@@ -332,12 +336,12 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .btn-dark-outline{
   position:relative;overflow:hidden;
-  box-shadow:0 4px 14px rgba(0,0,0,0.1),0 1px 4px rgba(0,0,0,0.06);
+  box-shadow:0 6px 24px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.08),0 0 1px rgba(0,0,0,0.1);
   transition:border-color .3s ease,box-shadow .4s ease;
 }
 .btn-dark-outline:hover{
   border-color:rgba(255,255,255,0.5)!important;
-  box-shadow:0 10px 36px rgba(0,0,0,0.25),0 4px 14px rgba(0,0,0,0.12);
+  box-shadow:0 16px 48px rgba(0,0,0,0.3),0 6px 20px rgba(0,0,0,0.15),0 0 1px rgba(0,0,0,0.1);
 }
 .btn-dark-outline:active{box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:box-shadow .12s ease}
 
@@ -345,20 +349,20 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .feature-card{
   transition:transform .5s cubic-bezier(0.34,1.56,0.64,1),box-shadow .4s ease;
-  box-shadow:0 4px 16px var(--shadowColor),0 1px 4px var(--shadowColorLight);
+  box-shadow:var(--shadowFloat);
 }
 .feature-card:hover{
   transform:translateY(-4px);
-  box-shadow:0 12px 40px var(--shadowHeavy),0 4px 16px var(--shadowColor);
+  box-shadow:var(--shadowFloatHover);
 }
 
 .feature-card-accent{
   transition:transform .5s cubic-bezier(0.34,1.56,0.64,1),box-shadow .4s ease;
-  box-shadow:0 4px 16px var(--shadowColor),0 1px 4px var(--shadowColorLight);
+  box-shadow:0 8px 32px rgba(0,0,0,0.25), 0 3px 12px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.2);
 }
 .feature-card-accent:hover{
   transform:translateY(-4px);
-  box-shadow:0 12px 40px var(--shadowHeavy),0 4px 16px var(--shadowColor);
+  box-shadow:0 20px 60px rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.2);
 }
 
 /* ── Other elements ─────────────────────────────────── */
@@ -371,12 +375,12 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .browser-mockup{
   border-radius:8px;overflow:hidden;
-  box-shadow:0 8px 30px var(--shadowColor),0 2px 8px var(--shadowColorLight);
+  box-shadow:var(--shadowFloat);
   border:1px solid #ddd9d0;background:#fff;
   transition:box-shadow .4s ease,transform .5s cubic-bezier(0.34,1.56,0.64,1);
 }
 .browser-mockup:hover{
-  box-shadow:0 16px 50px var(--shadowHeavy),0 6px 20px var(--shadowColor);
+  box-shadow:var(--shadowFloatHover);
   transform:translateY(-4px);
 }
 
@@ -491,8 +495,8 @@ function HeroContent() {
           Tome blends the elegance of an academic journal with the high-performance requirements of modern engineering teams. Curate your technical wisdom.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-          <LiquidRing radius={6}><a className="btn-liquid" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started</a></LiquidRing>
-          <LiquidRing radius={6} darkRing><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
+          <LiquidRing radius={6} onAccent><a className="btn-liquid" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started</a></LiquidRing>
+          <LiquidRing radius={6}><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> Open source · MIT licensed</span>
@@ -603,7 +607,7 @@ function FeaturesContent() {
             </div>
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} bg="var(--accent)" style={{ height: "100%" }}>
+        <LiquidRing block radius={12} bg="var(--accent)" style={{ height: "100%" }} onAccent>
           <div className="feature-card-accent" style={{ background: "var(--accent)", borderRadius: 12, padding: 36, color: "#fff", height: "100%" }}>
             <GlobeIcon />
             <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 20, fontWeight: 600, marginTop: 16, marginBottom: 10 }}>Custom Domains</h3>
@@ -611,7 +615,7 @@ function FeaturesContent() {
             <DomainAnimation />
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} bg="var(--accent)" style={{ height: "100%" }}>
+        <LiquidRing block radius={12} bg="var(--accent)" style={{ height: "100%" }} onAccent>
           <div className="feature-card-accent" style={{ background: "var(--accent)", borderRadius: 12, padding: 28, color: "#fff", height: "100%" }}>
             <CodeIcon />
             <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, marginTop: 12, marginBottom: 8 }}>DX-first</h3>
@@ -680,14 +684,14 @@ function CodeExampleContent() {
 function CTAContent() {
   return (
     <div style={{ maxWidth: 900, width: "100%", padding: "0 48px" }}>
-      <LiquidRing block radius={16} bg="var(--accent)">
-        <div style={{ background: "var(--accent)", borderRadius: 16, padding: "80px 48px", textAlign: "center", boxShadow: "0 8px 30px var(--shadowColor), 0 2px 8px var(--shadowColorLight)" }}>
+      <LiquidRing block radius={16} bg="var(--accent)" onAccent>
+        <div style={{ background: "var(--accent)", borderRadius: 16, padding: "80px 48px", textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.25), 0 3px 12px rgba(0,0,0,0.15)" }}>
           <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 400, fontStyle: "italic", color: "#fff", marginBottom: 32, letterSpacing: "-0.01em" }}>
             Ready to build your legacy?
           </h2>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 28 }}>
-            <LiquidRing radius={6} darkRing><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
-            <LiquidRing radius={6}><a className="btn-dark-outline" href="/docs" style={{ background: "var(--accent)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>View the Docs</a></LiquidRing>
+            <LiquidRing radius={6} onAccent><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
+            <LiquidRing radius={6} onAccent><a className="btn-dark-outline" href="/docs" style={{ background: "var(--accent)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>View the Docs</a></LiquidRing>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
             <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.7)", fontFamily: "Inter, sans-serif" }}><CheckIconWhite /> Open source core</span>
