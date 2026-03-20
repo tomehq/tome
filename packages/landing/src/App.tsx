@@ -513,14 +513,14 @@ function HeroContent() {
     <div className="landing-hero-grid" style={{ maxWidth: 1200, width: "100%", padding: "0 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }}>
       <div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 500, color: "var(--accent)", letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 24 }}>
-          <SparkleIcon /> INTRODUCING V3.0
+          <SparkleIcon /> INTRODUCING V4.0
         </div>
         <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: "clamp(40px, 5vw, 64px)", fontWeight: 400, lineHeight: 1.05, letterSpacing: "-0.02em", marginBottom: 24 }}>
-          Documentation<br />
-          <em style={{ color: "var(--accent)", fontWeight: 500 }}>that grows with you.</em>
+          Beautiful docs,<br />
+          <em style={{ color: "var(--accent)", fontWeight: 500 }}>zero friction.</em>
         </h1>
         <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.7, maxWidth: 440, marginBottom: 32, fontFamily: "Inter, sans-serif", fontWeight: 400 }}>
-          Tome blends the elegance of an academic journal with the high-performance requirements of modern engineering teams. Curate your technical wisdom.
+          Markdown and MDX to production docs in seconds. Search, theming, API references, and AI chat. All included, all open source.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
           <a className="btn-primary-landing" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", boxShadow: "var(--shadowFloat)", transition: "all .3s ease" }}>Get Started</a>
@@ -550,23 +550,31 @@ function HeroContent() {
               <div style={{ fontSize: 11, color: "#4a443e" }}>Theming</div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 18, fontWeight: 600, color: "#1a1716", marginBottom: 10, fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic" }}>Introduction</div>
-              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#4a443e", marginBottom: 12 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "#1a1716", marginBottom: 8, fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic" }}>Introduction</div>
+              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#4a443e", marginBottom: 14 }}>
                 Tome is an open-source documentation platform for Markdown and MDX. Beautiful docs without the $250/month price tag.
               </p>
-              <div style={{ borderTop: "1px solid #e8e4dc", marginBottom: 12 }} />
-              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#706960", marginBottom: 12 }}>
-                Welcome to Tome — beautiful documentation, zero vendor lock-in.
-              </p>
-              <div style={{ borderTop: "1px solid #e8e4dc", marginBottom: 12 }} />
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1716", marginBottom: 6 }}>What is Tome?</div>
-              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#4a443e", marginBottom: 10 }}>
+              {/* Diataxis link cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+                {[
+                  { icon: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z", title: "Tutorials", desc: "Get started" },
+                  { icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5", title: "Guides", desc: "How-to recipes" },
+                  { icon: "M4 17l10 11 4 5M12 19l7 19", title: "Reference", desc: "CLI & config" },
+                  { icon: "M9 18h6M10 22h4M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14", title: "Concepts", desc: "Architecture" },
+                ].map((c) => (
+                  <div key={c.title} style={{ border: "1px solid #e8e4dc", borderRadius: 6, padding: "10px 12px", background: "#ffffff" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b3a2f" strokeWidth="1.5" style={{ marginBottom: 4, display: "block" }}>
+                      <path d={c.icon} />
+                    </svg>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "#1a1716", marginBottom: 2 }}>{c.title}</div>
+                    <div style={{ fontSize: 9, color: "#8a847c" }}>{c.desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#1a1716", marginBottom: 4 }}>What is Tome?</div>
+              <p style={{ fontSize: 10, lineHeight: 1.6, color: "#4a443e", margin: 0 }}>
                 Tome transforms your Markdown and MDX files into stunning, fully-searchable documentation sites.
               </p>
-              <div style={{ padding: 10, background: "rgba(139,58,47,0.06)", borderLeft: "3px solid #8b3a2f", borderRadius: 0 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "#8b3a2f", textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 3 }}>Open Source Forever</div>
-                <p style={{ fontSize: 10, lineHeight: 1.6, color: "#4a443e", margin: 0 }}>Tome is MIT licensed. No vendor lock-in, no surprise pricing changes.</p>
-              </div>
             </div>
           </div>
         </div>

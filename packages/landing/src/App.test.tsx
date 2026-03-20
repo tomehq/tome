@@ -14,7 +14,7 @@ describe("Hero", () => {
 
   it("renders the tagline", () => {
     render(<App />);
-    expect(screen.getByText("that grows with you.")).toBeInTheDocument();
+    expect(screen.getByText("zero friction.")).toBeInTheDocument();
   });
 
   it("renders Get Started CTA links", () => {
