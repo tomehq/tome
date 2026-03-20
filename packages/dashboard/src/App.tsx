@@ -195,6 +195,10 @@ const CSS = `
   to{opacity:1;transform:translateY(0)}
 }
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes liquidSpin{
+  0%{transform:translate(-50%,-50%) rotate(0deg)}
+  100%{transform:translate(-50%,-50%) rotate(360deg)}
+}
 
 .rv{animation:revealUp .5s cubic-bezier(.22,1,.36,1) both}
 .rv1{animation-delay:.05s}.rv2{animation-delay:.1s}.rv3{animation-delay:.15s}
@@ -531,11 +535,13 @@ function LoginPage({ onLogin }: { onLogin: (token: string, user: User) => void }
           ) : providers.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {providers.map((p) => (
-                <a key={p.id} href={p.authorizeUrl} className="btn-oauth">
-                  {p.id === "github" && <GitHubIcon />}
-                  {p.id === "google" && <GoogleIcon />}
-                  Continue with {p.name}
-                </a>
+                <LiquidRing key={p.id} block radius={6} bg="var(--sf)">
+                  <a href={p.authorizeUrl} className="btn-oauth" style={{ borderRadius: 6, width: "100%" }}>
+                    {p.id === "github" && <GitHubIcon />}
+                    {p.id === "google" && <GoogleIcon />}
+                    Continue with {p.name}
+                  </a>
+                </LiquidRing>
               ))}
             </div>
           ) : (
@@ -591,6 +597,81 @@ const HomeIcon = () => (
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
   </svg>
 );
+
+// ── LiquidRing ────────────────────────────────────────────
+
+function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, style }: {
+  children: React.ReactNode;
+  color?: string;
+  bg?: string;
+  radius?: number;
+  block?: boolean;
+  style?: React.CSSProperties;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const Tag = block ? "div" : "span";
+  const InnerTag = block ? "div" : "span";
+
+  const gradient = `conic-gradient(
+    from 0deg,
+    transparent 0%,
+    ${color} 10%,
+    transparent 20%,
+    transparent 30%,
+    ${color} 40%,
+    #ffffff 44%,
+    ${color} 48%,
+    transparent 58%,
+    transparent 68%,
+    ${color} 78%,
+    #ffffff 82%,
+    ${color} 86%,
+    transparent 96%,
+    transparent 100%
+  )`;
+
+  return (
+    <Tag
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: block ? "block" : "inline-flex",
+        position: "relative",
+        borderRadius: radius + 2,
+        padding: 2,
+        overflow: "hidden",
+        background: bg ?? "transparent",
+        ...style,
+      }}
+    >
+      <InnerTag style={{
+        position: "absolute",
+        top: "50%", left: "50%",
+        width: "150%",
+        height: block ? "150%" : "400%",
+        background: gradient,
+        opacity: hovered ? 1 : 0,
+        transition: "opacity 0.4s ease",
+        animation: "liquidSpin 4s linear infinite",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      <InnerTag style={{
+        position: "absolute",
+        inset: -2,
+        borderRadius: radius + 4,
+        background: color,
+        filter: "blur(8px)",
+        opacity: hovered ? 0.15 : 0,
+        transition: "opacity 0.4s ease",
+        pointerEvents: "none",
+      }} />
+      <InnerTag style={{ position: "relative", zIndex: 2, display: block ? "block" : "inline-flex", borderRadius: radius, overflow: "hidden", background: bg ?? "transparent", ...(block ? { height: "100%" } : {}) }}>
+        {children}
+      </InnerTag>
+    </Tag>
+  );
+}
 
 // ── Shell (sidebar layout) ────────────────────────────────
 
@@ -828,56 +909,80 @@ function ProjectsPage({ token }: { token: string }) {
           </div>
         </>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
           {projects.map((p) => (
-            <a key={p.id} href={`${BASE}/project/${p.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/project/${p.slug}`); }} className="card" style={{ textDecoration: "none", cursor: "pointer", padding: 28 }}>
-              {/* Header: name + status */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <span style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 500, fontSize: 22, color: "var(--tx)" }}>{p.slug}</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{
-                    fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600,
-                    textTransform: "uppercase", letterSpacing: "0.5px",
-                    padding: "3px 10px", borderRadius: 4,
-                    background: p.deployStatus === "live" ? "rgba(21,128,61,0.1)" : p.deployStatus === "failed" ? "rgba(185,28,28,0.1)" : "var(--coralD)",
-                    color: p.deployStatus === "live" ? "var(--green)" : p.deployStatus === "failed" ? "var(--red)" : "var(--txM)",
+            <LiquidRing key={p.id} block radius={12} bg="var(--sf)">
+              <a href={`${BASE}/project/${p.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/project/${p.slug}`); }} style={{ textDecoration: "none", cursor: "pointer", display: "block", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
+                {/* Deployment Preview */}
+                {p.url && (
+                  <div style={{
+                    width: "100%", height: 160, borderRadius: 8, overflow: "hidden",
+                    border: "1px solid var(--bd)", marginBottom: 16, position: "relative",
+                    background: "var(--cdBg)",
                   }}>
-                    {p.deployStatus ?? "No deploys"}
+                    <iframe
+                      src={p.url}
+                      title={`${p.slug} preview`}
+                      style={{
+                        width: "200%", height: "200%", border: "none",
+                        transform: "scale(0.5)", transformOrigin: "top left",
+                        pointerEvents: "none",
+                      }}
+                      loading="lazy"
+                      sandbox="allow-scripts allow-same-origin"
+                      tabIndex={-1}
+                    />
+                  </div>
+                )}
+
+                {/* Header: name + status */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <span style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 500, fontSize: 22, color: "var(--tx)" }}>{p.slug}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{
+                      fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600,
+                      textTransform: "uppercase", letterSpacing: "0.5px",
+                      padding: "3px 10px", borderRadius: 4,
+                      background: p.deployStatus === "live" ? "rgba(21,128,61,0.1)" : p.deployStatus === "failed" ? "rgba(185,28,28,0.1)" : "var(--coralD)",
+                      color: p.deployStatus === "live" ? "var(--green)" : p.deployStatus === "failed" ? "var(--red)" : "var(--txM)",
+                    }}>
+                      {p.deployStatus ?? "No deploys"}
+                    </span>
+                    <button
+                      className="btn-ghost btn-sm"
+                      style={{ color: "var(--red)", fontSize: 11, padding: "3px 10px", minHeight: 0, borderRadius: 4 }}
+                      onClick={(e) => deleteProject(p.slug, e)}
+                      title="Delete project"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                {/* Stats row */}
+                <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Files</div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, color: "var(--tx)" }}>{p.fileCount.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Size</div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, color: "var(--tx)" }}>{formatBytes(p.totalSize)}</div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: "1px solid var(--bd)" }}>
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                    Last update: {timeAgo(p.lastDeployAt)}
                   </span>
-                  <button
-                    className="btn-ghost btn-sm"
-                    style={{ color: "var(--red)", fontSize: 11, padding: "3px 10px", minHeight: 0, borderRadius: 4 }}
-                    onClick={(e) => deleteProject(p.slug, e)}
-                    title="Delete project"
-                  >
-                    Delete
-                  </button>
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, color: "var(--coral)", display: "flex", alignItems: "center", gap: 4 }}>
+                    View Details <span style={{ fontSize: 16 }}>→</span>
+                  </span>
                 </div>
-              </div>
-
-              {/* Stats row */}
-              <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Files</div>
-                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, color: "var(--tx)" }}>{p.fileCount.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Size</div>
-                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, color: "var(--tx)" }}>{formatBytes(p.totalSize)}</div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: "1px solid var(--bd)" }}>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)", display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                  Last update: {timeAgo(p.lastDeployAt)}
-                </span>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, color: "var(--coral)", display: "flex", alignItems: "center", gap: 4 }}>
-                  View Details <span style={{ fontSize: 16 }}>→</span>
-                </span>
-              </div>
-            </a>
+              </a>
+            </LiquidRing>
           ))}
         </div>
       )}
@@ -990,45 +1095,50 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {latestDeployment?.url && (
-            <a
-              href={latestDeployment.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-              style={{ whiteSpace: "nowrap", textDecoration: "none", padding: "10px 20px", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}
-            >
-              Visit Site <ExternalLinkIcon />
-            </a>
+            <LiquidRing radius={6}>
+              <a
+                href={latestDeployment.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+                style={{ whiteSpace: "nowrap", textDecoration: "none", padding: "10px 20px", fontSize: 13, display: "flex", alignItems: "center", gap: 8, borderRadius: 6 }}
+              >
+                Visit Site <ExternalLinkIcon />
+              </a>
+            </LiquidRing>
           )}
         </div>
       </div>
 
       {/* Stat Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 40 }}>
-        <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Current Status</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{
-              width: 8, height: 8, borderRadius: "50%",
-              background: activeDeployment ? "var(--green)" : "var(--txM)",
-            }} />
-            <span style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
-              {activeDeployment ? "Live" : "Offline"}
-            </span>
+        <LiquidRing block radius={12} bg="var(--sf)">
+          <div style={{ textAlign: "left", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
+            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Current Status</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: activeDeployment ? "var(--green)" : "var(--txM)" }} />
+              <span style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
+                {activeDeployment ? "Live" : "Offline"}
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Total Assets</div>
-          <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
-            {(latestDeployment?.fileCount ?? 0).toLocaleString()} <span style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)" }}>Files</span>
+        </LiquidRing>
+        <LiquidRing block radius={12} bg="var(--sf)">
+          <div style={{ textAlign: "left", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
+            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Total Assets</div>
+            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
+              {(latestDeployment?.fileCount ?? 0).toLocaleString()} <span style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--txM)" }}>Files</span>
+            </div>
           </div>
-        </div>
-        <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
-          <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Total Size</div>
-          <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
-            {formatBytes(latestDeployment?.totalSize ?? 0)}
+        </LiquidRing>
+        <LiquidRing block radius={12} bg="var(--sf)">
+          <div style={{ textAlign: "left", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
+            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Total Size</div>
+            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
+              {formatBytes(latestDeployment?.totalSize ?? 0)}
+            </div>
           </div>
-        </div>
+        </LiquidRing>
       </div>
 
       {/* Analytics Summary */}
@@ -1272,7 +1382,8 @@ function BillingPage({ token, user }: { token: string; user: User }) {
       {/* Two-column layout */}
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20, alignItems: "start" }}>
         {/* Left: Current Plan */}
-        <div className="card" style={{ padding: 28 }}>
+        <LiquidRing block radius={12} bg="var(--sf)">
+        <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
             <div>
               <span style={{
@@ -1320,12 +1431,14 @@ function BillingPage({ token, user }: { token: string; user: User }) {
             </div>
           )}
         </div>
+        </LiquidRing>
 
         {/* Right column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Upgrade card (if not on highest tier) */}
           {nextPlan && (
-            <div className="card" style={{ padding: 28, background: "var(--coral)", color: "#fff", border: "none" }}>
+            <LiquidRing block radius={12} bg="var(--coral)">
+            <div style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -1350,10 +1463,12 @@ function BillingPage({ token, user }: { token: string; user: User }) {
                 {loading ? "Redirecting..." : `Upgrade to ${nextPlan.name} · ${nextPlan.price}`}
               </button>
             </div>
+            </LiquidRing>
           )}
 
           {/* All plans comparison */}
-          <div className="card" style={{ padding: 28 }}>
+          <LiquidRing block radius={12} bg="var(--sf)">
+          <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--txM)", marginBottom: 16 }}>
               All Plans
             </div>
@@ -1376,9 +1491,11 @@ function BillingPage({ token, user }: { token: string; user: User }) {
               </div>
             ))}
           </div>
+          </LiquidRing>
 
           {/* Billing support */}
-          <div className="card" style={{ padding: 20, display: "flex", alignItems: "center", gap: 14 }}>
+          <LiquidRing block radius={12} bg="var(--sf)">
+          <div style={{ padding: 20, display: "flex", alignItems: "center", gap: 14, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 8, background: "var(--coralD)",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -1394,6 +1511,7 @@ function BillingPage({ token, user }: { token: string; user: User }) {
               </a>
             </div>
           </div>
+          </LiquidRing>
         </div>
       </div>
     </div>
@@ -1438,7 +1556,8 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
       {/* Two-column: Profile + API Token */}
       <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Profile Card */}
-        <div className="card" style={{ padding: 28 }}>
+        <LiquidRing block radius={12} bg="var(--sf)">
+        <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
             {user.avatarUrl ? (
               <img src={user.avatarUrl} alt="" style={{ width: 64, height: 64, borderRadius: 12, border: "2px solid var(--bd)" }} />
@@ -1487,9 +1606,11 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             </div>
           </div>
         </div>
+        </LiquidRing>
 
         {/* API Credentials Card */}
-        <div className="card" style={{ padding: 28 }}>
+        <LiquidRing block radius={12} bg="var(--sf)">
+        <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
@@ -1521,12 +1642,14 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             For security, never share your tokens in client-side code.
           </p>
         </div>
+        </LiquidRing>
       </div>
 
       {/* Bottom row: Plan + Danger Zone */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         {/* Active Plan */}
-        <div className="card" style={{ padding: 28, background: "var(--coral)", color: "#fff", border: "none" }}>
+        <LiquidRing block radius={12} bg="var(--coral)">
+        <div style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.8, marginBottom: 8 }}>Active Plan</div>
           <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 28, fontWeight: 400, marginBottom: 4 }}>
             {plan.name}
@@ -1539,9 +1662,11 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             Manage plan →
           </a>
         </div>
+        </LiquidRing>
 
         {/* Danger Zone */}
-        <div className="card" style={{ padding: 28, borderColor: "rgba(239,68,68,0.3)" }}>
+        <LiquidRing block radius={12} bg="var(--sf)" color="var(--red)">
+        <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--red)", marginBottom: 12 }}>
             Danger Zone
           </div>
@@ -1552,6 +1677,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
             Sign Out
           </button>
         </div>
+        </LiquidRing>
       </div>
     </div>
   );
