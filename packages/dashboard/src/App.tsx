@@ -989,26 +989,47 @@ function ProjectsPage({ token }: { token: string }) {
             <LiquidRing key={p.id} block radius={12} bg="var(--sf)">
               <a href={`${BASE}/project/${p.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/project/${p.slug}`); }} style={{ textDecoration: "none", cursor: "pointer", display: "block", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
                 {/* Deployment Preview */}
-                {p.url && (
-                  <div style={{
-                    width: "100%", height: 160, borderRadius: 8, overflow: "hidden",
-                    border: "1px solid var(--bd)", marginBottom: 16, position: "relative",
-                    background: "var(--cdBg)",
+                <div style={{
+                  width: "100%", height: 160, borderRadius: 8, overflow: "hidden",
+                  border: "1px solid var(--bd)", marginBottom: 16, position: "relative",
+                  background: "var(--bgAlt, var(--cdBg))",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {/* Branded placeholder */}
+                  <span style={{
+                    fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic",
+                    fontSize: 36, color: "var(--txM)", fontWeight: 300, userSelect: "none",
                   }}>
+                    T<span style={{ color: "var(--coral)" }}>.</span>
+                  </span>
+                  {/* Live preview overlay — hidden until successfully loaded */}
+                  {p.url && (
                     <iframe
                       src={p.url}
                       title={`${p.slug} preview`}
                       style={{
+                        position: "absolute", top: 0, left: 0,
                         width: "200%", height: "200%", border: "none",
                         transform: "scale(0.5)", transformOrigin: "top left",
-                        pointerEvents: "none",
+                        pointerEvents: "none", opacity: 0, transition: "opacity 0.3s ease",
                       }}
                       loading="lazy"
                       sandbox="allow-scripts allow-same-origin"
                       tabIndex={-1}
+                      onLoad={(e) => {
+                        try {
+                          const doc = (e.target as HTMLIFrameElement).contentDocument;
+                          if (doc && doc.body && doc.body.innerHTML.length > 100) {
+                            (e.target as HTMLIFrameElement).style.opacity = "1";
+                          }
+                        } catch {
+                          // Cross-origin — assume loaded successfully
+                          (e.target as HTMLIFrameElement).style.opacity = "1";
+                        }
+                      }}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Header: name + status */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
