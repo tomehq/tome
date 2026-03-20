@@ -535,7 +535,7 @@ function LoginPage({ onLogin }: { onLogin: (token: string, user: User) => void }
           ) : providers.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {providers.map((p) => (
-                <LiquidRing key={p.id} block radius={6} bg="var(--sf)">
+                <LiquidRing key={p.id} block radius={6} bg="var(--sf)" variant="onWhite">
                   <a href={p.authorizeUrl} className="btn-oauth" style={{ borderRadius: 6, width: "100%" }}>
                     {p.id === "github" && <GitHubIcon />}
                     {p.id === "google" && <GoogleIcon />}
@@ -600,32 +600,39 @@ const HomeIcon = () => (
 
 // ── LiquidRing ────────────────────────────────────────────
 
-function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, style }: {
+function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, style, variant = "default" }: {
   children: React.ReactNode;
   color?: string;
   bg?: string;
   radius?: number;
   block?: boolean;
   style?: React.CSSProperties;
+  variant?: "default" | "onAccent" | "onWhite";
 }) {
   const [hovered, setHovered] = useState(false);
   const Tag = block ? "div" : "span";
   const InnerTag = block ? "div" : "span";
 
+  const gradientColors = variant === "onAccent"
+    ? { primary: "#ffffff", secondary: "#000000" }
+    : variant === "onWhite"
+    ? { primary: "var(--coral, #8b3a2f)", secondary: "#000000" }
+    : { primary: color, secondary: "#ffffff" };
+
   const gradient = `conic-gradient(
     from 0deg,
     transparent 0%,
-    ${color} 10%,
+    ${gradientColors.primary} 10%,
     transparent 20%,
     transparent 30%,
-    ${color} 40%,
-    #ffffff 44%,
-    ${color} 48%,
+    ${gradientColors.primary} 40%,
+    ${gradientColors.secondary} 44%,
+    ${gradientColors.primary} 48%,
     transparent 58%,
     transparent 68%,
-    ${color} 78%,
-    #ffffff 82%,
-    ${color} 86%,
+    ${gradientColors.primary} 78%,
+    ${gradientColors.secondary} 82%,
+    ${gradientColors.primary} 86%,
     transparent 96%,
     transparent 100%
   )`;
@@ -660,7 +667,7 @@ function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, s
         position: "absolute",
         inset: -2,
         borderRadius: radius + 4,
-        background: color,
+        background: variant === "onAccent" ? "#ffffff" : color,
         filter: "blur(8px)",
         opacity: hovered ? 0.15 : 0,
         transition: "opacity 0.4s ease",
@@ -911,7 +918,7 @@ function ProjectsPage({ token }: { token: string }) {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
           {projects.map((p) => (
-            <LiquidRing key={p.id} block radius={12} bg="var(--sf)">
+            <LiquidRing key={p.id} block radius={12} bg="var(--sf)" variant="onWhite">
               <a href={`${BASE}/project/${p.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/project/${p.slug}`); }} style={{ textDecoration: "none", cursor: "pointer", display: "block", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
                 {/* Deployment Preview */}
                 {p.url && (
@@ -1095,7 +1102,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {latestDeployment?.url && (
-            <LiquidRing radius={6}>
+            <LiquidRing radius={6} variant="onAccent">
               <a
                 href={latestDeployment.url}
                 target="_blank"
@@ -1112,7 +1119,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
 
       {/* Stat Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 40 }}>
-        <LiquidRing block radius={12} bg="var(--sf)">
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
           <div style={{ textAlign: "left", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Current Status</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1123,7 +1130,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
             </div>
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} bg="var(--sf)">
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
           <div style={{ textAlign: "left", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Total Assets</div>
             <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
@@ -1131,7 +1138,7 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
             </div>
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} bg="var(--sf)">
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
           <div style={{ textAlign: "left", padding: 24, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Total Size</div>
             <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 24, fontWeight: 400, color: "var(--tx)" }}>
@@ -1382,7 +1389,7 @@ function BillingPage({ token, user }: { token: string; user: User }) {
       {/* Two-column layout */}
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20, alignItems: "start" }}>
         {/* Left: Current Plan */}
-        <LiquidRing block radius={12} bg="var(--sf)">
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
         <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
             <div>
@@ -1437,7 +1444,7 @@ function BillingPage({ token, user }: { token: string; user: User }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Upgrade card (if not on highest tier) */}
           {nextPlan && (
-            <LiquidRing block radius={12} bg="var(--coral)">
+            <LiquidRing block radius={12} bg="var(--coral)" variant="onAccent">
             <div style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5">
@@ -1467,7 +1474,7 @@ function BillingPage({ token, user }: { token: string; user: User }) {
           )}
 
           {/* All plans comparison */}
-          <LiquidRing block radius={12} bg="var(--sf)">
+          <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
           <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--txM)", marginBottom: 16 }}>
               All Plans
@@ -1494,7 +1501,7 @@ function BillingPage({ token, user }: { token: string; user: User }) {
           </LiquidRing>
 
           {/* Billing support */}
-          <LiquidRing block radius={12} bg="var(--sf)">
+          <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
           <div style={{ padding: 20, display: "flex", alignItems: "center", gap: 14, background: "var(--sf)", borderRadius: 12 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 8, background: "var(--coralD)",
@@ -1556,7 +1563,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
       {/* Two-column: Profile + API Token */}
       <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Profile Card */}
-        <LiquidRing block radius={12} bg="var(--sf)">
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
         <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
             {user.avatarUrl ? (
@@ -1609,7 +1616,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
         </LiquidRing>
 
         {/* API Credentials Card */}
-        <LiquidRing block radius={12} bg="var(--sf)">
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite">
         <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1648,7 +1655,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
       {/* Bottom row: Plan + Danger Zone */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         {/* Active Plan */}
-        <LiquidRing block radius={12} bg="var(--coral)">
+        <LiquidRing block radius={12} bg="var(--coral)" variant="onAccent">
         <div style={{ padding: 28, background: "var(--coral)", color: "#fff", borderRadius: 12 }}>
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.8, marginBottom: 8 }}>Active Plan</div>
           <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 28, fontWeight: 400, marginBottom: 4 }}>
@@ -1665,7 +1672,7 @@ function SettingsPage({ user, token, onLogout }: { user: User; token: string; on
         </LiquidRing>
 
         {/* Danger Zone */}
-        <LiquidRing block radius={12} bg="var(--sf)" color="var(--red)">
+        <LiquidRing block radius={12} bg="var(--sf)" color="var(--red)" variant="onWhite">
         <div style={{ padding: 28, background: "var(--sf)", borderRadius: 12 }}>
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--red)", marginBottom: 12 }}>
             Danger Zone

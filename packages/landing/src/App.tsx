@@ -95,32 +95,42 @@ const SunIcon = () => (
 // ── Liquid border ring component ─────────────────────────
 // Wrapper that shows a spinning gradient border on hover
 
-function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, style }: {
+function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, style, variant = "default" }: {
   children: React.ReactNode;
   color?: string;
   bg?: string;
   radius?: number;
   block?: boolean;
   style?: React.CSSProperties;
+  variant?: "default" | "onAccent" | "onWhite";
 }) {
   const [hovered, setHovered] = useState(false);
   const Tag = block ? "div" : "span";
   const InnerTag = block ? "div" : "span";
 
+  // onAccent: white+black ring for orange buttons/components
+  // onWhite: orange+black ring for white buttons/components
+  // default: original orange+white ring
+  const gradientColors = variant === "onAccent"
+    ? { primary: "#ffffff", secondary: "#000000" }
+    : variant === "onWhite"
+    ? { primary: "var(--accent, #8b3a2f)", secondary: "#000000" }
+    : { primary: color, secondary: "#ffffff" };
+
   const gradient = `conic-gradient(
     from 0deg,
     transparent 0%,
-    ${color} 10%,
+    ${gradientColors.primary} 10%,
     transparent 20%,
     transparent 30%,
-    ${color} 40%,
-    #ffffff 44%,
-    ${color} 48%,
+    ${gradientColors.primary} 40%,
+    ${gradientColors.secondary} 44%,
+    ${gradientColors.primary} 48%,
     transparent 58%,
     transparent 68%,
-    ${color} 78%,
-    #ffffff 82%,
-    ${color} 86%,
+    ${gradientColors.primary} 78%,
+    ${gradientColors.secondary} 82%,
+    ${gradientColors.primary} 86%,
     transparent 96%,
     transparent 100%
   )`;
@@ -155,7 +165,7 @@ function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, 
         position: "absolute",
         inset: -2,
         borderRadius: radius + 4,
-        background: color,
+        background: variant === "onAccent" ? "#ffffff" : color,
         filter: "blur(8px)",
         opacity: hovered ? 0.15 : 0,
         transition: "opacity 0.4s ease",
@@ -485,15 +495,15 @@ function HeroContent() {
           Tome blends the elegance of an academic journal with the high-performance requirements of modern engineering teams. Curate your technical wisdom.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-          <LiquidRing color="var(--accent)" radius={6}><a className="btn-liquid" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started</a></LiquidRing>
-          <LiquidRing color="var(--accent)" radius={6}><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
+          <LiquidRing variant="onAccent" radius={6}><a className="btn-liquid" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started</a></LiquidRing>
+          <LiquidRing variant="onWhite" radius={6}><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> Open source · MIT licensed</span>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> 5 theme presets included</span>
         </div>
       </div>
-      <LiquidRing block radius={8} bg="#ffffff">
+      <LiquidRing block radius={8} bg="#ffffff" variant="onWhite">
         <div style={{ padding: "8px 14px", background: "#edeae4", display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid #ddd9d0" }}>
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#e74c3c" }} />
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f39c12" }} />
@@ -583,7 +593,7 @@ function FeaturesContent() {
         Crafted for the Technical Mind
       </h2>
       <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gridTemplateRows: "auto auto", gap: 16 }}>
-        <LiquidRing block radius={12} bg="var(--sf)" style={{ height: "100%" }}>
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite" style={{ height: "100%" }}>
           <div className="feature-card" style={{ background: "var(--sf)", borderRadius: 12, padding: 36, height: "100%" }}>
             <CiCdIcon />
             <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 20, fontWeight: 600, marginTop: 16, marginBottom: 10, color: "var(--tx)" }}>CI/CD Integration</h3>
@@ -597,7 +607,7 @@ function FeaturesContent() {
             </div>
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} color="rgba(255,255,255,0.6)" bg="var(--accent)" style={{ height: "100%" }}>
+        <LiquidRing block radius={12} bg="var(--accent)" variant="onAccent" style={{ height: "100%" }}>
           <div className="feature-card-accent" style={{ background: "var(--accent)", borderRadius: 12, padding: 36, color: "#fff", height: "100%" }}>
             <GlobeIcon />
             <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 20, fontWeight: 600, marginTop: 16, marginBottom: 10 }}>Custom Domains</h3>
@@ -605,14 +615,14 @@ function FeaturesContent() {
             <DomainAnimation />
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} color="rgba(255,255,255,0.6)" bg="var(--accent)" style={{ height: "100%" }}>
+        <LiquidRing block radius={12} bg="var(--accent)" variant="onAccent" style={{ height: "100%" }}>
           <div className="feature-card-accent" style={{ background: "var(--accent)", borderRadius: 12, padding: 28, color: "#fff", height: "100%" }}>
             <CodeIcon />
             <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, marginTop: 12, marginBottom: 8 }}>DX-first</h3>
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, lineHeight: 1.6, opacity: 0.85 }}>Markdown, MDX, and Markdoc support. Designed by developers who value speed.</p>
           </div>
         </LiquidRing>
-        <LiquidRing block radius={12} bg="var(--sf)" style={{ height: "100%" }}>
+        <LiquidRing block radius={12} bg="var(--sf)" variant="onWhite" style={{ height: "100%" }}>
           <div className="feature-card" style={{ background: "var(--sf)", borderRadius: 12, padding: 28, height: "100%" }}>
             <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 600, marginBottom: 8, color: "var(--tx)" }}>Semantic Search</h3>
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 20 }}>Instant results across all your projects with AI-powered semantic understanding.</p>
@@ -648,7 +658,7 @@ function CodeExampleContent() {
         </h2>
       </div>
 
-      <LiquidRing block radius={8} bg="var(--bgAlt)">
+      <LiquidRing block radius={8} bg="var(--bgAlt)" variant="onWhite">
       <div style={{ borderRadius: 8, overflow: "hidden", background: "var(--bgAlt)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "1px solid var(--bd)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -674,14 +684,14 @@ function CodeExampleContent() {
 function CTAContent() {
   return (
     <div style={{ maxWidth: 900, width: "100%", padding: "0 48px" }}>
-      <LiquidRing block radius={16} color="rgba(255,255,255,0.6)" bg="var(--accent)">
+      <LiquidRing block radius={16} bg="var(--accent)" variant="onAccent">
         <div style={{ background: "var(--accent)", borderRadius: 16, padding: "80px 48px", textAlign: "center" }}>
           <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 400, fontStyle: "italic", color: "#fff", marginBottom: 32, letterSpacing: "-0.01em" }}>
             Ready to build your legacy?
           </h2>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 28 }}>
-            <LiquidRing color="rgba(255,255,255,0.7)" radius={6}><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
-            <LiquidRing color="rgba(255,255,255,0.5)" radius={6}><a className="btn-dark-outline" href="/docs" style={{ background: "var(--accent)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>View the Docs</a></LiquidRing>
+            <LiquidRing variant="onWhite" radius={6}><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
+            <LiquidRing variant="onAccent" radius={6}><a className="btn-dark-outline" href="/docs" style={{ background: "var(--accent)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>View the Docs</a></LiquidRing>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
             <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.7)", fontFamily: "Inter, sans-serif" }}><CheckIconWhite /> Open source core</span>
