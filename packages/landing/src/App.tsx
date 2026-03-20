@@ -283,6 +283,8 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 
 .nav-link{transition:color .2s ease;position:relative}
 .nav-link:hover{color:var(--tx)!important}
+.nav-signin{padding:8px 16px;border-radius:6px;transition:all .3s ease}
+.nav-signin:hover{color:var(--accent)!important;text-decoration:underline;text-underline-offset:4px}
 
 /* ── Liquid button effects ──────────────────────────── */
 
@@ -422,7 +424,7 @@ function Nav({ isDark, toggle }: { isDark: boolean; toggle: () => void }) {
         <button className="theme-toggle" onClick={toggle} aria-label={isDark ? "Light mode" : "Dark mode"} style={{ background: "none", border: "none", color: "var(--txM)", cursor: "pointer", display: "flex", padding: 4 }}>
           {isDark ? <SunIcon /> : <MoonIcon />}
         </button>
-        <a className="nav-link" href="/dashboard" style={{ ...s, fontSize: 14 }}>Sign In</a>
+        <a className="nav-link nav-signin" href="/dashboard" style={{ ...s, fontSize: 14 }}>Sign In</a>
       </div>
     </nav>
   );
@@ -653,7 +655,7 @@ function CodeExampleContent() {
       </div>
 
       <LiquidRing block radius={8} bg="var(--bgAlt)">
-      <div style={{ borderRadius: 8, overflow: "hidden", background: "var(--bgAlt)" }}>
+      <div style={{ borderRadius: 8, overflow: "hidden", background: "var(--bgAlt)", boxShadow: "0 4px 16px var(--shadowColor), 0 1px 4px var(--shadowColorLight)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "1px solid var(--bd)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--accent)" }} />
@@ -679,7 +681,7 @@ function CTAContent() {
   return (
     <div style={{ maxWidth: 900, width: "100%", padding: "0 48px" }}>
       <LiquidRing block radius={16} bg="var(--accent)">
-        <div style={{ background: "var(--accent)", borderRadius: 16, padding: "80px 48px", textAlign: "center" }}>
+        <div style={{ background: "var(--accent)", borderRadius: 16, padding: "80px 48px", textAlign: "center", boxShadow: "0 8px 30px var(--shadowColor), 0 2px 8px var(--shadowColorLight)" }}>
           <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 400, fontStyle: "italic", color: "#fff", marginBottom: 32, letterSpacing: "-0.01em" }}>
             Ready to build your legacy?
           </h2>
