@@ -100,7 +100,7 @@ export async function discoverPages(
         const { data } = matter(source);
 
         const ext = file.endsWith(".mdx") ? ".mdx" : ".md";
-        let id = file.replace(ext, "");
+        let id = file.replace(/\\/g, "/").replace(ext, "");
         if (id.endsWith("/index") || id === "index") {
           id = id.replace(/\/?index$/, "");
         }
@@ -198,7 +198,7 @@ export async function discoverPages(
         const { data } = matter(source);
 
         const ext = file.endsWith(".mdx") ? ".mdx" : ".md";
-        let id = file.replace(ext, "");
+        let id = file.replace(/\\/g, "/").replace(ext, "");
         if (id.endsWith("/index") || id === "index") {
           id = id.replace(/\/?index$/, "");
         }
@@ -258,7 +258,7 @@ export async function discoverPages(
 
     // Derive ID and URL path from file path
     const ext = file.endsWith(".mdx") ? ".mdx" : ".md";
-    let id = file.replace(ext, "");
+    let id = file.replace(/\\/g, "/").replace(ext, "");
     if (id.endsWith("/index") || id === "index") {
       id = id.replace(/\/?index$/, "");
     }
@@ -286,7 +286,7 @@ export async function discoverPages(
 
     routes.push({
       id: id || "index",
-      filePath: file,
+      filePath: file.replace(/\\/g, "/"),
       absolutePath,
       urlPath,
       frontmatter,
