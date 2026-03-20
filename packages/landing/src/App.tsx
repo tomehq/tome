@@ -95,32 +95,36 @@ const SunIcon = () => (
 // ── Liquid border ring component ─────────────────────────
 // Wrapper that shows a spinning gradient border on hover
 
-function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, style }: {
+function LiquidRing({ children, color = "var(--accent)", bg, radius = 6, block, style, darkRing }: {
   children: React.ReactNode;
   color?: string;
   bg?: string;
   radius?: number;
   block?: boolean;
   style?: React.CSSProperties;
+  darkRing?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Tag = block ? "div" : "span";
   const InnerTag = block ? "div" : "span";
 
+  const hotspot = darkRing ? "#888888" : "#ffffff";
+  const base = darkRing ? "#1a1a1a" : color;
+
   const gradient = `conic-gradient(
     from 0deg,
     transparent 0%,
-    ${color} 10%,
+    ${base} 10%,
     transparent 20%,
     transparent 30%,
-    ${color} 40%,
-    #ffffff 44%,
-    ${color} 48%,
+    ${base} 40%,
+    ${hotspot} 44%,
+    ${base} 48%,
     transparent 58%,
     transparent 68%,
-    ${color} 78%,
-    #ffffff 82%,
-    ${color} 86%,
+    ${base} 78%,
+    ${hotspot} 82%,
+    ${base} 86%,
     transparent 96%,
     transparent 100%
   )`;
@@ -486,7 +490,7 @@ function HeroContent() {
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
           <LiquidRing radius={6}><a className="btn-liquid" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started</a></LiquidRing>
-          <LiquidRing radius={6}><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
+          <LiquidRing radius={6} darkRing><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> Open source · MIT licensed</span>
@@ -680,7 +684,7 @@ function CTAContent() {
             Ready to build your legacy?
           </h2>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 28 }}>
-            <LiquidRing radius={6}><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
+            <LiquidRing radius={6} darkRing><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
             <LiquidRing radius={6}><a className="btn-dark-outline" href="/docs" style={{ background: "var(--accent)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>View the Docs</a></LiquidRing>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>

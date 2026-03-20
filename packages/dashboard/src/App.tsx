@@ -160,6 +160,7 @@ const THEMES = {
     "--green": "#15803d", "--yellow": "#a16207", "--red": "#b91c1c",
     "--cdBg": "#edeae4", "--cdTx": "#3a3530", "--cdBd": "#ddd9d0",
     "--shadowColor": "rgba(0,0,0,0.12)", "--shadowHeavy": "rgba(0,0,0,0.2)",
+    "--btnGlow": "rgba(0,0,0,0.2)",
   },
   dark: {
     "--bg": "#080c1f", "--sf": "#0e1333", "--sfH": "#141940",
@@ -172,6 +173,7 @@ const THEMES = {
     "--green": "#22c55e", "--yellow": "#eab308", "--red": "#f87171",
     "--cdBg": "#0a0e27", "--cdTx": "#b8b4cc", "--cdBd": "#1a2050",
     "--shadowColor": "rgba(0,0,0,0.3)", "--shadowHeavy": "rgba(0,0,0,0.5)",
+    "--btnGlow": "rgba(255,255,255,0.15)",
   },
 } as const;
 
@@ -220,7 +222,7 @@ const CSS = `
   box-shadow:0 4px 14px var(--shadowColor);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-primary:hover{box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-primary:hover{box-shadow:0 8px 30px var(--btnGlow)}
 .btn-primary:active{box-shadow:0 2px 8px var(--shadowColor)}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
@@ -232,7 +234,8 @@ const CSS = `
   box-shadow:0 2px 8px var(--shadowColor);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-ghost:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-ghost:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--btnGlow)}
+.btn-on-accent:hover{border-color:#fff !important;box-shadow:0 8px 30px rgba(0,0,0,0.25) !important}
 .btn-ghost:active{box-shadow:0 2px 8px var(--shadowColor)}
 
 .btn-sm{padding:6px 14px;font-size:12px}
@@ -245,7 +248,7 @@ const CSS = `
   box-shadow:0 2px 8px var(--shadowColor);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-oauth:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-oauth:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--btnGlow)}
 .btn-oauth:active{box-shadow:0 2px 8px var(--shadowColor)}
 
 .nav-link{
@@ -600,32 +603,36 @@ const HomeIcon = () => (
 
 // ── LiquidRing ────────────────────────────────────────────
 
-function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, style }: {
+function LiquidRing({ children, color = "var(--coral)", bg, radius = 6, block, style, darkRing }: {
   children: React.ReactNode;
   color?: string;
   bg?: string;
   radius?: number;
   block?: boolean;
   style?: React.CSSProperties;
+  darkRing?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Tag = block ? "div" : "span";
   const InnerTag = block ? "div" : "span";
 
+  const hotspot = darkRing ? "#888888" : "#ffffff";
+  const base = darkRing ? "#1a1a1a" : color;
+
   const gradient = `conic-gradient(
     from 0deg,
     transparent 0%,
-    ${color} 10%,
+    ${base} 10%,
     transparent 20%,
     transparent 30%,
-    ${color} 40%,
-    #ffffff 44%,
-    ${color} 48%,
+    ${base} 40%,
+    ${hotspot} 44%,
+    ${base} 48%,
     transparent 58%,
     transparent 68%,
-    ${color} 78%,
-    #ffffff 82%,
-    ${color} 86%,
+    ${base} 78%,
+    ${hotspot} 82%,
+    ${base} 86%,
     transparent 96%,
     transparent 100%
   )`;
@@ -1450,20 +1457,17 @@ function BillingPage({ token, user }: { token: string; user: User }) {
               <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, opacity: 0.85, lineHeight: 1.5, marginBottom: 20 }}>
                 Unlock more with {nextPlan.name}: {nextPlan.features.slice(0, 2).join(", ")}, and more.
               </p>
-              <LiquidRing block radius={6} bg="#fff">
               <button
                 onClick={() => handleCheckout(nextPlanKey!)}
                 disabled={loading}
+                className="btn-ghost btn-on-accent"
                 style={{
-                  width: "100%", padding: "12px 24px", background: "#fff", color: "var(--coral)",
-                  border: "none", borderRadius: 6, fontFamily: "Inter, sans-serif", fontSize: 14,
-                  fontWeight: 600, cursor: "pointer", transition: "all .3s",
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                  width: "100%", padding: "12px 24px", color: "#fff",
+                  borderColor: "rgba(255,255,255,0.4)", borderRadius: 6, fontSize: 14,
                 }}
               >
                 {loading ? "Redirecting..." : `Upgrade to ${nextPlan.name} · ${nextPlan.price}`}
               </button>
-              </LiquidRing>
             </div>
             </LiquidRing>
           )}
