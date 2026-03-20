@@ -141,7 +141,7 @@ const GoogleIcon = () => (
 );
 
 const ExternalLinkIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="external-link-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
   </svg>
 );
@@ -279,17 +279,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--coral);outline-offs
 .action-link{
   color:var(--coral);text-decoration:none;font-family:Inter,sans-serif;
   font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:4px;
-  transition:opacity .2s ease,text-decoration-color .2s ease;
-  text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),letter-spacing .3s ease;
+  transform-origin:left center;
 }
-.action-link:hover{text-decoration-color:var(--coral);opacity:0.8}
+.action-link:hover{transform:scale(1.04);letter-spacing:0.2px}
 .action-link-white{
-  color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,0.5);
-  text-underline-offset:3px;font-family:Inter,sans-serif;font-size:13px;font-weight:500;
+  color:#fff;text-decoration:none;font-family:Inter,sans-serif;font-size:13px;font-weight:500;
   display:inline-block;margin-top:16px;
-  transition:text-decoration-color .2s ease,opacity .2s ease;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),letter-spacing .3s ease;
+  transform-origin:left center;
 }
-.action-link-white:hover{text-decoration-color:#fff;opacity:0.9}
+.action-link-white:hover{transform:scale(1.04);letter-spacing:0.2px}
 
 .status-live{color:var(--green)}
 .status-uploading{color:var(--yellow)}
@@ -367,23 +367,54 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--coral);outline-offs
 .upgrade-wrap:hover .upgrade-tooltip{display:block}
 
 /* ── Responsive ────────────────────────────────── */
+
+/* Tablet / half-screen: icon-only sidebar */
+@media (max-width: 1200px) and (min-width: 768px) {
+  .dash-sidebar {
+    width: 60px !important; padding: 16px 8px !important; align-items: center !important;
+  }
+  .dash-sidebar .dash-logo { text-align: center !important; padding: 0 !important; }
+  .dash-sidebar .dash-logo-text { display: none !important; }
+  .dash-sidebar > nav a span { display: none !important; }
+  .dash-sidebar > nav a { padding: 10px !important; justify-content: center !important; border-radius: 8px !important; }
+  .dash-sidebar > nav a svg.external-link-icon { display: none !important; }
+  .dash-sidebar > div:nth-child(3) { display: none !important; } /* hide divider */
+  .dash-sidebar .dash-user-name { display: none !important; }
+  .dash-sidebar .dash-bottom { align-items: center !important; }
+  .dash-sidebar .dash-bottom a { justify-content: center !important; }
+  .dash-sidebar .dash-bottom button { justify-content: center !important; }
+  .dash-sidebar .dash-bottom button span { display: none !important; }
+  .dash-main { padding: 32px 20px !important; }
+}
+
 @media (max-width: 767px) {
   /* Sidebar: collapse to bottom nav on mobile */
   .dash-layout { flex-direction: column !important; }
   .dash-sidebar {
     width: 100% !important; height: auto !important; position: fixed !important;
     bottom: 0 !important; top: auto !important; flex-direction: row !important;
-    padding: 8px 12px !important; border-right: none !important;
+    padding: 6px 0 !important; border-right: none !important;
     border-top: 1px solid var(--bd) !important; z-index: 100 !important;
-    justify-content: space-around !important; align-items: center !important;
+    justify-content: center !important; align-items: center !important;
+    gap: 0 !important;
   }
-  .dash-sidebar > a:first-child { display: none !important; } /* hide logo */
-  .dash-sidebar > nav { flex-direction: row !important; gap: 0 !important; }
-  .dash-sidebar > nav a { padding: 8px !important; font-size: 0 !important; } /* icon only */
-  .dash-sidebar > nav a svg { margin: 0 !important; }
-  .dash-sidebar > div:nth-child(4) { display: none !important; } /* hide divider */
-  .dash-sidebar > nav:nth-child(5) { display: none !important; } /* hide external links */
-  .dash-sidebar > div:last-child { display: none !important; } /* hide bottom user section */
+  /* Hide: logo, divider, external links nav, spacer, bottom user section */
+  .dash-sidebar > a:first-child { display: none !important; }
+  .dash-sidebar > nav:last-of-type { display: none !important; }
+  .dash-sidebar > div { display: none !important; }
+  /* Main nav: horizontal centered icons */
+  .dash-sidebar > nav:first-of-type {
+    display: flex !important; flex-direction: row !important; gap: 0 !important;
+    width: 100% !important; justify-content: center !important;
+  }
+  .dash-sidebar > nav:first-of-type a {
+    padding: 12px 16px !important; font-size: 0 !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    min-width: 44px !important; min-height: 44px !important;
+    background: none !important;
+  }
+  .dash-sidebar > nav:first-of-type a span { display: none !important; }
+  .dash-sidebar > nav:first-of-type a svg { margin: 0 !important; }
 
   /* Main content */
   .dash-main { padding: 24px 16px 80px !important; }
@@ -746,22 +777,22 @@ function Shell({
         overflowY: "auto",
       }}>
         {/* Logo */}
-        <a href={`${BASE}/`} onClick={(e) => { e.preventDefault(); navigate("/"); }} style={{ textDecoration: "none", marginBottom: 8, padding: "0 16px" }}>
+        <a className="dash-logo" href={`${BASE}/`} onClick={(e) => { e.preventDefault(); navigate("/"); }} style={{ textDecoration: "none", marginBottom: 8, padding: "0 16px", display: "block", textAlign: "left" }}>
           <span style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic", fontSize: 24, color: "var(--tx)", fontWeight: 300 }}>
-            Tome<span style={{ color: "var(--coral)" }}>.</span>
+            T<span className="dash-logo-text">ome</span><span style={{ color: "var(--coral)" }}>.</span>
           </span>
         </a>
 
         {/* Main nav */}
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 24 }}>
           <a href={`${BASE}/`} onClick={(e) => { e.preventDefault(); navigate("/"); }} style={sidebarLinkStyle(page === "projects" || page === "project")}>
-            <ProjectsIcon /> Projects
+            <ProjectsIcon /> <span>Projects</span>
           </a>
           <a href={`${BASE}/billing`} onClick={(e) => { e.preventDefault(); navigate("/billing"); }} style={sidebarLinkStyle(page === "billing")}>
-            <BillingIcon /> Billing
+            <BillingIcon /> <span>Billing</span>
           </a>
           <a href={`${BASE}/settings`} onClick={(e) => { e.preventDefault(); navigate("/settings"); }} style={sidebarLinkStyle(page === "settings")}>
-            <SettingsIcon /> Settings
+            <SettingsIcon /> <span>Settings</span>
           </a>
         </nav>
 
@@ -771,10 +802,10 @@ function Shell({
         {/* External links */}
         <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <a href="/docs/" style={{ ...sidebarLinkStyle(false), color: "var(--txM)" }}>
-            <DocsIcon /> Docs <ExternalLinkIcon />
+            <DocsIcon /> <span>Docs</span> <ExternalLinkIcon />
           </a>
           <a href="/" style={{ ...sidebarLinkStyle(false), color: "var(--txM)" }}>
-            <HomeIcon /> Home <ExternalLinkIcon />
+            <HomeIcon /> <span>Home</span> <ExternalLinkIcon />
           </a>
         </nav>
 
@@ -782,7 +813,7 @@ function Shell({
         <div style={{ flex: 1 }} />
 
         {/* Bottom: user + theme toggle */}
-        <div style={{ borderTop: "1px solid var(--bd)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="dash-bottom" style={{ borderTop: "1px solid var(--bd)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <a href={`${BASE}/settings`} onClick={(e) => { e.preventDefault(); navigate("/settings"); }} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", padding: "0 4px" }}>
             {user.avatarUrl ? (
               <img src={user.avatarUrl} alt="" style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid var(--bd)" }} />
@@ -795,11 +826,11 @@ function Shell({
                 {(user.name || user.email).charAt(0).toUpperCase()}
               </div>
             )}
-            <div style={{ overflow: "hidden" }}>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, color: "var(--tx)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span className="dash-user-name" style={{ overflow: "hidden" }}>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, color: "var(--tx)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
                 {user.name || user.email}
-              </div>
-            </div>
+              </span>
+            </span>
           </a>
           <button
             onClick={() => setDark(!isDark)}
@@ -807,9 +838,11 @@ function Shell({
               display: "flex", alignItems: "center", gap: 8, padding: "8px 16px",
               background: "none", border: "1px solid var(--bd)", borderRadius: 8,
               cursor: "pointer", color: "var(--txM)", fontFamily: "Inter, sans-serif",
-              fontSize: 12, transition: "all .2s", width: "100%",
+              fontSize: 12, transition: "all .3s cubic-bezier(.34,1.56,.64,1)", width: "100%",
             }}
             aria-label="Toggle theme"
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--coral)"; e.currentTarget.style.color = "var(--coral)"; e.currentTarget.style.transform = "scale(1.03)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--bd)"; e.currentTarget.style.color = "var(--txM)"; e.currentTarget.style.transform = "scale(1)"; }}
           >
             {isDark ? <SunIcon /> : <MoonIcon />}
             <span>{isDark ? "Light mode" : "Dark mode"}</span>
