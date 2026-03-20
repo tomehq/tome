@@ -1186,7 +1186,7 @@ export function Shell({
               </div>
 
               {/* TOM-48: Edit this page link + TOM-54: Last updated + Feedback + Prev/Next */}
-              {overrides?.PageFooter ? (
+              {!pageHtml && !pageComponent ? null : overrides?.PageFooter ? (
                 <overrides.PageFooter
                   editUrl={editUrl}
                   lastUpdated={lastUpdated}
