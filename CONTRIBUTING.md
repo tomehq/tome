@@ -13,7 +13,7 @@ Thank you for your interest in contributing to Tome! This guide will help you ge
 
 ```bash
 # Clone the repo
-git clone https://github.com/tome-docs/tome.git
+git clone https://github.com/tomehq/tome.git
 cd tome
 
 # Install dependencies
