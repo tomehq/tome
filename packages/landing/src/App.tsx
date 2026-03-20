@@ -293,29 +293,27 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 /* ── Liquid button effects ──────────────────────────── */
 
 
-.btn-liquid{
-  position:relative;overflow:hidden;
+.btn-primary-landing{
   box-shadow:var(--shadowFloat);
-  transition:box-shadow .4s ease;
+  transition:box-shadow .3s ease,border-color .3s ease;
 }
-.btn-liquid:hover{
+.btn-primary-landing:hover{
   box-shadow:var(--shadowFloatHover);
 }
-.btn-liquid:active{
+.btn-primary-landing:active{
   box-shadow:0 2px 8px var(--shadowColor);
   transition:box-shadow .12s ease;
 }
 
-.btn-liquid-outline{
-  position:relative;overflow:hidden;
+.btn-ghost-landing{
   box-shadow:var(--shadowFloat);
-  transition:box-shadow .4s ease,border-color .3s ease;
+  transition:box-shadow .3s ease,border-color .3s ease;
 }
-.btn-liquid-outline:hover{
+.btn-ghost-landing:hover{
   border-color:var(--accent)!important;
   box-shadow:var(--shadowFloatHover);
 }
-.btn-liquid-outline:active{
+.btn-ghost-landing:active{
   box-shadow:0 2px 8px var(--shadowColor);
   transition:box-shadow .12s ease;
 }
@@ -334,16 +332,15 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
   transition:box-shadow .12s ease;
 }
 
-.btn-dark-outline{
-  position:relative;overflow:hidden;
-  box-shadow:0 6px 24px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.08),0 0 1px rgba(0,0,0,0.1);
-  transition:border-color .3s ease,box-shadow .4s ease;
+.btn-cta-outline{
+  box-shadow:0 6px 24px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.08);
+  transition:border-color .3s ease,box-shadow .3s ease;
 }
-.btn-dark-outline:hover{
-  border-color:rgba(255,255,255,0.5)!important;
-  box-shadow:0 16px 48px rgba(0,0,0,0.3),0 6px 20px rgba(0,0,0,0.15),0 0 1px rgba(0,0,0,0.1);
+.btn-cta-outline:hover{
+  border-color:rgba(255,255,255,0.6)!important;
+  box-shadow:0 16px 48px rgba(0,0,0,0.3),0 6px 20px rgba(0,0,0,0.15);
 }
-.btn-dark-outline:active{box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:box-shadow .12s ease}
+.btn-cta-outline:active{box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:box-shadow .12s ease}
 
 /* ── Feature cards with liquid hover ────────────────── */
 
@@ -495,11 +492,11 @@ function HeroContent() {
           Tome blends the elegance of an academic journal with the high-performance requirements of modern engineering teams. Curate your technical wisdom.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-          <LiquidRing radius={6} onAccent><a className="btn-liquid" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started</a></LiquidRing>
-          <LiquidRing radius={6}><a className="btn-liquid-outline" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}><GitHubIcon /> Star on GitHub</a></LiquidRing>
+          <a className="btn-primary-landing" href="/dashboard" style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", boxShadow: "var(--shadowFloat)", transition: "all .3s ease" }}>Get Started</a>
+          <a className="btn-ghost-landing" href="https://github.com/tomehq/tome" style={{ background: "var(--bg)", color: "var(--tx)", border: "1px solid var(--bd)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "var(--shadowFloat)", transition: "all .3s ease" }}><GitHubIcon /> Star on GitHub</a>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> Open source · MIT licensed</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> Optimized for Agents</span>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--tx2)", fontFamily: "Inter, sans-serif" }}><CheckIcon /> 5 theme presets included</span>
         </div>
       </div>
@@ -522,16 +519,23 @@ function HeroContent() {
               <div style={{ fontSize: 11, color: "#4a443e" }}>Theming</div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 18, fontWeight: 600, color: "#1a1716", marginBottom: 8, fontFamily: '"Cormorant Garamond", serif' }}>Introduction</div>
-              <div style={{ height: 6, width: "90%", background: "#edeae4", borderRadius: 3, marginBottom: 6 }} />
-              <div style={{ height: 6, width: "75%", background: "#edeae4", borderRadius: 3, marginBottom: 6 }} />
-              <div style={{ height: 6, width: "82%", background: "#edeae4", borderRadius: 3, marginBottom: 16 }} />
-              <div style={{ padding: 12, background: "rgba(139,58,47,0.08)", borderRadius: 6 }}>
-                <div style={{ height: 5, width: "60%", background: "rgba(139,58,47,0.15)", borderRadius: 3, marginBottom: 4 }} />
-                <div style={{ height: 5, width: "45%", background: "rgba(139,58,47,0.15)", borderRadius: 3 }} />
+              <div style={{ fontSize: 18, fontWeight: 600, color: "#1a1716", marginBottom: 10, fontFamily: '"Cormorant Garamond", serif', fontStyle: "italic" }}>Introduction</div>
+              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#4a443e", marginBottom: 12 }}>
+                Tome is an open-source documentation platform for Markdown and MDX. Beautiful docs without the $250/month price tag.
+              </p>
+              <div style={{ borderTop: "1px solid #e8e4dc", marginBottom: 12 }} />
+              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#706960", marginBottom: 12 }}>
+                Welcome to Tome — beautiful documentation, zero vendor lock-in.
+              </p>
+              <div style={{ borderTop: "1px solid #e8e4dc", marginBottom: 12 }} />
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1716", marginBottom: 6 }}>What is Tome?</div>
+              <p style={{ fontSize: 11, lineHeight: 1.7, color: "#4a443e", marginBottom: 10 }}>
+                Tome transforms your Markdown and MDX files into stunning, fully-searchable documentation sites.
+              </p>
+              <div style={{ padding: 10, background: "rgba(139,58,47,0.06)", borderLeft: "3px solid #8b3a2f", borderRadius: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#8b3a2f", textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 3 }}>Open Source Forever</div>
+                <p style={{ fontSize: 10, lineHeight: 1.6, color: "#4a443e", margin: 0 }}>Tome is MIT licensed. No vendor lock-in, no surprise pricing changes.</p>
               </div>
-              <div style={{ height: 6, width: "88%", background: "#edeae4", borderRadius: 3, marginTop: 16, marginBottom: 6 }} />
-              <div style={{ height: 6, width: "70%", background: "#edeae4", borderRadius: 3 }} />
             </div>
           </div>
         </div>
@@ -690,8 +694,8 @@ function CTAContent() {
             Ready to build your legacy?
           </h2>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 28 }}>
-            <LiquidRing radius={6} onAccent><a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Get Started for Free</a></LiquidRing>
-            <LiquidRing radius={6} onAccent><a className="btn-dark-outline" href="/docs" style={{ background: "var(--accent)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>View the Docs</a></LiquidRing>
+            <a className="btn-cta-white" href="/dashboard" style={{ background: "#fff", color: "var(--accent)", border: "none", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", boxShadow: "0 4px 16px rgba(0,0,0,0.2), 0 1px 4px rgba(0,0,0,0.1)", transition: "all .3s ease" }}>Get Started for Free</a>
+            <a className="btn-cta-outline" href="/docs" style={{ background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, padding: "14px 28px", fontSize: 15, fontWeight: 500, fontFamily: "Inter, sans-serif", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", transition: "all .3s ease" }}>View the Docs</a>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
             <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.7)", fontFamily: "Inter, sans-serif" }}><CheckIconWhite /> Open source core</span>
