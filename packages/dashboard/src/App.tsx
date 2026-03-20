@@ -220,8 +220,8 @@ const CSS = `
   box-shadow:0 4px 14px var(--shadowColor);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadowHeavy)}
-.btn-primary:active{transform:translateY(0);box-shadow:0 2px 8px var(--shadowColor)}
+.btn-primary:hover{box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-primary:active{box-shadow:0 2px 8px var(--shadowColor)}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
 .btn-ghost{
@@ -232,8 +232,8 @@ const CSS = `
   box-shadow:0 2px 8px var(--shadowColor);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-ghost:hover{border-color:var(--coral);transform:translateY(-2px);box-shadow:0 8px 30px var(--shadowHeavy)}
-.btn-ghost:active{transform:translateY(0)}
+.btn-ghost:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-ghost:active{box-shadow:0 2px 8px var(--shadowColor)}
 
 .btn-sm{padding:6px 14px;font-size:12px}
 
@@ -245,8 +245,8 @@ const CSS = `
   box-shadow:0 2px 8px var(--shadowColor);
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
 }
-.btn-oauth:hover{border-color:var(--coral);transform:translateY(-2px);box-shadow:0 8px 30px var(--shadowHeavy)}
-.btn-oauth:active{transform:translateY(0)}
+.btn-oauth:hover{border-color:var(--coral);box-shadow:0 8px 30px var(--shadowHeavy)}
+.btn-oauth:active{box-shadow:0 2px 8px var(--shadowColor)}
 
 .nav-link{
   color:var(--txM);text-decoration:none;font-size:14px;

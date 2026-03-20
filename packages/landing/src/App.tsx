@@ -286,65 +286,54 @@ html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-os
 .btn-liquid{
   position:relative;overflow:hidden;
   box-shadow:0 4px 14px var(--shadowColor),0 1px 4px var(--shadowColorLight);
-  transition:transform .4s cubic-bezier(0.34,1.56,0.64,1),box-shadow .4s ease;
-  will-change:transform;
+  transition:box-shadow .4s ease;
 }
 .btn-liquid:hover{
-  transform:translateY(-3px);
   box-shadow:0 10px 36px var(--shadowHeavy),0 4px 14px var(--shadowColor);
 }
 .btn-liquid:active{
-  transform:translateY(0);
   box-shadow:0 2px 8px var(--shadowColor);
-  transition:transform .12s ease,box-shadow .12s ease;
+  transition:box-shadow .12s ease;
 }
 
 .btn-liquid-outline{
   position:relative;overflow:hidden;
   box-shadow:0 4px 14px var(--shadowColor),0 1px 4px var(--shadowColorLight);
-  transition:transform .4s cubic-bezier(0.34,1.56,0.64,1),box-shadow .4s ease,border-color .3s ease;
-  will-change:transform;
+  transition:box-shadow .4s ease,border-color .3s ease;
 }
 .btn-liquid-outline:hover{
-  transform:translateY(-3px);
   border-color:var(--accent)!important;
   box-shadow:0 10px 36px var(--shadowHeavy),0 4px 14px var(--shadowColor);
 }
 .btn-liquid-outline:active{
-  transform:translateY(0);
   box-shadow:0 2px 8px var(--shadowColor);
-  transition:transform .12s ease,box-shadow .12s ease;
+  transition:box-shadow .12s ease;
 }
 
 
 .btn-cta-white{
   position:relative;overflow:hidden;
   box-shadow:0 4px 14px rgba(0,0,0,0.15),0 1px 4px rgba(0,0,0,0.08);
-  transition:transform .4s cubic-bezier(0.34,1.56,0.64,1),box-shadow .4s ease;
-  will-change:transform;
+  transition:box-shadow .4s ease;
 }
 .btn-cta-white:hover{
-  transform:translateY(-3px);
   box-shadow:0 10px 36px rgba(0,0,0,0.3),0 4px 14px rgba(0,0,0,0.15);
 }
 .btn-cta-white:active{
-  transform:translateY(0);
   box-shadow:0 2px 8px rgba(0,0,0,0.12);
-  transition:transform .12s ease,box-shadow .12s ease;
+  transition:box-shadow .12s ease;
 }
 
 .btn-dark-outline{
   position:relative;overflow:hidden;
   box-shadow:0 4px 14px rgba(0,0,0,0.1),0 1px 4px rgba(0,0,0,0.06);
-  transition:border-color .3s ease,transform .4s cubic-bezier(0.34,1.56,0.64,1),box-shadow .4s ease;
-  will-change:transform;
+  transition:border-color .3s ease,box-shadow .4s ease;
 }
 .btn-dark-outline:hover{
   border-color:rgba(255,255,255,0.5)!important;
-  transform:translateY(-3px);
   box-shadow:0 10px 36px rgba(0,0,0,0.25),0 4px 14px rgba(0,0,0,0.12);
 }
-.btn-dark-outline:active{transform:translateY(0);box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:transform .12s ease,box-shadow .12s ease}
+.btn-dark-outline:active{box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:box-shadow .12s ease}
 
 /* ── Feature cards with liquid hover ────────────────── */
 
