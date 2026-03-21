@@ -59,8 +59,8 @@ jobs:
       - name: Rebuild and deploy to Vercel
         if: steps.changesets.outputs.published == 'true'
         run: |
-          # Build docs
-          pnpm --filter @tomehq/docs build
+          # Build docs (run CLI directly since .npmrc override may break bin resolution)
+          cd packages/docs && node ../cli/dist/cli.js build && cd ../..
 
           # Copy docs to landing
           rm -rf packages/landing/public/docs/
