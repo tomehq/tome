@@ -54,3 +54,31 @@ jobs:
           pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs --filter=!create-tome publish --no-git-checks --registry https://npm.pkg.github.com || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Rebuild and deploy docs + dashboard to Vercel ──
+      - name: Rebuild and deploy to Vercel
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          # Build docs
+          pnpm --filter @tomehq/docs build
+
+          # Copy docs to landing
+          rm -rf packages/landing/public/docs/
+          cp -r packages/docs/out/ packages/landing/public/docs/
+
+          # Build dashboard
+          pnpm --filter @tomehq/dashboard build
+
+          # Copy dashboard to landing
+          rm -rf packages/landing/public/dashboard/
+          cp -r packages/dashboard/dist/ packages/landing/public/dashboard/
+
+          # Build landing
+          pnpm --filter @tomehq/landing build
+
+          # Deploy to Vercel
+          npx vercel --prod --token $VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
