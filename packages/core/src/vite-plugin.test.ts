@@ -805,10 +805,10 @@ describe("vite-plugin generateBundle redirects", () => {
   });
 });
 
-// ── generateBundle: analytics injection ──────────────────
+// ── transformIndexHtml: analytics injection ──────────────────
 
-describe("vite-plugin generateBundle analytics injection", () => {
-  it("injects analytics script into HTML assets when analytics configured", async () => {
+describe("vite-plugin transformIndexHtml analytics injection", () => {
+  it("injects analytics script into HTML when analytics configured", async () => {
     const configJs = `
       export default {
         name: "Test",
@@ -821,20 +821,13 @@ describe("vite-plugin generateBundle analytics injection", () => {
       configJs,
     );
 
-    const bundle: Record<string, any> = {
-      "index.html": {
-        type: "asset",
-        source: "<html><head></head><body>test</body></html>",
-      },
-    };
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
 
-    const emitted: any[] = [];
-    const ctx = { emitFile: (file: any) => emitted.push(file) };
-    await (plugin.generateBundle as Function).call(ctx, {}, bundle);
-
-    // The HTML asset source should have the analytics script injected
-    expect(bundle["index.html"].source).toContain("test-key-123");
-    expect(bundle["index.html"].source).toContain("</head>");
+    // The HTML should have the analytics script injected
+    expect(result).toContain("test-key-123");
+    expect(result).toContain("sendBeacon");
+    expect(result).toContain("</head>");
   });
 
   it("does not inject analytics when not configured", async () => {
@@ -842,18 +835,10 @@ describe("vite-plugin generateBundle analytics injection", () => {
       "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
     });
 
-    const bundle: Record<string, any> = {
-      "index.html": {
-        type: "asset",
-        source: "<html><head></head><body>test</body></html>",
-      },
-    };
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
 
-    const emitted: any[] = [];
-    const ctx = { emitFile: (file: any) => emitted.push(file) };
-    await (plugin.generateBundle as Function).call(ctx, {}, bundle);
-
-    // HTML should NOT have analytics injected
-    expect(bundle["index.html"].source).not.toContain("analytics");
+    // HTML should NOT have analytics beacon
+    expect(result).not.toContain("sendBeacon");
   });
 });

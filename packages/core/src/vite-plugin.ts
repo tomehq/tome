@@ -374,6 +374,16 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     transformIndexHtml(html) {
       let result = html;
 
+      // TOM-24: Inject analytics script
+      if (config.analytics?.provider && config.analytics?.key) {
+        const endpoint = "https://api.tome.center/api/analytics/event";
+        const script = generateAnalyticsScript({
+          endpoint,
+          siteId: config.analytics.key,
+        });
+        result = result.replace("</head>", `${script}\n</head>`);
+      }
+
       // Inject head tags from Tome plugins
       const pluginHeadTags = collectHeadTags((config as any).tomePlugins || []);
       if (pluginHeadTags.length > 0) {
@@ -687,25 +697,7 @@ export default { ${exportNames.join(", ")} };
       const tomePluginsForBuild: TomePlugin[] = (config as any).tomePlugins || [];
       await runPluginHookAsync(tomePluginsForBuild, 'buildStart');
 
-      // TOM-24: Inject analytics script into HTML files
-      if (config.analytics?.provider && config.analytics?.key) {
-        const endpoint = "https://api.tome.center/api/analytics/event";
-        const script = generateAnalyticsScript({
-          endpoint,
-          siteId: config.analytics.key,
-        });
-
-        for (const fileName of Object.keys(bundle)) {
-          const chunk = bundle[fileName];
-          if (
-            chunk.type === "asset" &&
-            fileName.endsWith(".html") &&
-            typeof chunk.source === "string"
-          ) {
-            chunk.source = chunk.source.replace("</head>", `${script}</head>`);
-          }
-        }
-      }
+      // TOM-24: Analytics injection moved to transformIndexHtml
 
       // Generate MCP manifest at build time (TOM-33)
       if (config.mcp?.enabled !== false) {
