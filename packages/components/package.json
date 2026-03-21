@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/components",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Built-in MDX components for Tome documentation sites",
   "type": "module",
   "main": "./src/index.tsx",

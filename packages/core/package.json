@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/core",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Tome build engine — Vite plugin, Markdown pipeline, config loader",
   "type": "module",
   "main": "./dist/index.js",
