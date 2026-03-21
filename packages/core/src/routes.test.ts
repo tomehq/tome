@@ -260,6 +260,55 @@ describe("discoverPages", () => {
   });
 });
 
+// ── discoverPages — Windows path normalization (#14) ────────
+
+describe("discoverPages Windows path normalization", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), "tome-win-test-"));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("normalizes backslashes in route IDs to forward slashes", async () => {
+    mkdirSync(join(tmpDir, "guides"), { recursive: true });
+    writeFileSync(join(tmpDir, "guides", "setup.md"), "# Setup Guide");
+
+    const routes = await discoverPages(tmpDir);
+    const route = routes.find(r => r.id === "guides/setup");
+    expect(route).toBeDefined();
+    // ID should never contain backslashes
+    expect(route!.id).not.toContain("\\");
+    expect(route!.urlPath).toBe("/guides/setup");
+  });
+
+  it("normalizes backslashes in filePath", async () => {
+    mkdirSync(join(tmpDir, "api"), { recursive: true });
+    writeFileSync(join(tmpDir, "api", "overview.md"), "# API Overview");
+
+    const routes = await discoverPages(tmpDir);
+    const route = routes.find(r => r.id === "api/overview");
+    expect(route).toBeDefined();
+    expect(route!.filePath).not.toContain("\\");
+    expect(route!.filePath).toBe("api/overview.md");
+  });
+
+  it("normalizes deeply nested paths", async () => {
+    mkdirSync(join(tmpDir, "guides", "advanced"), { recursive: true });
+    writeFileSync(join(tmpDir, "guides", "advanced", "deploy.md"), "# Deploy");
+
+    const routes = await discoverPages(tmpDir);
+    const route = routes.find(r => r.id === "guides/advanced/deploy");
+    expect(route).toBeDefined();
+    expect(route!.id).not.toContain("\\");
+    expect(route!.urlPath).toBe("/guides/advanced/deploy");
+    expect(route!.filePath).toBe("guides/advanced/deploy.md");
+  });
+});
+
 // ── discoverPages with versioning (TOM-30) ─────────────────
 
 describe("discoverPages with versioning", () => {

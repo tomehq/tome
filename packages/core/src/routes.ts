@@ -100,7 +100,8 @@ export async function discoverPages(
         const { data } = matter(source);
 
         const ext = file.endsWith(".mdx") ? ".mdx" : ".md";
-        let id = file.replace(ext, "");
+        const nfile = file.replace(/\\/g, "/");
+        let id = nfile.replace(ext, "");
         if (id.endsWith("/index") || id === "index") {
           id = id.replace(/\/?index$/, "");
         }
@@ -131,7 +132,7 @@ export async function discoverPages(
 
         allRoutes.push({
           id: isDefault ? (id || "index") : `${locale}/${id || "index"}`,
-          filePath: `${locale}/${file}`,
+          filePath: `${locale}/${nfile}`,
           absolutePath,
           urlPath,
           frontmatter,
@@ -198,7 +199,8 @@ export async function discoverPages(
         const { data } = matter(source);
 
         const ext = file.endsWith(".mdx") ? ".mdx" : ".md";
-        let id = file.replace(ext, "");
+        const nfile = file.replace(/\\/g, "/");
+        let id = nfile.replace(ext, "");
         if (id.endsWith("/index") || id === "index") {
           id = id.replace(/\/?index$/, "");
         }
@@ -230,7 +232,7 @@ export async function discoverPages(
 
         allRoutes.push({
           id: isCurrent ? (id || "index") : `${version}/${id || "index"}`,
-          filePath: `${version}/${file}`,
+          filePath: `${version}/${nfile}`,
           absolutePath,
           urlPath,
           frontmatter,
@@ -256,9 +258,10 @@ export async function discoverPages(
     const source = readFileSync(absolutePath, "utf-8");
     const { data } = matter(source);
 
-    // Derive ID and URL path from file path
+    // Derive ID and URL path from file path (normalize backslashes for Windows)
     const ext = file.endsWith(".mdx") ? ".mdx" : ".md";
-    let id = file.replace(ext, "");
+    const nfile = file.replace(/\\/g, "/");
+    let id = nfile.replace(ext, "");
     if (id.endsWith("/index") || id === "index") {
       id = id.replace(/\/?index$/, "");
     }
@@ -286,7 +289,7 @@ export async function discoverPages(
 
     routes.push({
       id: id || "index",
-      filePath: file,
+      filePath: nfile,
       absolutePath,
       urlPath,
       frontmatter,
