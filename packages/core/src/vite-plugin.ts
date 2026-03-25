@@ -580,6 +580,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       if (id === RESOLVED_PAGE_LOADER) {
         const loaderRoutes = isDevMode ? routes : routes.filter(r => !r.frontmatter.draft);
         const entries = loaderRoutes.map((r) => {
+          // Validate route ID contains only safe path characters to prevent code injection
+          if (!/^[\w.\/\-]+$/.test(r.id)) {
+            throw new Error(`Invalid route id: ${r.id}`);
+          }
           const importPath = `virtual:tome/page/${r.id}`;
           return `  ${JSON.stringify(r.id)}: () => import(${JSON.stringify(importPath)})`;
         });

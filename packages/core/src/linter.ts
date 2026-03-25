@@ -100,9 +100,9 @@ function checkImageAltText(content: string, file: string): LintIssue[] {
   const lines = content.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
-    // Match ![](...) with empty alt text
-    const regex = /!\[\s*\]\([^)]+\)/g;
-    if (regex.test(lines[i])) {
+    // Match ![](...) with empty or whitespace-only alt text
+    // Use non-backtracking check: find ![, then check if ] follows immediately or after whitespace
+    if (/!\[\s*\]\(/.test(lines[i])) {
       issues.push({
         file,
         line: i + 1,
@@ -210,8 +210,9 @@ function checkEmptyLinks(content: string, file: string): LintIssue[] {
   const lines = content.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
-    const regex = /\[[^\]]*\]\(\s*\)/g;
-    if (regex.test(lines[i])) {
+    // Check for empty or whitespace-only links — ]\(\s*\) has no backtracking risk
+    // since \s* and \) don't overlap
+    if (/\]\(\s*\)/.test(lines[i])) {
       issues.push({
         file,
         line: i + 1,

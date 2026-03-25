@@ -141,14 +141,23 @@ function getHighlighter(): Promise<Highlighter> {
   return highlighterPromise;
 }
 
+// ── SAFE HTML TAG STRIPPING ──────────────────────────────
+// Loop until stable to prevent incomplete removal when tags nest
+// (e.g. <scr<b>ipt> → <script> after one pass)
+function stripHtmlTags(html: string): string {
+  let text = html;
+  let prev;
+  do { prev = text; text = text.replace(/<[^>]+>/g, ""); } while (text !== prev);
+  return text;
+}
+
 // ── HEADING EXTRACTION ───────────────────────────────────
 function extractHeadings(html: string): Array<{ depth: number; text: string; id: string }> {
   const headings: Array<{ depth: number; text: string; id: string }> = [];
   const regex = /<h([2-4])\s+id="([^"]*)"[^>]*>(.*?)<\/h[2-4]>/gi;
   let match;
   while ((match = regex.exec(html)) !== null) {
-    // Strip HTML tags from heading text
-    const text = match[3].replace(/<[^>]+>/g, "").trim();
+    const text = stripHtmlTags(match[3]).trim();
     headings.push({
       depth: parseInt(match[1]),
       text,
@@ -269,7 +278,7 @@ export function enhanceCodeBlock(html: string, meta: CodeMeta): string {
   result = result.replace(
     /<span class="line">((?:<span[^>]*>[^<]*<\/span>|[^<])*)<\/span>/g,
     (match, inner: string) => {
-      const textContent = inner.replace(/<[^>]+>/g, "");
+      const textContent = stripHtmlTags(inner);
       if (textContent.includes("[!code ++]")) {
         // Remove the marker — may be plain text or across Shiki spans
         let cleaned = inner
@@ -298,8 +307,7 @@ export function enhanceCodeBlock(html: string, meta: CodeMeta): string {
       /<span class="line">((?:<span[^>]*>[^<]*<\/span>|[^<])*)<\/span>/g,
       (match, inner: string) => {
         lineIndex++;
-        // Strip HTML to check the raw text prefix
-        const text = inner.replace(/<[^>]+>/g, "");
+        const text = stripHtmlTags(inner);
         if (text.startsWith("+")) {
           return `<span class="line tome-line-added">${inner}</span>`;
         }
@@ -367,10 +375,10 @@ export function enhanceCodeBlock(html: string, meta: CodeMeta): string {
 // in a queue that the code block transformer consumes in order.
 export function extractCodeFenceMetas(source: string): string[] {
   const metas: string[] = [];
-  const regex = /^```(\w+)(.*?)$/gm;
+  const regex = /^```(\w+)([ \t].*)?$/gm;
   let match;
   while ((match = regex.exec(source)) !== null) {
-    const meta = match[2].trim();
+    const meta = (match[2] || "").trim();
     metas.push(meta);
   }
   return metas;
@@ -404,18 +412,20 @@ function createCodeBlockTransformer(highlighter: Highlighter, codeMetas: string[
         metaIndex++;
 
         // Decode HTML entities back to raw text for Shiki
-        // Handles both named entities (&amp;) and hex entities (&#x26;)
-        const decoded = code
-          .replace(/&#x26;/g, "&")
-          .replace(/&#x3C;/g, "<")
-          .replace(/&#x3E;/g, ">")
-          .replace(/&#x27;/g, "'")
-          .replace(/&#x22;/g, '"')
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'");
+        // Single-pass replacement avoids double-unescaping (e.g. &#x26;amp; → &amp; → &)
+        const decoded = code.replace(
+          /&#x26;|&#x3C;|&#x3E;|&#x27;|&#x22;|&amp;|&lt;|&gt;|&quot;|&#39;/g,
+          (entity) => {
+            switch (entity) {
+              case "&#x26;": case "&amp;": return "&";
+              case "&#x3C;": case "&lt;": return "<";
+              case "&#x3E;": case "&gt;": return ">";
+              case "&#x27;": case "&#39;": return "'";
+              case "&#x22;": case "&quot;": return '"';
+              default: return entity;
+            }
+          }
+        );
 
         // Mermaid: emit a placeholder div for client-side rendering
         if (lang === "mermaid") {

@@ -14,7 +14,7 @@ export const ThemeSchema = z.object({
     code: z.string().optional(),
   }).optional(),
   radius: z.string().optional(),
-}).default({});
+}).default({ preset: "amber" as const, mode: "auto" as const });
 
 type NavigationGroup = {
   group: string;
@@ -34,7 +34,7 @@ export const SearchSchema = z.object({
   appId: z.string().optional(),
   apiKey: z.string().optional(),
   indexName: z.string().optional(),
-}).default({});
+}).default({ provider: "local" as const });
 
 export const ApiSchema = z.object({
   spec: z.string(),
@@ -63,8 +63,8 @@ export const McpSchema = z.object({
 export const I18nSchema = z.object({
   defaultLocale: z.string().default("en"),
   locales: z.array(z.string()).default(["en"]),
-  localeNames: z.record(z.string()).optional(),
-  localeDirs: z.record(z.enum(["ltr", "rtl"])).optional(),
+  localeNames: z.record(z.string(), z.string()).optional(),
+  localeDirs: z.record(z.string(), z.enum(["ltr", "rtl"])).optional(),
   fallback: z.boolean().default(true),
 }).optional();
 
@@ -121,7 +121,7 @@ export const BannerSchema = z.object({
 export const TocSchema = z.object({
   enabled: z.boolean().default(true),
   depth: z.number().min(2).max(4).default(3),
-}).default({});
+}).default({ enabled: true, depth: 3 });
 
 export const EditLinkSchema = z.object({
   repo: z.string(),
@@ -152,11 +152,11 @@ export const TomeConfigSchema = z.object({
   plugins: z.object({
     remark: z.array(z.union([
       z.string(),
-      z.tuple([z.string(), z.record(z.unknown())]),
+      z.tuple([z.string(), z.record(z.string(), z.unknown())]),
     ])).default([]),
     rehype: z.array(z.union([
       z.string(),
-      z.tuple([z.string(), z.record(z.unknown())]),
+      z.tuple([z.string(), z.record(z.string(), z.unknown())]),
     ])).default([]),
   }).optional(),
   analytics: AnalyticsSchema,

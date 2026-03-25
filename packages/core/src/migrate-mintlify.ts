@@ -217,9 +217,9 @@ export function convertMintlifyContent(content: string): {
   //    Extract fenced code blocks inside <CodeGroup>, use their lang/title
   //    as tab labels.
   result = result.replace(
-    /<CodeGroup>([\s\S]*?)<\/CodeGroup>/g,
+    /<CodeGroup>((?:(?!<\/CodeGroup>)[\s\S])*)<\/CodeGroup>/g,
     (_match, inner: string) => {
-      const codeBlockRe = /```(\w+)?\s*(.*?)\n([\s\S]*?)```/g;
+      const codeBlockRe = /```(\w+)?[^\S\n]*(.*)\n((?:(?!```)[\s\S])*)```/g;
       const tabs: { label: string; code: string }[] = [];
       let m: RegExpExecArray | null;
 

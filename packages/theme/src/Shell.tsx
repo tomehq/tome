@@ -614,7 +614,7 @@ export function Shell({
   // useLayoutEffect ensures innerHTML is set synchronously before paint — no flash
   useLayoutEffect(() => {
     if (!htmlContentRef.current || !pageHtml) return;
-    const stripped = pageHtml.replace(/<h1[^>]*>[\s\S]*?<\/h1>\s*/, "");
+    const stripped = pageHtml.replace(/<h1\b[^>]*>(?:[^<]|<(?!\/h1>))*<\/h1>\s*/, "");
     htmlContentRef.current.innerHTML = stripped;
     lastHtmlRef.current = stripped;
   }, [pageHtml, currentPageId]);

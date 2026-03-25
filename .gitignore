@@ -17,3 +17,7 @@ coverage/
 skills-lock.json
 *.pem
 *.key
+
+# Build artifacts served by landing page (built during deployment)
+packages/landing/public/docs/
+packages/landing/public/dashboard/

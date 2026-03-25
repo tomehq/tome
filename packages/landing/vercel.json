@@ -1,5 +1,6 @@
 {
   "ignoreCommand": "exit 0",
+  "buildCommand": "cd ../.. && pnpm run build:deploy",
   "rewrites": [
     { "source": "/docs/assets/(.*)", "destination": "/docs/assets/$1" },
     { "source": "/docs/(.*)", "destination": "/docs/index.html" },
