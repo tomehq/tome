@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import Stripe from "stripe";
 import type { Env, User } from "../types.js";
-import { PLAN_LIMITS, PLAN_NAMES } from "../plan-limits.js";
+import { PLAN_NAMES } from "../plan-limits.js";
 
 const billing = new Hono<{ Bindings: Env; Variables: { user: User } }>();
 
@@ -146,12 +146,11 @@ billing.post("/portal", async (c) => {
 // Creates products, prices, webhook endpoint, and portal config.
 // Should be called once after deploying with a valid Stripe key.
 billing.post("/setup", async (c) => {
-  const user = c.get("user");
   const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
 
   const results: Record<string, { productId: string; priceId: string }> = {};
 
-  for (const [planId, price] of Object.entries(PLAN_PRICES)) {
+  for (const [planId] of Object.entries(PLAN_PRICES)) {
     const priceId = await ensureStripePrice(stripe, planId);
 
     // Retrieve the price to get the product ID

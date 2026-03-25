@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Hono } from "hono";
 import { rateLimit } from "./rate-limit.js";
 import type { Env } from "../types.js";
@@ -14,12 +14,6 @@ describe("rateLimit middleware", () => {
   // Each test creates its own app so the buckets are fresh via module isolation
   // The module-level Map persists between tests, so we use unique paths.
   let counter = 0;
-  function uniqueRequest(app: ReturnType<typeof makeApp>) {
-    counter++;
-    return app.request(`/test?n=${counter}`, {
-      headers: { "cf-connecting-ip": `10.0.0.${counter}` },
-    });
-  }
 
   it("allows requests under the limit", async () => {
     const app = makeApp(5, 60_000);

@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Callout, Tabs, Card, CardGroup, Steps, Accordion, PackageManager, TypeTable, FileTree, LinkCard, CardGrid } from "./index.js";

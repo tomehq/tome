@@ -15,7 +15,7 @@ import {
   readdirSync,
   statSync,
 } from 'fs';
-import { resolve, join, relative, dirname, basename, extname } from 'path';
+import { join, relative, dirname, extname } from 'path';
 import matter from 'gray-matter';
 
 // ---------------------------------------------------------------------------
@@ -215,10 +215,25 @@ export function convertMintlifyContent(content: string): {
 
   // 2. CodeGroup → Tabs --------------------------------------------------
   //    Extract fenced code blocks inside <CodeGroup>, use their lang/title
-  //    as tab labels.
-  result = result.replace(
-    /<CodeGroup>((?:(?!<\/CodeGroup>)[\s\S])*)<\/CodeGroup>/g,
-    (_match, inner: string) => {
+  //    as tab labels. Uses indexOf instead of tempered greedy token to
+  //    avoid catastrophic backtracking.
+  {
+    const codeGroupStartTag = '<CodeGroup>';
+    const codeGroupEndTag = '</CodeGroup>';
+
+    let searchIndex = 0;
+    while (true) {
+      const startIdx = result.indexOf(codeGroupStartTag, searchIndex);
+      if (startIdx === -1) {
+        break;
+      }
+      const innerStart = startIdx + codeGroupStartTag.length;
+      const endIdx = result.indexOf(codeGroupEndTag, innerStart);
+      if (endIdx === -1) {
+        break;
+      }
+
+      const inner = result.slice(innerStart, endIdx);
       const codeBlockRe = /```(\w+)?[^\S\n]*(.*)\n((?:(?!```)[\s\S])*)```/g;
       const tabs: { label: string; code: string }[] = [];
       let m: RegExpExecArray | null;
@@ -234,19 +249,22 @@ export function convertMintlifyContent(content: string): {
         });
       }
 
+      let replacement: string;
       if (tabs.length === 0) {
-        // No code blocks found – just strip the wrapper
-        return inner.trim();
+        replacement = inner.trim();
+      } else {
+        const items = JSON.stringify(tabs.map((t) => t.label));
+        const tabBodies = tabs
+          .map((t) => `<Tab>\n${t.code}\n</Tab>`)
+          .join('\n');
+        replacement = `<Tabs items={${items}}>\n${tabBodies}\n</Tabs>`;
       }
 
-      const items = JSON.stringify(tabs.map((t) => t.label));
-      const tabBodies = tabs
-        .map((t) => `<Tab>\n${t.code}\n</Tab>`)
-        .join('\n');
-
-      return `<Tabs items={${items}}>\n${tabBodies}\n</Tabs>`;
-    },
-  );
+      const endTagEnd = endIdx + codeGroupEndTag.length;
+      result = result.slice(0, startIdx) + replacement + result.slice(endTagEnd);
+      searchIndex = startIdx + replacement.length;
+    }
+  }
 
   // 3. AccordionGroup → strip wrapper, keep inner Accordion components ---
   result = result.replace(
@@ -372,7 +390,7 @@ export async function migrateFromMintlify(
 
     // Preserve frontmatter
     const { data: frontmatter, content: body } = matter(raw);
-    const { converted, hasJsx } = convertMintlifyContent(body);
+    const { converted } = convertMintlifyContent(body);
 
     // Check for components that need manual attention
     if (/<ResponseField[\s>]/i.test(converted)) {

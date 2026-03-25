@@ -3,7 +3,6 @@ import { mkdtempSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { parseOpenApiSpec, generateCodeSamples } from "./openapi.js";
-import type { CodeSample } from "./openapi.js";
 
 // ── HELPERS ──────────────────────────────────────────────
 

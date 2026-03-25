@@ -1,11 +1,15 @@
 import { execFileSync } from "child_process";
-import { dirname } from "path";
+import { dirname, isAbsolute } from "path";
 
 /**
  * Get the last git commit date for a file.
  * Returns an ISO 8601 date string, or null if git is not available or the file is untracked.
  */
 export function getGitLastUpdated(absolutePath: string): string | null {
+  if (!absolutePath || !isAbsolute(absolutePath) || absolutePath.startsWith("-")) {
+    return null;
+  }
+
   try {
     const cwd = dirname(absolutePath);
     const result = execFileSync(

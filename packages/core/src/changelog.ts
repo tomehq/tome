@@ -75,7 +75,7 @@ export function parseChangelog(source: string): ChangelogEntry[] {
 
   // Version heading: ## [1.0.0] - 2025-01-15  OR  ## [Unreleased]  OR  ## 1.0.0 - 2025-01-15
   // Two separate patterns avoid ambiguous backtracking between \s+ and .+
-  const versionBracketRegex = /^##\s+\[([^\]]+)\](?:\s+-\s+(\d{4}-\d{2}-\d{2}))?$/;
+  const versionBracketRegex = /^##\s+\[([^\]\s][^\]]*?)\](?:\s+-\s+(\d{4}-\d{2}-\d{2}))?$/;
   const versionPlainRegex = /^##\s+(\S+)(?:\s+-\s+(\d{4}-\d{2}-\d{2}))?$/;
   // Section heading: ### Added — \S.* ensures no overlap with leading \s+
   const sectionRegex = /^###\s+(\S.*)$/;

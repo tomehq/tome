@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { readFileSync, existsSync } from "fs";
+import { existsSync } from "fs";
 import { resolve } from "path";
 import { pathToFileURL } from "url";
 

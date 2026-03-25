@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
+import { describe, it, expect, afterAll, vi } from "vitest";
 import { resolve } from "path";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import tomePlugin from "./vite-plugin.js";

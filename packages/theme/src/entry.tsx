@@ -7,7 +7,6 @@ import {
   computeEditUrl,
   resolveInitialPageId,
   detectCurrentVersion,
-  NavigationCancelledError,
   type LoadedPage,
 } from "./entry-helpers.js";
 

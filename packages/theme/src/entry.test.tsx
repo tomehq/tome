@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, act } from "@testing-library/react";
 
@@ -30,27 +29,6 @@ vi.mock("virtual:tome/config", () => ({
     },
   },
 }));
-
-const mockRoutes = [
-  {
-    id: "index",
-    urlPath: "/",
-    filePath: "pages/index.md",
-    frontmatter: { title: "Home", description: "Welcome" },
-  },
-  {
-    id: "quickstart",
-    urlPath: "/quickstart",
-    filePath: "pages/quickstart.md",
-    frontmatter: { title: "Quick Start", description: "Get started" },
-  },
-  {
-    id: "api-reference",
-    urlPath: "/api",
-    filePath: "__api-reference__",
-    frontmatter: { title: "API Reference", description: "API docs" },
-  },
-];
 
 const mockNavigation = [
   { section: "Guide", pages: [{ id: "index", title: "Home", urlPath: "/" }] },
