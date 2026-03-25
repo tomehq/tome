@@ -243,7 +243,7 @@
         "Deploy"
       ],
       "tags": [],
-      "wordCount": 546
+      "wordCount": 583
     },
     {
       "id": "guides/plugins",
@@ -332,14 +332,9 @@
       "url": "/",
       "title": "Introduction",
       "description": "Tome is an open-source documentation platform for Markdown and MDX. Beautiful docs without the $250/month price tag.",
-      "headings": [
-        "What is Tome?",
-        "Why Tome?",
-        "Features",
-        "Learn more"
-      ],
+      "headings": [],
       "tags": [],
-      "wordCount": 445
+      "wordCount": 0
     },
     {
       "id": "installation",
@@ -390,7 +385,7 @@
         "Next steps"
       ],
       "tags": [],
-      "wordCount": 229
+      "wordCount": 263
     },
     {
       "id": "reference/cli",
@@ -459,7 +454,7 @@
         "OverridesConfig"
       ],
       "tags": [],
-      "wordCount": 1333
+      "wordCount": 1337
     },
     {
       "id": "reference/frontmatter",
@@ -494,10 +489,17 @@
         "Dark mode",
         "Light mode",
         "Fonts",
-        "Additional variables"
+        "Cipher",
+        "Dark mode",
+        "Light mode",
+        "Fonts",
+        "Mint",
+        "Dark mode",
+        "Light mode",
+        "Fonts"
       ],
       "tags": [],
-      "wordCount": 506
+      "wordCount": 1171
     },
     {
       "id": "theming",
@@ -508,6 +510,8 @@
         "Presets",
         "Amber (default)",
         "Editorial",
+        "Cipher",
+        "Mint",
         "Custom accent color",
         "Dark mode",
         "Custom fonts",
@@ -516,7 +520,7 @@
         "Variable reference"
       ],
       "tags": [],
-      "wordCount": 434
+      "wordCount": 480
     },
     {
       "id": "tutorials/deploy-to-cloud",
@@ -556,7 +560,7 @@
         "Next steps"
       ],
       "tags": [],
-      "wordCount": 383
+      "wordCount": 452
     },
     {
       "id": "v2/api-auth",

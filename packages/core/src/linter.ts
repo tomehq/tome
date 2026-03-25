@@ -100,8 +100,8 @@ function checkImageAltText(content: string, file: string): LintIssue[] {
   const lines = content.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
-    // Match ![](...) with empty alt text
-    const regex = /!\[\s*\]\([^)]+\)/g;
+    // Match ![](...) with empty alt text — [^)\n]+ prevents backtracking across lines
+    const regex = /!\[\s*\]\([^)\n]+\)/g;
     if (regex.test(lines[i])) {
       issues.push({
         file,
@@ -210,7 +210,7 @@ function checkEmptyLinks(content: string, file: string): LintIssue[] {
   const lines = content.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
-    const regex = /\[[^\]]*\]\(\s*\)/g;
+    const regex = /\[[^\]\n]*\]\(\s*\)/g;
     if (regex.test(lines[i])) {
       issues.push({
         file,

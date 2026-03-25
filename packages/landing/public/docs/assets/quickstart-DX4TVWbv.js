@@ -1,4 +1,4 @@
-const n={frontmatter:{title:"Quickstart",description:"Get a Tome documentation site running in under a minute.",icon:"zap",hidden:!1,toc:!0,draft:!1,badge:"New"},html:`<p>Get a working documentation site in three commands.</p>
+const s={frontmatter:{title:"Quickstart",description:"Get a Tome documentation site running in under a minute.",icon:"zap",hidden:!1,toc:!0,draft:!1,badge:"New"},html:`<p>Get a working documentation site in three commands.</p>
 <h2 id="create-a-new-project"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#create-a-new-project"><span class="icon icon-link"></span></a>Create a new project</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npx</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> @tomehq/cli</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> init</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> my-docs</span></span></code></pre>
 <p>This scaffolds a complete documentation project with starter pages, configuration, and build scripts.</p>
@@ -31,28 +31,29 @@ const n={frontmatter:{title:"Quickstart",description:"Get a Tome documentation s
 <td><code>/</code></td>
 </tr>
 <tr>
-<td><code>pages/quickstart.md</code></td>
-<td><code>/quickstart</code></td>
+<td><code>pages/tutorials/getting-started.md</code></td>
+<td><code>/tutorials/getting-started</code></td>
 </tr>
 <tr>
-<td><code>pages/guides/setup.md</code></td>
-<td><code>/guides/setup</code></td>
+<td><code>pages/guides/configuration.md</code></td>
+<td><code>/guides/configuration</code></td>
+</tr>
+<tr>
+<td><code>pages/reference/cli.md</code></td>
+<td><code>/reference/cli</code></td>
 </tr>
 </tbody>
 </table>
 <h2 id="add-navigation"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#add-navigation"><span class="icon icon-link"></span></a>Add navigation</h2>
-<p>Open <code>tome.config.js</code> and define your sidebar:</p>
+<p>Open <code>tome.config.js</code> to customize your sidebar. The scaffold uses the <a href="https://diataxis.fr/">Diataxis framework</a> by default:</p>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">export</span><span style="color:#D73A49;--shiki-dark:#F97583"> default</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  name: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"My Project"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  navigation: [</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Getting Started"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"index"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"quickstart"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    },</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Guides"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/setup"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    { group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Overview"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"index"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    { group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Tutorials"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"tutorials/getting-started"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"tutorials/deploy"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    { group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Guides"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/components"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/configuration"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    { group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Reference"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"reference/config"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"reference/components"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"reference/cli"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    { group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Concepts"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"concepts/how-tome-works"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"concepts/file-routing"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  ],</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">};</span></span></code></pre>
 <h2 id="build-for-production"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#build-for-production"><span class="icon icon-link"></span></a>Build for production</h2>
@@ -104,25 +105,23 @@ Every \`.md\` or \`.mdx\` file in \`pages/\` becomes a page on your site. Subdir
 | File | URL |
 |------|-----|
 | \`pages/index.md\` | \`/\` |
-| \`pages/quickstart.md\` | \`/quickstart\` |
-| \`pages/guides/setup.md\` | \`/guides/setup\` |
+| \`pages/tutorials/getting-started.md\` | \`/tutorials/getting-started\` |
+| \`pages/guides/configuration.md\` | \`/guides/configuration\` |
+| \`pages/reference/cli.md\` | \`/reference/cli\` |
 
 ## Add navigation
 
-Open \`tome.config.js\` and define your sidebar:
+Open \`tome.config.js\` to customize your sidebar. The scaffold uses the [Diataxis framework](https://diataxis.fr/) by default:
 
 \`\`\`javascript
 export default {
   name: "My Project",
   navigation: [
-    {
-      group: "Getting Started",
-      pages: ["index", "quickstart"],
-    },
-    {
-      group: "Guides",
-      pages: ["guides/setup"],
-    },
+    { group: "Overview", pages: ["index"] },
+    { group: "Tutorials", pages: ["tutorials/getting-started", "tutorials/deploy"] },
+    { group: "Guides", pages: ["guides/components", "guides/configuration"] },
+    { group: "Reference", pages: ["reference/config", "reference/components", "reference/cli"] },
+    { group: "Concepts", pages: ["concepts/how-tome-works", "concepts/file-routing"] },
   ],
 };
 \`\`\`
@@ -140,4 +139,4 @@ This outputs a static site to \`out/\` ready to deploy to any hosting provider â
 - **[Installation](installation)** for detailed setup and prerequisites
 - **[Configuration](configuration)** to customize your site
 - **[Components](components)** to use tabs, callouts, and other interactive elements
-`};export{n as default};
+`};export{s as default};

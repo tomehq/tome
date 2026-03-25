@@ -161,8 +161,9 @@ export function convertGitbookContent(content: string): {
 
   // ---- Hint blocks → Callout ------------------------------------------
   // Handles multiline content between {% hint %} and {% endhint %}.
+  // Tempered greedy token (?:(?!\{%\s*endhint)[\s\S])* avoids polynomial backtracking.
   converted = converted.replace(
-    /\{%\s*hint\s+style="([^"]+)"\s*%\}([\s\S]*?)\{%\s*endhint\s*%\}/g,
+    /\{%\s*hint\s+style="([^"]+)"\s*%\}((?:(?!\{%\s*endhint)[\s\S])*)\{%\s*endhint\s*%\}/g,
     (_match, style: string, body: string) => {
       hasJsx = true;
       const tomeType = HINT_STYLE_MAP[style] ?? "info";

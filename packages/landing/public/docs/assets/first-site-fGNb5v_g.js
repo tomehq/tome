@@ -12,10 +12,22 @@ const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step
 <span class="line"><span>├── .tome/entry.tsx    # Theme bootstrap (don't edit)</span></span>
 <span class="line"><span>├── pages/             # Your documentation pages</span></span>
 <span class="line"><span>│   ├── index.md</span></span>
-<span class="line"><span>│   ├── quickstart.md</span></span>
-<span class="line"><span>│   └── components.mdx</span></span>
+<span class="line"><span>│   ├── tutorials/</span></span>
+<span class="line"><span>│   │   ├── getting-started.md</span></span>
+<span class="line"><span>│   │   └── deploy.md</span></span>
+<span class="line"><span>│   ├── guides/</span></span>
+<span class="line"><span>│   │   ├── components.mdx</span></span>
+<span class="line"><span>│   │   └── configuration.md</span></span>
+<span class="line"><span>│   ├── reference/</span></span>
+<span class="line"><span>│   │   ├── cli.md</span></span>
+<span class="line"><span>│   │   ├── components.md</span></span>
+<span class="line"><span>│   │   └── config.md</span></span>
+<span class="line"><span>│   └── concepts/</span></span>
+<span class="line"><span>│       ├── how-tome-works.md</span></span>
+<span class="line"><span>│       └── file-routing.md</span></span>
 <span class="line"><span>├── public/            # Static assets</span></span>
 <span class="line"><span>└── styles/            # Custom CSS (optional)</span></span></code></pre>
+<p>Pages are organized using the <a href="https://diataxis.fr/">Diataxis framework</a> — tutorials, guides, reference, and concepts.</p>
 <h2 id="2-install-dependencies"><a class="heading-anchor" aria-hidden="" tabindex="-1" href="#2-install-dependencies"><span class="icon icon-link"></span></a>2. Install dependencies</h2>
 <pre class="shiki shiki-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8" tabindex="0"><code><span class="line"><span style="color:#005CC5;--shiki-dark:#79B8FF">cd</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> my-docs</span></span>
 <span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">npm</span><span style="color:#032F62;--shiki-dark:#9ECBFF"> install</span></span></code></pre>
@@ -43,17 +55,22 @@ const s={frontmatter:{title:"Create Your First Site",description:"A step-by-step
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    mode: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"auto"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  navigation: [</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    { group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Overview"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"index"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Getting Started"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"index"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"quickstart"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Tutorials"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"tutorials/getting-started"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"tutorials/deploy"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Guides"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/deployment"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/components"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/configuration"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"guides/deployment"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Reference"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
-<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"components"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"reference/config"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"reference/components"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"reference/cli"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      group: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Concepts"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pages: [</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"concepts/how-tome-works"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"concepts/file-routing"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">],</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    },</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  ],</span></span>
 <span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">};</span></span></code></pre>
@@ -99,11 +116,24 @@ my-docs/
 ├── .tome/entry.tsx    # Theme bootstrap (don't edit)
 ├── pages/             # Your documentation pages
 │   ├── index.md
-│   ├── quickstart.md
-│   └── components.mdx
+│   ├── tutorials/
+│   │   ├── getting-started.md
+│   │   └── deploy.md
+│   ├── guides/
+│   │   ├── components.mdx
+│   │   └── configuration.md
+│   ├── reference/
+│   │   ├── cli.md
+│   │   ├── components.md
+│   │   └── config.md
+│   └── concepts/
+│       ├── how-tome-works.md
+│       └── file-routing.md
 ├── public/            # Static assets
 └── styles/            # Custom CSS (optional)
 \`\`\`
+
+Pages are organized using the [Diataxis framework](https://diataxis.fr/) — tutorials, guides, reference, and concepts.
 
 ## 2. Install dependencies
 
@@ -150,17 +180,22 @@ export default {
     mode: "auto",
   },
   navigation: [
+    { group: "Overview", pages: ["index"] },
     {
-      group: "Getting Started",
-      pages: ["index", "quickstart"],
+      group: "Tutorials",
+      pages: ["tutorials/getting-started", "tutorials/deploy"],
     },
     {
       group: "Guides",
-      pages: ["guides/deployment"],
+      pages: ["guides/components", "guides/configuration", "guides/deployment"],
     },
     {
       group: "Reference",
-      pages: ["components"],
+      pages: ["reference/config", "reference/components", "reference/cli"],
+    },
+    {
+      group: "Concepts",
+      pages: ["concepts/how-tome-works", "concepts/file-routing"],
     },
   ],
 };

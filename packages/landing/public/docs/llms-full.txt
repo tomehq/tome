@@ -1175,16 +1175,18 @@ npx @tomehq/cli migrate gitbook ./gitbook-docs --dry-run
 npx @tomehq/cli migrate mintlify ./path-to-mintlify-project
 ```
 
+Both `docs.json` (Mintlify's current config format) and `mint.json` (deprecated) are supported. The migration tool automatically detects which file is present, preferring `docs.json` if both exist.
+
 ### What gets converted
 
 | Mintlify | Tome |
 |----------|------|
-| `mint.json` navigation | `tome.config.js` navigation array |
-| `mint.json` colors | `tome.config.js` theme accent |
-| `mint.json` logo / favicon | `tome.config.js` logo / favicon |
-| `mint.json` topbar links | `tome.config.js` topNav |
-| `mint.json` redirects | `tome.config.js` redirects |
-| `mint.json` openapi | `tome.config.js` api.spec |
+| `docs.json` / `mint.json` navigation | `tome.config.js` navigation array |
+| `docs.json` / `mint.json` colors | `tome.config.js` theme accent |
+| `docs.json` / `mint.json` logo / favicon | `tome.config.js` logo / favicon |
+| `docs.json` / `mint.json` topbar links | `tome.config.js` topNav |
+| `docs.json` / `mint.json` redirects | `tome.config.js` redirects |
+| `docs.json` / `mint.json` openapi | `tome.config.js` api.spec |
 | `<Note>` / `<Info>` | `<Callout type="info">` |
 | `<Warning>` | `<Callout type="warning">` |
 | `<Tip>` / `<Check>` | `<Callout type="tip">` |
@@ -1758,59 +1760,6 @@ If the current page exists in the target version, the user stays on that page. O
 
 ---
 
-## Introduction
-
-# Tome
-
-Welcome to Tome — beautiful documentation, zero vendor lock-in.
-
----
-
-Tome is an open-source documentation platform built for developers who believe great docs shouldn't cost $250/month. Write in Markdown or MDX, deploy anywhere, and own your content forever.
-
-## What is Tome?
-
-Tome transforms your Markdown and MDX files into stunning, fully-searchable documentation sites. It handles navigation, theming, API references, code highlighting, and versioning — all from a simple folder of `.md` and `.mdx` files.
-
-> **OPEN SOURCE FOREVER**
->
-> Tome is MIT licensed. No vendor lock-in, no surprise pricing changes, no feature gates. Your docs are yours.
-
-## Why Tome?
-
-Documentation platforms have become unreasonably expensive. Most charge hundreds per month for features that should be table stakes. Want custom domains? Pay more. Need versioning? Upgrade your plan. Multiple projects? That'll be $250/month — per project.
-
-We built Tome because we thought that was absurd. Every developer and team deserves polished, professional documentation without paying a premium for basic functionality. Tome gives you everything you need for free when self-hosted, or at a fraction of the cost on our cloud.
-
-```bash
-# Get started in 30 seconds
-npx @tomehq/cli init my-docs
-cd my-docs && npm install && npm run dev
-```
-
-## Features
-
-- **Markdown and MDX** — Write docs in `.md` or use `.mdx` for interactive components like tabs, callouts, and code playgrounds.
-- **File-system routing** — Drop files into `pages/` and they become pages. No router config, no manifest files.
-- **Built-in components** — Callouts, tabs, cards, steps, accordions, and API playgrounds work out of the box.
-- **Two theme presets** — Ship with a warm amber aesthetic or an editorial brutalist look. Both support dark mode.
-- **Search included** — Pagefind indexes your site at build time. No external service required.
-- **API reference** — Point Tome at an OpenAPI spec and get a rendered reference with an interactive playground.
-- **Versioning** — Maintain multiple documentation versions side by side with a version switcher.
-- **i18n** — Serve docs in multiple languages with locale-based routing.
-- **Agent-friendly** — Every build generates `llms.txt`, `skill.md`, `robots.txt`, `search.json`, `mcp.json`, and JSON-LD schema markup. Your docs work for humans and machines.
-- **Mermaid and math** — Diagrams and LaTeX math render in both `.md` and `.mdx` files with zero config.
-- **Deploy anywhere** — Static output works on Vercel, Netlify, Cloudflare Pages, or Tome Cloud.
-
-## Learn more
-
-- **[Quickstart](quickstart)** — Get a docs site running in under a minute.
-- **[Installation](installation)** — Detailed setup instructions and prerequisites.
-- **[Configuration](configuration)** — Customize your site name, navigation, theme, and more.
-- **[CLI Reference](cli)** — Every command and flag available in the `tome` CLI.
-
----
-
 ## Pages & Routing
 
 Every `.md` or `.mdx` file in the `pages/` directory becomes a page. The file path determines the URL.
@@ -1970,25 +1919,23 @@ Every `.md` or `.mdx` file in `pages/` becomes a page on your site. Subdirectori
 | File | URL |
 |------|-----|
 | `pages/index.md` | `/` |
-| `pages/quickstart.md` | `/quickstart` |
-| `pages/guides/setup.md` | `/guides/setup` |
+| `pages/tutorials/getting-started.md` | `/tutorials/getting-started` |
+| `pages/guides/configuration.md` | `/guides/configuration` |
+| `pages/reference/cli.md` | `/reference/cli` |
 
 ## Add navigation
 
-Open `tome.config.js` and define your sidebar:
+Open `tome.config.js` to customize your sidebar. The scaffold uses the [Diataxis framework](https://diataxis.fr/) by default:
 
 ```javascript
 export default {
   name: "My Project",
   navigation: [
-    {
-      group: "Getting Started",
-      pages: ["index", "quickstart"],
-    },
-    {
-      group: "Guides",
-      pages: ["guides/setup"],
-    },
+    { group: "Overview", pages: ["index"] },
+    { group: "Tutorials", pages: ["tutorials/getting-started", "tutorials/deploy"] },
+    { group: "Guides", pages: ["guides/components", "guides/configuration"] },
+    { group: "Reference", pages: ["reference/config", "reference/components", "reference/cli"] },
+    { group: "Concepts", pages: ["concepts/how-tome-works", "concepts/file-routing"] },
   ],
 };
 ```
@@ -2408,7 +2355,7 @@ The config file (`tome.config.js`, `.mjs`, or `.ts`) is validated at startup. In
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `preset` | `"amber" \| "editorial"` | `"amber"` | Base theme preset |
+| `preset` | `"amber" \| "editorial" \| "cipher" \| "mint"` | `"amber"` | Base theme preset |
 | `accent` | `string` | — | Custom accent color (hex, e.g., `"#ff6b4a"`) |
 | `mode` | `"light" \| "dark" \| "auto"` | `"auto"` | Color mode |
 | `fonts.heading` | `string` | — | Heading font family |
@@ -2699,7 +2646,7 @@ The value can be a relative path (resolved from your site root) or a full URL. P
 
 ## Theme Presets
 
-Tome ships with two theme presets. Each defines color tokens for dark and light modes plus font families.
+Tome ships with four theme presets. Each defines color tokens for dark and light modes plus font families. All presets are WCAG 2.1 AA compliant.
 
 ## Amber
 
@@ -2709,31 +2656,39 @@ The default preset. Warm, approachable tones with a golden accent.
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `--bg` | `#1a1a1a` | Page background |
-| `--sf` | `#242424` | Surface (cards, sidebar) |
-| `--sfH` | `#2e2e2e` | Surface hover |
-| `--bd` | `#333333` | Border |
-| `--tx` | `#e5e5e5` | Primary text |
-| `--tx2` | `#999999` | Secondary text |
-| `--txM` | `#666666` | Muted text |
+| `--bg` | `#09090b` | Page background |
+| `--sf` | `#111114` | Surface |
+| `--sfH` | `#18181c` | Surface hover |
+| `--bd` | `#1e1e24` | Border |
+| `--tx` | `#e4e4e7` | Primary text |
+| `--tx2` | `#a1a1aa` | Secondary text |
+| `--txM` | `#919199` | Muted text |
 | `--ac` | `#e8a845` | Accent |
-| `--acD` | `#d4922e` | Accent dark |
-| `--acT` | `#2a2318` | Accent tint |
+| `--acD` | `rgba(232,168,69,0.12)` | Accent dim |
+| `--acT` | `#fbbf24` | Accent hover |
+| `--cdBg` | `#0c0c0f` | Code background |
+| `--cdTx` | `#c4c4cc` | Code text |
+| `--sbBg` | `#0c0c0e` | Sidebar background |
+| `--hdBg` | `rgba(9,9,11,0.85)` | Header background |
 
 ### Light mode
 
 | Variable | Value | Description |
 |----------|-------|-------------|
 | `--bg` | `#fafaf9` | Page background |
-| `--sf` | `#f5f5f4` | Surface |
-| `--sfH` | `#e7e5e4` | Surface hover |
-| `--bd` | `#d6d3d1` | Border |
+| `--sf` | `#ffffff` | Surface |
+| `--sfH` | `#f5f5f4` | Surface hover |
+| `--bd` | `#e7e5e4` | Border |
 | `--tx` | `#1c1917` | Primary text |
 | `--tx2` | `#57534e` | Secondary text |
-| `--txM` | `#a8a29e` | Muted text |
-| `--ac` | `#d97706` | Accent |
-| `--acD` | `#b45309` | Accent dark |
-| `--acT` | `#fef3c7` | Accent tint |
+| `--txM` | `#706b66` | Muted text |
+| `--ac` | `#96640a` | Accent |
+| `--acD` | `rgba(150,100,10,0.08)` | Accent dim |
+| `--acT` | `#7a5208` | Accent hover |
+| `--cdBg` | `#f5f3f0` | Code background |
+| `--cdTx` | `#2c2520` | Code text |
+| `--sbBg` | `#f5f5f3` | Sidebar background |
+| `--hdBg` | `rgba(250,250,249,0.85)` | Header background |
 
 ### Fonts
 
@@ -2747,37 +2702,45 @@ The default preset. Warm, approachable tones with a golden accent.
 
 ## Editorial
 
-A refined, high-contrast preset inspired by Swiss poster design.
+A refined preset inspired by Swiss poster design. Deep navy dark mode with a coral accent.
 
 ### Dark mode
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `--bg` | `#0f0f0f` | Page background |
-| `--sf` | `#1a1a1a` | Surface |
-| `--sfH` | `#252525` | Surface hover |
-| `--bd` | `#2a2a2a` | Border |
-| `--tx` | `#f0f0f0` | Primary text |
-| `--tx2` | `#888888` | Secondary text |
-| `--txM` | `#555555` | Muted text |
+| `--bg` | `#080c1f` | Page background |
+| `--sf` | `#0e1333` | Surface |
+| `--sfH` | `#141940` | Surface hover |
+| `--bd` | `#1a2050` | Border |
+| `--tx` | `#e8e6f0` | Primary text |
+| `--tx2` | `#b5b1c8` | Secondary text |
+| `--txM` | `#9490ae` | Muted text |
 | `--ac` | `#ff6b4a` | Accent (coral) |
-| `--acD` | `#e85a3a` | Accent dark |
-| `--acT` | `#1f1512` | Accent tint |
+| `--acD` | `rgba(255,107,74,0.1)` | Accent dim |
+| `--acT` | `#ff8a70` | Accent hover |
+| `--cdBg` | `#0a0e27` | Code background |
+| `--cdTx` | `#b8b4cc` | Code text |
+| `--sbBg` | `#0a0e27` | Sidebar background |
+| `--hdBg` | `rgba(8,12,31,0.9)` | Header background |
 
 ### Light mode
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `--bg` | `#faf9f7` | Page background |
-| `--sf` | `#f2f0ed` | Surface |
-| `--sfH` | `#e8e5e1` | Surface hover |
-| `--bd` | `#d8d4cf` | Border |
-| `--tx` | `#1a1a1a` | Primary text |
-| `--tx2` | `#6b6560` | Secondary text |
-| `--txM` | `#a09890` | Muted text |
-| `--ac` | `#e85a3a` | Accent (coral) |
-| `--acD` | `#d04a2a` | Accent dark |
-| `--acT` | `#fef0ec` | Accent tint |
+| `--bg` | `#f6f4f0` | Page background |
+| `--sf` | `#ffffff` | Surface |
+| `--sfH` | `#eeece6` | Surface hover |
+| `--bd` | `#ddd9d0` | Border |
+| `--tx` | `#1a1716` | Primary text |
+| `--tx2` | `#4a443e` | Secondary text |
+| `--txM` | `#706960` | Muted text |
+| `--ac` | `#b83d22` | Accent (rust) |
+| `--acD` | `rgba(184,61,34,0.07)` | Accent dim |
+| `--acT` | `#9c3019` | Accent hover |
+| `--cdBg` | `#edeae4` | Code background |
+| `--cdTx` | `#3a3530` | Code text |
+| `--sbBg` | `#f0ede8` | Sidebar background |
+| `--hdBg` | `rgba(246,244,240,0.92)` | Header background |
 
 ### Fonts
 
@@ -2789,24 +2752,113 @@ A refined, high-contrast preset inspired by Swiss poster design.
 
 ---
 
-## Additional variables
+## Cipher
 
-Both presets also define:
+A cyberpunk aesthetic with acid yellow-green text and vibrant blue accents.
 
-| Variable | Description |
-|----------|-------------|
-| `--cdBg` | Code block background |
-| `--cdTx` | Code block text |
-| `--sbBg` | Sidebar background |
-| `--hdBg` | Header background |
+### Dark mode
 
-Override any variable in custom CSS to fine-tune the theme.
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#050508` | Page background |
+| `--sf` | `#0c0c12` | Surface |
+| `--sfH` | `#12121a` | Surface hover |
+| `--bd` | `#1a1a25` | Border |
+| `--tx` | `#d4ff00` | Primary text (acid yellow-green) |
+| `--tx2` | `#8a90a0` | Secondary text |
+| `--txM` | `#6a7080` | Muted text |
+| `--ac` | `#6666ff` | Accent (vibrant blue) |
+| `--acD` | `rgba(102,102,255,0.10)` | Accent dim |
+| `--acT` | `#8080ff` | Accent hover |
+| `--cdBg` | `#08080e` | Code background |
+| `--cdTx` | `#b0c870` | Code text |
+| `--sbBg` | `#08080d` | Sidebar background |
+| `--hdBg` | `rgba(5,5,8,0.88)` | Header background |
+
+### Light mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#f0f2f5` | Page background |
+| `--sf` | `#ffffff` | Surface |
+| `--sfH` | `#e8eaef` | Surface hover |
+| `--bd` | `#d0d4db` | Border |
+| `--tx` | `#0f1219` | Primary text |
+| `--tx2` | `#4a5060` | Secondary text |
+| `--txM` | `#6a7080` | Muted text |
+| `--ac` | `#2020cc` | Accent (deep blue) |
+| `--acD` | `rgba(32,32,204,0.08)` | Accent dim |
+| `--acT` | `#1a1aa8` | Accent hover |
+| `--cdBg` | `#e6e9ef` | Code background |
+| `--cdTx` | `#2a3520` | Code text |
+| `--sbBg` | `#ebedf2` | Sidebar background |
+| `--hdBg` | `rgba(240,242,245,0.90)` | Header background |
+
+### Fonts
+
+| Variable | Value |
+|----------|-------|
+| `--font-heading` | `'Bodoni Moda', serif` |
+| `--font-body` | `'Space Grotesk', sans-serif` |
+| `--font-code` | `'Source Code Pro', monospace` |
+
+---
+
+## Mint
+
+A Mintlify-inspired preset with emerald green accents and clean Inter typography.
+
+### Dark mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#0d1117` | Page background |
+| `--sf` | `#161b22` | Surface |
+| `--sfH` | `#1c2129` | Surface hover |
+| `--bd` | `#21262d` | Border |
+| `--tx` | `#e6edf3` | Primary text |
+| `--tx2` | `#8b949e` | Secondary text |
+| `--txM` | `#6e7681` | Muted text |
+| `--ac` | `#0ea371` | Accent (emerald green) |
+| `--acD` | `rgba(14,163,113,0.10)` | Accent dim |
+| `--acT` | `#2dd4a0` | Accent hover |
+| `--cdBg` | `#0a0e14` | Code background |
+| `--cdTx` | `#adbac7` | Code text |
+| `--sbBg` | `#0d1117` | Sidebar background |
+| `--hdBg` | `rgba(13,17,23,0.88)` | Header background |
+
+### Light mode
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `--bg` | `#ffffff` | Page background |
+| `--sf` | `#f6f8fa` | Surface |
+| `--sfH` | `#eef1f5` | Surface hover |
+| `--bd` | `#d8dee4` | Border |
+| `--tx` | `#1f2328` | Primary text |
+| `--tx2` | `#59636e` | Secondary text |
+| `--txM` | `#6e7681` | Muted text |
+| `--ac` | `#0a7b53` | Accent (darker emerald) |
+| `--acD` | `rgba(10,123,83,0.07)` | Accent dim |
+| `--acT` | `#087a50` | Accent hover |
+| `--cdBg` | `#f0f3f6` | Code background |
+| `--cdTx` | `#24292f` | Code text |
+| `--sbBg` | `#f6f8fa` | Sidebar background |
+| `--hdBg` | `rgba(255,255,255,0.90)` | Header background |
+
+### Fonts
+
+| Variable | Value |
+|----------|-------|
+| `--font-heading` | `'Inter', sans-serif` |
+| `--font-body` | `'Inter', sans-serif` |
+| `--font-code` | `'Fira Code', monospace` |
 
 ---
 
 ## Theming
 
-Tome ships with two theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.
+Tome ships with four theme presets and extensive customization options. Every visual aspect — colors, fonts, spacing — can be adjusted through configuration or CSS variables.
 
 ## Presets
 
@@ -2822,11 +2874,31 @@ theme: {
 
 ### Editorial
 
-Swiss poster-inspired design with a brutalist edge. Coral accent color, grotesque typography.
+Swiss poster-inspired design with a coral accent, grotesque typography, and deep navy dark mode.
 
 ```javascript
 theme: {
   preset: "editorial",
+}
+```
+
+### Cipher
+
+Cyberpunk aesthetic with acid yellow-green text, vibrant blue accents, and high-contrast serif display headings.
+
+```javascript
+theme: {
+  preset: "cipher",
+}
+```
+
+### Mint
+
+Mintlify-inspired design with emerald green accents, Inter typography, and a clean SaaS-docs feel.
+
+```javascript
+theme: {
+  preset: "mint",
 }
 ```
 
@@ -2849,13 +2921,13 @@ Control the color scheme:
 
 ```javascript
 theme: {
-  mode: "auto",   // Follows system preference
+  mode: "auto",   // Follows system preference (default)
   // mode: "light",  // Always light
   // mode: "dark",   // Always dark
 }
 ```
 
-When set to `auto`, a theme toggle appears in the header.
+When set to `auto`, a theme toggle appears in the sidebar. The default fallback is light mode when system preference is unavailable.
 
 ## Custom fonts
 
@@ -2892,7 +2964,7 @@ For fine-grained control, override CSS variables directly. Add a `<style>` block
   :root {
     --ac: #2563eb;      /* Accent */
     --acD: #dbeafe;     /* Accent dim */
-    --acT: #1e40af;     /* Accent dark */
+    --acT: #1e40af;     /* Accent hover */
     --bg: #ffffff;      /* Background */
     --sf: #f8f8f6;      /* Surface */
     --sfH: #f0efe8;     /* Surface hover */
@@ -2905,13 +2977,6 @@ For fine-grained control, override CSS variables directly. Add a `<style>` block
     --sbBg: #fafaf8;    /* Sidebar background */
     --hdBg: #ffffff;    /* Header background */
   }
-
-  html.dark {
-    --bg: #1a1a1a;
-    --sf: #222;
-    --tx: #e5e5e5;
-    /* ... dark mode overrides */
-  }
 </style>
 ```
 
@@ -2920,8 +2985,8 @@ For fine-grained control, override CSS variables directly. Add a `<style>` block
 | Variable | Purpose |
 |----------|---------|
 | `--ac` | Accent color (links, highlights) |
-| `--acD` | Accent dim (callout backgrounds) |
-| `--acT` | Accent dark (hover states) |
+| `--acD` | Accent dim (callout backgrounds, subtle tints) |
+| `--acT` | Accent hover (transition state) |
 | `--bg` | Page background |
 | `--sf` / `--sfH` | Surface and surface hover |
 | `--tx` / `--tx2` / `--txM` | Text primary, secondary, muted |
@@ -3105,11 +3170,24 @@ my-docs/
 ├── .tome/entry.tsx    # Theme bootstrap (don't edit)
 ├── pages/             # Your documentation pages
 │   ├── index.md
-│   ├── quickstart.md
-│   └── components.mdx
+│   ├── tutorials/
+│   │   ├── getting-started.md
+│   │   └── deploy.md
+│   ├── guides/
+│   │   ├── components.mdx
+│   │   └── configuration.md
+│   ├── reference/
+│   │   ├── cli.md
+│   │   ├── components.md
+│   │   └── config.md
+│   └── concepts/
+│       ├── how-tome-works.md
+│       └── file-routing.md
 ├── public/            # Static assets
 └── styles/            # Custom CSS (optional)
 ```
+
+Pages are organized using the [Diataxis framework](https://diataxis.fr/) — tutorials, guides, reference, and concepts.
 
 ## 2. Install dependencies
 
@@ -3156,17 +3234,22 @@ export default {
     mode: "auto",
   },
   navigation: [
+    { group: "Overview", pages: ["index"] },
     {
-      group: "Getting Started",
-      pages: ["index", "quickstart"],
+      group: "Tutorials",
+      pages: ["tutorials/getting-started", "tutorials/deploy"],
     },
     {
       group: "Guides",
-      pages: ["guides/deployment"],
+      pages: ["guides/components", "guides/configuration", "guides/deployment"],
     },
     {
       group: "Reference",
-      pages: ["components"],
+      pages: ["reference/config", "reference/components", "reference/cli"],
+    },
+    {
+      group: "Concepts",
+      pages: ["concepts/how-tome-works", "concepts/file-routing"],
     },
   ],
 };

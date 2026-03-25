@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { dirname } from "path";
 
 /**
@@ -8,8 +8,8 @@ import { dirname } from "path";
 export function getGitLastUpdated(absolutePath: string): string | null {
   try {
     const cwd = dirname(absolutePath);
-    const result = execSync(
-      `git log -1 --format=%cI -- "${absolutePath}"`,
+    const result = execFileSync(
+      "git", ["log", "-1", "--format=%cI", "--", absolutePath],
       { cwd, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
     ).trim();
     return result || null;

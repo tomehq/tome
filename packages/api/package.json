@@ -14,13 +14,13 @@
     "db:migrate:remote": "wrangler d1 execute TOME_DB --remote --file=migrations/0001_initial.sql"
   },
   "dependencies": {
-    "hono": "^4.7.0",
-    "stripe": "^17.0.0"
+    "hono": "^4.12.9",
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
-    "wrangler": "^4.0.0",
-    "typescript": "^5.5.0"
+    "@cloudflare/workers-types": "^4.20260317.1",
+    "typescript": "^6.0.0",
+    "wrangler": "^4.77.0"
   },
   "license": "MIT",
   "repository": {

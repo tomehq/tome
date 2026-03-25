@@ -1013,9 +1013,9 @@ program
 
       // Run Pagefind to build search index (suppress noisy output, show summary only)
       try {
-        const { execSync } = await import("child_process");
+        const { execFileSync } = await import("child_process");
         const outDirAbs = resolve(root, opts.outDir);
-        const pagefindOut = execSync(`npx pagefind --site ${outDirAbs} --output-subdir _pagefind 2>&1`, {
+        const pagefindOut = execFileSync("npx", ["pagefind", "--site", outDirAbs, "--output-subdir", "_pagefind"], {
           stdio: "pipe",
           cwd: root,
           encoding: "utf-8",
