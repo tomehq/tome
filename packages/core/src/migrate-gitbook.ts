@@ -206,29 +206,68 @@ export function convertGitbookContent(content: string): {
   }
 
   // ---- Tab blocks → Tabs / Tab ----------------------------------------
-  converted = converted.replace(
-    /\{%\s*tabs\s*%\}([\s\S]*?)\{%\s*endtabs\s*%\}/g,
-    (_match, inner: string) => {
+  // Uses indexOf to locate `{% endtabs %}` instead of `[\s\S]*?` to avoid
+  // catastrophic backtracking.
+  {
+    const tabsStartRe = /\{%\s*tabs\s*%\}/g;
+    let tabsResult = "";
+    let tabsLastIndex = 0;
+    let tabsMatch: RegExpExecArray | null;
+
+    while ((tabsMatch = tabsStartRe.exec(converted)) !== null) {
+      tabsResult += converted.slice(tabsLastIndex, tabsMatch.index);
+
+      const innerStart = tabsStartRe.lastIndex;
+      const endTabsIdx = converted.indexOf("{% endtabs", innerStart);
+      if (endTabsIdx === -1) {
+        tabsResult += converted.slice(tabsMatch.index);
+        tabsLastIndex = converted.length;
+        break;
+      }
+      const endTabsClose = converted.indexOf("%}", endTabsIdx);
+      if (endTabsClose === -1) {
+        tabsResult += converted.slice(tabsMatch.index);
+        tabsLastIndex = converted.length;
+        break;
+      }
+
+      const inner = converted.slice(innerStart, endTabsIdx);
       hasJsx = true;
 
       const tabRe =
-        /\{%\s*tab\s+title="([^"]+)"\s*%\}([\s\S]*?)(?=\{%\s*(?:endtab|tab\s)|$)/g;
+        /\{%\s*tab\s+title="([^"]+)"\s*%\}/g;
       const titles: string[] = [];
       const bodies: string[] = [];
+      let tabInnerMatch: RegExpExecArray | null;
+      const tabPositions: number[] = [];
 
-      let tabMatch: RegExpExecArray | null;
-      while ((tabMatch = tabRe.exec(inner)) !== null) {
-        titles.push(tabMatch[1]);
-        // Strip trailing {% endtab %} that might be captured.
-        const body = tabMatch[2].replace(/\{%\s*endtab\s*%\}/g, "").trim();
+      while ((tabInnerMatch = tabRe.exec(inner)) !== null) {
+        titles.push(tabInnerMatch[1]);
+        tabPositions.push(tabRe.lastIndex);
+      }
+
+      for (let i = 0; i < tabPositions.length; i++) {
+        const bodyStart = tabPositions[i];
+        const bodyEnd = i + 1 < tabPositions.length
+          ? inner.lastIndexOf("{%", tabPositions[i + 1])
+          : inner.length;
+        const body = inner.slice(bodyStart, bodyEnd).replace(/\{%\s*endtab\s*%\}/g, "").trim();
         bodies.push(body);
       }
 
       const itemsList = JSON.stringify(titles);
       const tabContent = bodies.map((b) => `<Tab>\n${b}\n</Tab>`).join("\n");
-      return `<Tabs items={${itemsList}}>\n${tabContent}\n</Tabs>`;
-    },
-  );
+      tabsResult += `<Tabs items={${itemsList}}>\n${tabContent}\n</Tabs>`;
+
+      tabsLastIndex = endTabsClose + 2;
+      tabsStartRe.lastIndex = tabsLastIndex;
+    }
+
+    if (tabsLastIndex > 0) {
+      tabsResult += converted.slice(tabsLastIndex);
+      converted = tabsResult;
+    }
+  }
 
   // ---- Code titles ----------------------------------------------------
   // {% code title="file.js" %} followed by a code fence → merge title.

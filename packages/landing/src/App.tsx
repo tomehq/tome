@@ -484,7 +484,6 @@ function Section({ active, direction, children }: { active: boolean; direction: 
   const springIn = "cubic-bezier(0.34, 1.56, 0.64, 1)";
   const smoothOut = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-  const enterY = direction === "down" ? "60px" : "-60px";
   const exitY = direction === "down" ? "-40px" : "40px";
 
   return (

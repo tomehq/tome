@@ -267,10 +267,22 @@ export function convertMintlifyContent(content: string): {
   }
 
   // 3. AccordionGroup → strip wrapper, keep inner Accordion components ---
-  result = result.replace(
-    /<AccordionGroup>([\s\S]*?)<\/AccordionGroup>/g,
-    (_match, inner: string) => inner.trim(),
-  );
+  // Uses indexOf instead of [\s\S]*? to avoid catastrophic backtracking.
+  {
+    const agStartTag = '<AccordionGroup>';
+    const agEndTag = '</AccordionGroup>';
+    let agSearchIndex = 0;
+    while (true) {
+      const agStart = result.indexOf(agStartTag, agSearchIndex);
+      if (agStart === -1) break;
+      const agInnerStart = agStart + agStartTag.length;
+      const agEnd = result.indexOf(agEndTag, agInnerStart);
+      if (agEnd === -1) break;
+      const inner = result.slice(agInnerStart, agEnd).trim();
+      result = result.slice(0, agStart) + inner + result.slice(agEnd + agEndTag.length);
+      agSearchIndex = agStart + inner.length;
+    }
+  }
 
   // 4. Frame → strip wrapper, keep content --------------------------------
   result = result.replace(
