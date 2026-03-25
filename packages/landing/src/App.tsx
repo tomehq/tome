@@ -148,7 +148,7 @@ function LiquidRing({ children, bg, radius = 6, block, style, onAccent }: {
       <InnerTag style={{
         position: "absolute",
         top: "50%", left: "50%",
-        width: block ? "150%" : "150%",
+        width: "150%",
         height: block ? "150%" : "400%",
         background: gradient,
         opacity: hovered ? 1 : 0,
@@ -266,7 +266,7 @@ function useSectionNav() {
 // ── CSS ─────────────────────────────────────────────────
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&family=Fira+Code:wght@400&display=swap');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -684,9 +684,14 @@ function FeaturesContent() {
 function CodeExampleContent() {
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    try { navigator.clipboard.writeText(CONFIG_CODE); } catch {}
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+    navigator.clipboard.writeText(CONFIG_CODE)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      })
+      .catch((err) => {
+        console.error("Failed to copy to clipboard:", err);
+      });
   };
 
   return (

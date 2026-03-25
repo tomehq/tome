@@ -248,9 +248,17 @@ export function convertGitbookContent(content: string): {
 
       for (let i = 0; i < tabPositions.length; i++) {
         const bodyStart = tabPositions[i];
-        const bodyEnd = i + 1 < tabPositions.length
-          ? inner.lastIndexOf("{%", tabPositions[i + 1])
-          : inner.length;
+        let bodyEnd: number;
+        if (i + 1 < tabPositions.length) {
+          const nextTabPos = tabPositions[i + 1];
+          const possibleEnd = inner.indexOf("{%", bodyStart);
+          bodyEnd =
+            possibleEnd !== -1 && possibleEnd < nextTabPos
+              ? possibleEnd
+              : nextTabPos;
+        } else {
+          bodyEnd = inner.length;
+        }
         const body = inner.slice(bodyStart, bodyEnd).replace(/\{%\s*endtab\s*%\}/g, "").trim();
         bodies.push(body);
       }

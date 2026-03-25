@@ -234,6 +234,14 @@ export function convertMintlifyContent(content: string): {
       }
 
       const inner = result.slice(innerStart, endIdx);
+      // Match fenced code blocks inside a <CodeGroup>:
+      //   ```lang   optional-title
+      //   <body>
+      //   ```
+      // Capture groups:
+      //   1: optional language identifier (e.g. "ts", "js")
+      //   2: optional title/label text on the same line after the language
+      //   3: code block body, up to (but not including) the next closing ```
       const codeBlockRe = /```(\w+)?[^\S\n]*(.*)\n((?:(?!```)[\s\S])*)```/g;
       const tabs: { label: string; code: string }[] = [];
       let m: RegExpExecArray | null;
@@ -285,10 +293,33 @@ export function convertMintlifyContent(content: string): {
   }
 
   // 4. Frame → strip wrapper, keep content --------------------------------
-  result = result.replace(
-    /<Frame(?:\s[^>]*)?>[\s]*([\s\S]*?)[\s]*<\/Frame>/g,
-    (_match, inner: string) => inner.trim(),
-  );
+  // Uses indexOf instead of [\s\S]*? to avoid catastrophic backtracking.
+  {
+    const frameEndTag = '</Frame>';
+    const frameStartRe = /<Frame(?:\s[^>]*)?>[\s]*/g;
+    let frameMatch: RegExpExecArray | null;
+    let frameResult = "";
+    let frameLastIndex = 0;
+
+    while ((frameMatch = frameStartRe.exec(result)) !== null) {
+      frameResult += result.slice(frameLastIndex, frameMatch.index);
+      const contentStart = frameStartRe.lastIndex;
+      const endIdx = result.indexOf(frameEndTag, contentStart);
+      if (endIdx === -1) {
+        frameResult += result.slice(frameMatch.index);
+        frameLastIndex = result.length;
+        break;
+      }
+      frameResult += result.slice(contentStart, endIdx).trim();
+      frameLastIndex = endIdx + frameEndTag.length;
+      frameStartRe.lastIndex = frameLastIndex;
+    }
+
+    if (frameLastIndex > 0) {
+      frameResult += result.slice(frameLastIndex);
+      result = frameResult;
+    }
+  }
 
   // Self-closing Frame (edge case)
   result = result.replace(/<Frame\s*\/>/g, '');
