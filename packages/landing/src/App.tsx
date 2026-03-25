@@ -270,6 +270,9 @@ const CSS = `
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow:hidden;height:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.domain-cursor{opacity:0.7}
+@keyframes domain-cursor-blink{0%,50%{opacity:0.7}50.01%,100%{opacity:0}}
+@media (prefers-reduced-motion: no-preference){.domain-cursor{animation:domain-cursor-blink 1s step-end infinite}}
 
 /* Focus visible for keyboard navigation */
 a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
@@ -511,7 +514,10 @@ function HeroContent() {
   return (
     <div className="landing-hero-grid" style={{ maxWidth: 1200, width: "100%", padding: "0 48px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }}>
       <div>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 500, color: "var(--accent)", letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 24 }}>
+        <div
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 500, color: "var(--accent)", letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 24 }}
+          aria-label="Introducing version 4.0"
+        >
           <SparkleIcon /> INTRODUCING V4.0
         </div>
         <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: "clamp(40px, 5vw, 64px)", fontWeight: 400, lineHeight: 1.05, letterSpacing: "-0.02em", marginBottom: 24 }}>
@@ -621,7 +627,7 @@ function DomainAnimation() {
     }}>
       <span style={{ opacity: 0.5, fontSize: 11 }}>https://</span>
       <span>{text}</span>
-      <span style={{ opacity: 0.7, animation: "blink 1s step-end infinite" }}>|</span>
+      <span className="domain-cursor">|</span>
     </div>
   );
 }
@@ -763,7 +769,25 @@ function CTAContent() {
 // ── App ─────────────────────────────────────────────────
 
 export function App() {
-  const [isDark, setDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
+  const [isDark, setDark] = useState(() => {
+    try {
+      const stored = window.localStorage?.getItem("theme");
+      if (stored === "dark") return true;
+      if (stored === "light") return false;
+    } catch {
+      // Ignore access errors and fall back to system preference
+    }
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage?.setItem("theme", isDark ? "dark" : "light");
+    } catch {
+      // Ignore write errors (e.g., storage disabled)
+    }
+  }, [isDark]);
+
   const theme = isDark ? THEMES.dark : THEMES.light;
   const toggle = useCallback(() => setDark((d) => !d), []);
   const { current, direction, goTo } = useSectionNav();

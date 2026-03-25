@@ -253,7 +253,7 @@ export function convertMintlifyContent(content: string): {
         const label = title || lang || 'Code';
         tabs.push({
           label,
-          code: `\`\`\`${lang}${title ? ` ${title}` : ''}\n${body}\`\`\``,
+          code: `\`\`\`${lang}${title ? ` ${title}` : ''}\n${body}\n\`\`\``,
         });
       }
 
@@ -298,7 +298,7 @@ export function convertMintlifyContent(content: string): {
     const frameEndTag = '</Frame>';
     const frameStartRe = /<Frame\b[^>]*>\s*/g;
     let frameMatch: RegExpExecArray | null;
-    let frameResult = "";
+    let frameResult = '';
     let frameLastIndex = 0;
 
     while ((frameMatch = frameStartRe.exec(result)) !== null) {
@@ -475,7 +475,7 @@ export async function migrateFromMintlify(
     for (const assetDir of ['images', 'public', 'static']) {
       const src = join(sourceDir, assetDir);
       if (existsSync(src)) {
-        copyDirRecursive(src, join(publicDir, assetDir === 'public' ? '' : assetDir));
+        copyDirRecursive(src, join(publicDir, assetDir));
       }
     }
   }

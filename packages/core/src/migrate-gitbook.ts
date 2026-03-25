@@ -231,7 +231,10 @@ export function convertGitbookContent(content: string): {
         break;
       }
 
-      const inner = converted.slice(innerStart, endTabsIdx);
+      // Strip endtab markers once before extracting tab bodies to avoid
+      // repeated regex application per tab.
+      const innerNoEndtabs = converted.slice(innerStart, endTabsIdx)
+        .replace(/\{%\s*endtab\s*%\}/g, "");
       hasJsx = true;
 
       const tabRe =
@@ -241,7 +244,7 @@ export function convertGitbookContent(content: string): {
       let tabInnerMatch: RegExpExecArray | null;
       const tabPositions: number[] = [];
 
-      while ((tabInnerMatch = tabRe.exec(inner)) !== null) {
+      while ((tabInnerMatch = tabRe.exec(innerNoEndtabs)) !== null) {
         titles.push(tabInnerMatch[1]);
         tabPositions.push(tabRe.lastIndex);
       }
@@ -251,15 +254,15 @@ export function convertGitbookContent(content: string): {
         let bodyEnd: number;
         if (i + 1 < tabPositions.length) {
           const nextTabPos = tabPositions[i + 1];
-          const possibleEnd = inner.indexOf("{%", bodyStart);
+          const possibleEnd = innerNoEndtabs.indexOf("{%", bodyStart);
           bodyEnd =
             possibleEnd !== -1 && possibleEnd < nextTabPos
               ? possibleEnd
               : nextTabPos;
         } else {
-          bodyEnd = inner.length;
+          bodyEnd = innerNoEndtabs.length;
         }
-        const body = inner.slice(bodyStart, bodyEnd).replace(/\{%\s*endtab\s*%\}/g, "").trim();
+        const body = innerNoEndtabs.slice(bodyStart, bodyEnd).trim();
         bodies.push(body);
       }
 
