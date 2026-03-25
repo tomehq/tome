@@ -15,7 +15,8 @@
     "clean": "pnpm -r clean",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "build:deploy": "pnpm build && pnpm --filter @tomehq/docs build && rm -rf packages/landing/public/docs && cp -r packages/docs/out packages/landing/public/docs && pnpm --filter @tomehq/dashboard build && rm -rf packages/landing/public/dashboard && cp -r packages/dashboard/dist packages/landing/public/dashboard && cd packages/landing && npx vite build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
