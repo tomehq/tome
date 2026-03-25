@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { ApiPlayground } from "./ApiPlayground.js";
 import type { ApiPlaygroundProps } from "./ApiPlayground.js";
 import { CodeSamples } from "./CodeSamples.js";

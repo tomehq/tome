@@ -31,7 +31,7 @@ describe("PLAN_LIMITS", () => {
   });
 
   it("each plan has all required limit fields", () => {
-    for (const [plan, limits] of Object.entries(PLAN_LIMITS)) {
+    for (const [_plan, limits] of Object.entries(PLAN_LIMITS)) {
       expect(limits).toHaveProperty("deployments");
       expect(limits).toHaveProperty("customDomains");
       expect(limits).toHaveProperty("teamMembers");

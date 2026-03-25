@@ -492,7 +492,7 @@ function Section({ active, direction, children }: { active: boolean; direction: 
       position: "absolute", inset: 0, top: 60,
       display: "flex", alignItems: "center", justifyContent: "center",
       opacity: active ? 1 : 0,
-      transform: active ? "translateY(0) scale(1)" : `translateY(${active ? enterY : exitY}) scale(0.96)`,
+      transform: active ? "translateY(0) scale(1)" : `translateY(${exitY}) scale(0.96)`,
       filter: active ? "blur(0px)" : "blur(6px)",
       transition: active
         ? `opacity ${TRANSITION_MS}ms ${smoothOut}, transform ${TRANSITION_MS}ms ${springIn}, filter ${TRANSITION_MS * 0.6}ms ease`

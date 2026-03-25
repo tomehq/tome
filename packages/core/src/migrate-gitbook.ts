@@ -160,16 +160,50 @@ export function convertGitbookContent(content: string): {
   let hasJsx = false;
 
   // ---- Hint blocks → Callout ------------------------------------------
-  // Handles multiline content between {% hint %} and {% endhint %}.
-  // Tempered greedy token (?:(?!\{%\s*endhint)[\s\S])* avoids polynomial backtracking.
-  converted = converted.replace(
-    /\{%\s*hint\s+style="([^"]+)"\s*%\}((?:(?!\{%\s*endhint)[\s\S])*)\{%\s*endhint\s*%\}/g,
-    (_match, style: string, body: string) => {
-      hasJsx = true;
+  // Uses indexOf to locate `{% endhint %}` instead of a regex with
+  // tempered greedy token, avoiding catastrophic backtracking.
+  {
+    const startRegex = /\{%\s*hint\s+style="([^"]+)"\s*%\}/g;
+    let result = "";
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = startRegex.exec(converted)) !== null) {
+      const matchStart = match.index;
+      const matchEnd = startRegex.lastIndex;
+      const style = match[1];
+
+      result += converted.slice(lastIndex, matchStart);
+
+      const endTagIndex = converted.indexOf("{% endhint", matchEnd);
+      if (endTagIndex === -1) {
+        result += converted.slice(matchStart);
+        lastIndex = converted.length;
+        break;
+      }
+
+      const endTagCloseIndex = converted.indexOf("%}", endTagIndex);
+      if (endTagCloseIndex === -1) {
+        result += converted.slice(matchStart);
+        lastIndex = converted.length;
+        break;
+      }
+
+      const body = converted.slice(matchEnd, endTagIndex).trim();
       const tomeType = HINT_STYLE_MAP[style] ?? "info";
-      return `<Callout type="${tomeType}">\n${body.trim()}\n</Callout>`;
-    },
-  );
+
+      hasJsx = true;
+      result += `<Callout type="${tomeType}">\n${body}\n</Callout>`;
+
+      lastIndex = endTagCloseIndex + 2;
+      startRegex.lastIndex = lastIndex;
+    }
+
+    if (lastIndex > 0) {
+      result += converted.slice(lastIndex);
+      converted = result;
+    }
+  }
 
   // ---- Tab blocks → Tabs / Tab ----------------------------------------
   converted = converted.replace(

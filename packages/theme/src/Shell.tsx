@@ -36,8 +36,6 @@ const Icon = ({ d, size = 16 }: { d: string; size?: number }) => (
 const SearchIcon = () => <Icon d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.3-4.3" />;
 const ChevRight = () => <Icon d="M9 18l6-6-6-6" size={14} />;
 const ChevDown = () => <Icon d="M6 9l6 6 6-6" size={14} />;
-const CopyIcon = () => <Icon d="M9 9h13v13H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" size={14} />;
-const CheckIcon = () => <Icon d="M20 6L9 17l-5-5" size={14} />;
 const MenuIcon = () => <Icon d="M3 12h18M3 6h18M3 18h18" size={20} />;
 const XIcon = () => <Icon d="M18 6L6 18M6 6l12 12" size={18} />;
 const MoonIcon = () => <Icon d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />;

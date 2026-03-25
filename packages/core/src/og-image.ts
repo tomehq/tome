@@ -3,8 +3,8 @@
  * Auto-generates social preview cards at build time using satori + resvg.
  */
 
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from "fs";
-import { join, dirname } from "path";
+import { mkdirSync, writeFileSync } from "fs";
+import { join } from "path";
 import type { PageRoute } from "./routes.js";
 import type { TomeConfig } from "./config.js";
 

@@ -1617,7 +1617,7 @@ function BillingPage({ token, user }: { token: string; user: User }) {
 
 function SettingsPage({ user, token, onLogout }: { user: User; token: string; onLogout: () => void }) {
   const [showToken, setShowToken] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [, setCopied] = useState(false);
   const plan = PLANS[user.plan] ?? PLANS.community;
 
   const copyToken = () => {

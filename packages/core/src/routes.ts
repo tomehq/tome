@@ -1,5 +1,5 @@
-import { resolve, relative, basename, dirname, join } from "path";
-import { readFileSync, existsSync, statSync } from "fs";
+import { resolve, basename, dirname, join } from "path";
+import { readFileSync, existsSync } from "fs";
 import { glob } from "glob";
 import matter from "gray-matter";
 import type { TomeConfig } from "./config.js";

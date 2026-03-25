@@ -1192,14 +1192,6 @@ describe("TomePlugin — configResolved hook", () => {
 
   it("configResolved hook modifies config name", async () => {
     setupPluginEnv();
-    const myPlugin: TomePlugin = {
-      name: "rename-plugin",
-      hooks: {
-        configResolved: (config) => {
-          return { ...config, name: "Plugin-Modified" } as TomeConfig;
-        },
-      },
-    };
     writeFileSync(
       join(tmpDir, "tome.config.js"),
       `export default { name: "Original", navigation: [{ group: "Guide", pages: ["intro"] }], tomePlugins: [${JSON.stringify({ name: "rename-plugin" })}] };`

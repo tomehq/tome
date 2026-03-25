@@ -1,7 +1,7 @@
 import { resolve, join } from "path";
 import { readFileSync, existsSync, mkdirSync, writeFileSync, rmSync } from "fs";
 import { createRequire } from "module";
-import type { Plugin, ViteDevServer } from "vite";
+import type { Plugin } from "vite";
 
 const _require = createRequire(import.meta.url);
 import { loadConfig, type TomeConfig, type TomePlugin } from "./config.js";
@@ -81,7 +81,6 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
   let config: TomeConfig;
   let routes: PageRoute[] = [];
   let navigation: NavigationGroup[] = [];
-  let server: ViteDevServer | undefined;
   let apiManifest: ApiManifest | null = null;
   let isDevMode = false;
 
@@ -173,7 +172,6 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         writeFileSync(filePath, page.content, "utf-8");
 
         // Build route entry matching the PageRoute interface
-        const ext = "." + page.format;
         let id = page.id;
         if (id.endsWith("/index") || id === "index") {
           id = id.replace(/\/?index$/, "") || "index";
@@ -432,8 +430,6 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     },
 
     configureServer(srv) {
-      server = srv;
-
       // Redirect middleware — matches config-level and frontmatter-level redirects
       srv.middlewares.use((req, res, next) => {
         if (!req.url || !config) return next();

@@ -1,6 +1,6 @@
 import ts from "typescript";
-import { writeFileSync, mkdirSync, readFileSync } from "fs";
-import { join, resolve, basename } from "path";
+import { writeFileSync, mkdirSync } from "fs";
+import { join, resolve } from "path";
 
 // ── TYPES ───────────────────────────────────────────────
 
@@ -108,11 +108,6 @@ function getJsDocMemberDescription(node: ts.Node, sourceFile: ts.SourceFile): st
     }
   }
   return undefined;
-}
-
-function typeToString(typeNode: ts.TypeNode | undefined, checker: ts.TypeChecker): string {
-  if (!typeNode) return "unknown";
-  return typeNode.getText();
 }
 
 function isExported(node: ts.Node): boolean {
