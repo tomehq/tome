@@ -296,7 +296,7 @@ export function convertMintlifyContent(content: string): {
   // Uses indexOf instead of [\s\S]*? to avoid catastrophic backtracking.
   {
     const frameEndTag = '</Frame>';
-    const frameStartRe = /<Frame(?:\s[^>]*)?>[\s]*/g;
+    const frameStartRe = /<Frame\b[^>]*>\s*/g;
     let frameMatch: RegExpExecArray | null;
     let frameResult = "";
     let frameLastIndex = 0;
