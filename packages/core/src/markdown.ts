@@ -375,10 +375,10 @@ export function enhanceCodeBlock(html: string, meta: CodeMeta): string {
 // in a queue that the code block transformer consumes in order.
 export function extractCodeFenceMetas(source: string): string[] {
   const metas: string[] = [];
-  const regex = /^```(\w+)(.*)$/gm;
+  const regex = /^```(\w+)([ \t].*)?$/gm;
   let match;
   while ((match = regex.exec(source)) !== null) {
-    const meta = match[2].trim();
+    const meta = (match[2] || "").trim();
     metas.push(meta);
   }
   return metas;
