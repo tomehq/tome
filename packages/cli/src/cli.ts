@@ -5,6 +5,7 @@ import pc from "picocolors";
 import { resolve, join } from "path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
+import { runPagefind } from "./pagefind.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -1050,13 +1051,8 @@ program
 
       // Run Pagefind to build search index (suppress noisy output, show summary only)
       try {
-        const { execFileSync } = await import("child_process");
         const outDirAbs = resolve(root, opts.outDir);
-        const pagefindOut = execFileSync("npx", ["pagefind", "--site", outDirAbs, "--output-subdir", "_pagefind"], {
-          stdio: "pipe",
-          cwd: root,
-          encoding: "utf-8",
-        });
+        const pagefindOut = runPagefind(outDirAbs, root);
         // Check if indexing was meaningful
         if (pagefindOut && pagefindOut.includes("Indexed 0 pages")) {
           console.log(pc.yellow("  ⚠ Search index skipped (no indexable pages found)\n"));

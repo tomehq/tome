@@ -7,6 +7,7 @@
     "url": "https://github.com/tomehq/tome.git"
   },
   "scripts": {
+    "preinstall": "node -e \"const a=process.env.npm_config_user_agent||'';if(a.startsWith('npm/')||a.startsWith('yarn/')||a.startsWith('bun/')){console.error('\\nError: Use pnpm to install dependencies (npm/yarn/bun are not allowed).\\n  Run: pnpm install\\n');process.exit(1)}\"",
     "dev": "pnpm --filter @tomehq/cli dev",
     "build": "pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build",
     "test": "vitest",
@@ -29,5 +30,16 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@<1.1.13": "1.1.13",
+      "brace-expansion@>=2.0.0 <2.0.3": "2.0.3",
+      "brace-expansion@>=5.0.0 <5.0.5": "5.0.5",
+      "path-to-regexp@>=8.0.0 <8.4.0": "8.4.1",
+      "picomatch@<2.3.2": "2.3.2",
+      "picomatch@>=4.0.0 <4.0.4": "4.0.4",
+      "yaml@>=2.0.0 <2.8.3": "2.8.3"
+    }
   }
 }

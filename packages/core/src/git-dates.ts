@@ -14,7 +14,7 @@ export function getGitLastUpdated(absolutePath: string): string | null {
     const cwd = dirname(absolutePath);
     const result = execFileSync(
       "git", ["log", "-1", "--format=%cI", "--", absolutePath],
-      { cwd, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+      { cwd, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"], shell: process.platform === "win32" }
     ).trim();
     return result || null;
   } catch {
