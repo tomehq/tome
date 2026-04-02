@@ -128,21 +128,58 @@ describe("editor routes", () => {
     expect(res.status).toBe(404);
   });
 
-  it("POST /pages/:id/publish writes to R2", async () => {
+  it("POST /pages/:id/publish writes to R2 for non-Git projects", async () => {
     const bucket = mockBucket();
     const db = mockDb({
       page: {
         id: "pg1", project_id: "p1", path: "quickstart",
         title: "Quickstart", content: "# Quickstart\nGet started.",
-        frontmatter: "{}", project_slug: "my-docs",
+        frontmatter: "{}", project_slug: "my-docs", proj_id: "p1",
       },
     });
     const app = makeApp(db, bucket);
     const res = await app.request("/api/editor/pages/pg1/publish", { method: "POST" });
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect((body as any).status).toBe("published");
+    const body = await res.json() as any;
+    expect(body.status).toBe("published");
+    expect(body.method).toBe("direct");
     expect(bucket.put).toHaveBeenCalled();
+  });
+
+  it("POST /pages/:id/publish does NOT write to R2 for Git-connected projects", async () => {
+    const bucket = mockBucket();
+    // Mock DB returns page + project with GitHub connection
+    const db = {
+      prepare: vi.fn().mockImplementation((sql: string) => ({
+        bind: vi.fn().mockReturnValue({
+          first: vi.fn().mockImplementation(async () => {
+            if (sql.includes("editor_pages") && sql.includes("project_slug")) {
+              return {
+                id: "pg1", project_id: "p1", path: "quickstart",
+                title: "Quickstart", content: "# Quickstart",
+                frontmatter: "{}", project_slug: "my-docs", proj_id: "p1",
+              };
+            }
+            if (sql.includes("github_repo")) {
+              return {
+                github_repo: "tomehq/docs",
+                github_installation_id: 12345,
+                github_branch: "main",
+              };
+            }
+            if (sql.includes("projects")) return { id: "p1" };
+            return null;
+          }),
+          run: vi.fn().mockResolvedValue({ success: true }),
+        }),
+      })),
+    } as unknown as D1Database;
+    const app = makeApp(db, bucket);
+    const res = await app.request("/api/editor/pages/pg1/publish", { method: "POST" });
+    // Git sync will fail (no real GitHub App credentials) but R2 should NOT be written
+    const body = await res.json() as any;
+    // Either fails (500 from GitHub) or succeeds — but bucket.put should NOT be called
+    expect(bucket.put).not.toHaveBeenCalled();
   });
 
   it("DELETE /pages/:id removes page and versions", async () => {
