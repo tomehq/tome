@@ -12,6 +12,7 @@ import { analytics } from "./routes/analytics.js";
 import { authRoutes } from "./routes/auth.js";
 import { isApiHost, resolveHostname, serveFromR2 } from "./serve.js";
 import { siteAuth } from "./routes/site-auth.js";
+import { github } from "./routes/github.js";
 import { validateSessionToken } from "./password.js";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -101,6 +102,9 @@ app.use("/api/analytics/event", rateLimit({ maxRequests: 100, windowMs: 60_000 }
 
 app.route("/api/webhooks", webhooks);
 
+// GitHub App webhook (public, uses HMAC signature verification)
+app.use("/api/github/webhook", rateLimit({ maxRequests: 100, windowMs: 60_000 }));
+
 // Analytics: event ingestion is public, summary requires auth + Cloud plan
 app.use("/api/analytics/summary", auth);
 app.use("/api/analytics/summary", requirePlan("cloud"));
@@ -112,12 +116,15 @@ app.use("/api/deploy/*", auth);
 app.use("/api/domains/*", auth);
 app.use("/api/billing/*", auth);
 app.use("/api/auth/me", auth);
+app.use("/api/github/connect", auth);
+app.use("/api/github/status/*", auth);
 
 app.route("/api/deploy", deploy);
 app.route("/api/domains", domains);
 app.route("/api/billing", billing);
 app.route("/api/auth", authRoutes);
 app.route("/api/sites", siteAuth);
+app.route("/api/github", github);
 
 // ── R2 static site serving ───────────────────────────────
 // Serves deployed sites: GET /sites/{slug}/{path}
