@@ -71,6 +71,7 @@ const FrontmatterSchema = z.object({
   ogImage: z.string().optional(),
   redirect_from: z.array(z.string()).optional(),
   draft: z.boolean().default(false),
+  access: z.enum(["viewer", "editor", "admin", "owner"]).optional(),
   badge: z.union([
     z.string(),
     z.object({
@@ -94,6 +95,7 @@ export type PageFrontmatter = {
   redirect_from?: string[];
   badge?: string | { text: string; variant?: "info" | "success" | "warning" | "danger" | "default" };
   draft?: boolean;
+  access?: "viewer" | "editor" | "admin" | "owner";
 };
 
 function validateFrontmatter(

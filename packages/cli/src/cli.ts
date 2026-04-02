@@ -1857,6 +1857,64 @@ program
 
 // ── PASSWORD PROTECTION ─────────────────────────────────
 
+// ── API DIFF ────────────────────────────────────────────
+
+program
+  .command("api:diff <old-spec> <new-spec>")
+  .description("Compare two OpenAPI specs and show changes")
+  .option("--json", "Output as JSON instead of markdown")
+  .option("--fail-on-breaking", "Exit with code 1 if breaking changes detected")
+  .action(async (oldSpecPath: string, newSpecPath: string, opts: { json?: boolean; failOnBreaking?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Comparing API specs...\n"));
+
+    try {
+      const { parseOpenApiSpec } = await import("@tomehq/core/openapi");
+      const { diffOpenApiSpecs, generateChangelogEntry, formatChangelogMarkdown } = await import("@tomehq/core/api-diff");
+
+      const oldSpec = await parseOpenApiSpec(resolve(process.cwd(), oldSpecPath));
+      const newSpec = await parseOpenApiSpec(resolve(process.cwd(), newSpecPath));
+
+      const diff = diffOpenApiSpecs(oldSpec, newSpec);
+
+      if (opts.json) {
+        console.log(JSON.stringify(diff, null, 2));
+      } else {
+        if (diff.changes.length === 0) {
+          console.log(pc.green("  ✓ No changes detected.\n"));
+        } else {
+          console.log(`  ${pc.bold(String(diff.summary.total))} change(s) detected:\n`);
+          if (diff.summary.breaking > 0) {
+            console.log(pc.red(`    ✗ ${diff.summary.breaking} breaking`));
+          }
+          if (diff.summary.nonBreaking > 0) {
+            console.log(pc.green(`    ✓ ${diff.summary.nonBreaking} non-breaking`));
+          }
+          if (diff.summary.deprecations > 0) {
+            console.log(pc.yellow(`    ⚠ ${diff.summary.deprecations} deprecation(s)`));
+          }
+          if (diff.summary.docsOnly > 0) {
+            console.log(pc.dim(`    ○ ${diff.summary.docsOnly} docs-only`));
+          }
+
+          console.log();
+          const entry = generateChangelogEntry(diff);
+          const md = formatChangelogMarkdown(entry);
+          console.log(md);
+        }
+      }
+
+      if (opts.failOnBreaking && diff.hasBreaking) {
+        console.error(pc.red(`\n  ✗ ${diff.summary.breaking} breaking change(s) detected.\n`));
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(pc.red("\n  API diff failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
 program
   .command("protect")
   .description("Set or remove password protection for your site")

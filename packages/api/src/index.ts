@@ -14,8 +14,10 @@ import { isApiHost, resolveHostname, serveFromR2 } from "./serve.js";
 import { siteAuth } from "./routes/site-auth.js";
 import { github } from "./routes/github.js";
 import { sso } from "./routes/sso.js";
+import { roles } from "./routes/roles.js";
 import { validateSsoSession } from "./sso/session.js";
 import { validateSessionToken } from "./password.js";
+import { checkPageAccess } from "./middleware/rbac.js";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -55,6 +57,38 @@ app.use("*", async (c, next) => {
     if (ssoToken) {
       const ssoResult = await validateSsoSession(c.env.SSO_SESSION_SECRET, ssoToken, slug);
       if (ssoResult) {
+        // RBAC: check page-level access if project has roles configured
+        const project = await c.env.TOME_DB.prepare(
+          "SELECT id FROM projects WHERE slug = ? LIMIT 1"
+        ).bind(slug).first<{ id: string }>();
+
+        if (project) {
+          // Look up page-level access requirement from page_metadata
+          const pagePath = c.req.path === "/" ? "/index" : c.req.path.replace(/\.html$/, "");
+          const pageMeta = await c.env.TOME_DB.prepare(
+            "SELECT access_role FROM page_metadata WHERE project_id = ? AND path = ? LIMIT 1"
+          ).bind(project.id, pagePath).first<{ access_role: string | null }>();
+
+          const requiredRole = pageMeta?.access_role ?? undefined;
+
+          // Only enforce RBAC if there are role assignments for this project
+          const roleCount = await c.env.TOME_DB.prepare(
+            "SELECT COUNT(*) as cnt FROM project_roles WHERE project_id = ?"
+          ).bind(project.id).first<{ cnt: number }>();
+
+          if (roleCount && roleCount.cnt > 0) {
+            const allowed = await checkPageAccess(
+              c.env.TOME_DB,
+              project.id,
+              ssoResult.email,
+              requiredRole,
+            );
+            if (!allowed) {
+              return c.text("Access denied: insufficient role", 403);
+            }
+          }
+        }
+
         return serveFromR2(slug, c.req.path, c.env.TOME_BUCKET);
       }
     }
@@ -141,6 +175,8 @@ app.use("/api/github/connect", auth);
 app.use("/api/github/status/*", auth);
 app.use("/api/sso/config", auth);
 app.use("/api/sso/config/*", auth);
+app.use("/api/roles", auth);
+app.use("/api/roles/*", auth);
 
 app.route("/api/deploy", deploy);
 app.route("/api/domains", domains);
@@ -149,6 +185,7 @@ app.route("/api/auth", authRoutes);
 app.route("/api/sites", siteAuth);
 app.route("/api/github", github);
 app.route("/api/sso", sso);
+app.route("/api/roles", roles);
 
 // ── R2 static site serving ───────────────────────────────
 // Serves deployed sites: GET /sites/{slug}/{path}
