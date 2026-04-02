@@ -510,6 +510,7 @@ export async function processMarkdown(
     ogImage: validated.ogImage,
     redirect_from: validated.redirect_from,
     draft: validated.draft,
+    access: validated.access,
     badge: validated.badge,
   };
 
