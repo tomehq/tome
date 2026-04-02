@@ -230,7 +230,7 @@ describe("buildOgConfig", () => {
     const ogConfig = buildOgConfig(mockTomeConfig({
       theme: { preset: "editorial", mode: "dark" },
     }));
-    expect(ogConfig.accentColor).toBe("#2563eb");
+    expect(ogConfig.accentColor).toBe("#ff6b4a");
   });
 
   it("includes baseUrl when provided", () => {

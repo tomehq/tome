@@ -39,18 +39,16 @@ export interface OgImageResult {
 // ── THEME COLORS ────────────────────────────────────────
 
 const PRESET_COLORS: Record<string, { accent: string; bg: string; text: string; secondary: string }> = {
-  amber: {
-    accent: "#e8a845",
-    bg: "#1a1a1a",
-    text: "#ffffff",
-    secondary: "#a0a0a0",
-  },
-  editorial: {
-    accent: "#2563eb",
-    bg: "#ffffff",
-    text: "#111827",
-    secondary: "#6b7280",
-  },
+  amber: { accent: "#e8a845", bg: "#1a1a1a", text: "#ffffff", secondary: "#a0a0a0" },
+  editorial: { accent: "#ff6b4a", bg: "#080c1f", text: "#e8e6f0", secondary: "#9490ae" },
+  cipher: { accent: "#6666ff", bg: "#050508", text: "#d4ff00", secondary: "#6a7080" },
+  mint: { accent: "#0ea371", bg: "#0d1117", text: "#e6edf3", secondary: "#6e7681" },
+  ocean: { accent: "#0ea5e9", bg: "#0a1628", text: "#e0e8f0", secondary: "#6b8098" },
+  rose: { accent: "#f43f5e", bg: "#0f0a10", text: "#f0e4f0", secondary: "#8a7890" },
+  forest: { accent: "#22c55e", bg: "#091209", text: "#e0f0e0", secondary: "#6a8a6a" },
+  slate: { accent: "#94a3b8", bg: "#0f1115", text: "#e2e4e8", secondary: "#6e7278" },
+  sunset: { accent: "#f97316", bg: "#120c06", text: "#f0e4d4", secondary: "#907850" },
+  carbon: { accent: "#e4e4e4", bg: "#080808", text: "#d4d4d4", secondary: "#666666" },
 };
 
 // ── SVG TEMPLATE ────────────────────────────────────────

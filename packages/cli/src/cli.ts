@@ -1747,6 +1747,86 @@ migrate
     }
   });
 
+migrate
+  .command("docusaurus <source-dir>")
+  .description("Migrate a Docusaurus project to Tome")
+  .option("--out <dir>", "Output directory", ".")
+  .option("--dry-run", "Preview migration without writing files")
+  .action(async (sourceDir: string, opts: { out: string; dryRun?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Migrating from Docusaurus...\n"));
+
+    try {
+      const { migrateFromDocusaurus } = await import("@tomehq/core/migrate-docusaurus");
+      const resolvedSource = resolve(process.cwd(), sourceDir);
+      const resolvedOut = resolve(process.cwd(), opts.out);
+
+      const result = await migrateFromDocusaurus(resolvedSource, resolvedOut, {
+        dryRun: opts.dryRun,
+      });
+
+      if (opts.dryRun) {
+        console.log(pc.yellow("  Dry run — no files written.\n"));
+      }
+
+      console.log(pc.green("  ✓ ") + `Migrated ${pc.bold(String(result.pages))} pages`);
+      if (result.redirects > 0) {
+        console.log(pc.green("  ✓ ") + `${result.redirects} redirects preserved`);
+      }
+      if (result.warnings.length > 0) {
+        console.log(pc.yellow(`\n  ⚠ ${result.warnings.length} warning(s):`));
+        for (const w of result.warnings) {
+          console.log(pc.dim(`    - ${w}`));
+        }
+      }
+      console.log();
+    } catch (err) {
+      console.error(pc.red("\n  Migration failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+migrate
+  .command("vitepress <source-dir>")
+  .description("Migrate a VitePress project to Tome")
+  .option("--out <dir>", "Output directory", ".")
+  .option("--dry-run", "Preview migration without writing files")
+  .action(async (sourceDir: string, opts: { out: string; dryRun?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Migrating from VitePress...\n"));
+
+    try {
+      const { migrateFromVitepress } = await import("@tomehq/core/migrate-vitepress");
+      const resolvedSource = resolve(process.cwd(), sourceDir);
+      const resolvedOut = resolve(process.cwd(), opts.out);
+
+      const result = await migrateFromVitepress(resolvedSource, resolvedOut, {
+        dryRun: opts.dryRun,
+      });
+
+      if (opts.dryRun) {
+        console.log(pc.yellow("  Dry run — no files written.\n"));
+      }
+
+      console.log(pc.green("  ✓ ") + `Migrated ${pc.bold(String(result.pages))} pages`);
+      if (result.redirects > 0) {
+        console.log(pc.green("  ✓ ") + `${result.redirects} redirects preserved`);
+      }
+      if (result.warnings.length > 0) {
+        console.log(pc.yellow(`\n  ⚠ ${result.warnings.length} warning(s):`));
+        for (const w of result.warnings) {
+          console.log(pc.dim(`    - ${w}`));
+        }
+      }
+      console.log();
+    } catch (err) {
+      console.error(pc.red("\n  Migration failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
 // ── TYPEDOC ────────────────────────────────────────────
 program
   .command("typedoc")

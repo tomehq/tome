@@ -22,6 +22,13 @@ describe("TomeConfigSchema", () => {
     expect(result.theme.accent).toBe("#ff6b4a");
   });
 
+  it("accepts all 10 theme presets", () => {
+    for (const preset of ["amber", "editorial", "cipher", "mint", "ocean", "rose", "forest", "slate", "sunset", "carbon"]) {
+      const result = TomeConfigSchema.parse({ theme: { preset } });
+      expect(result.theme.preset).toBe(preset);
+    }
+  });
+
   it("rejects an invalid theme preset", () => {
     expect(() => TomeConfigSchema.parse({ theme: { preset: "neon" } })).toThrow();
   });
@@ -416,6 +423,24 @@ describe("FeedbackSchema", () => {
   it("accepts feedback disabled", () => {
     const result = TomeConfigSchema.parse({ feedback: { enabled: false } });
     expect(result.feedback?.enabled).toBe(false);
+  });
+});
+
+describe("SearchSchema ai option", () => {
+  it("defaults search.ai to false when search object provided", () => {
+    const result = TomeConfigSchema.parse({ search: {} });
+    expect(result.search.ai).toBe(false);
+  });
+
+  it("accepts search.ai = true", () => {
+    const result = TomeConfigSchema.parse({ search: { ai: true } });
+    expect(result.search.ai).toBe(true);
+  });
+
+  it("preserves provider when ai is set", () => {
+    const result = TomeConfigSchema.parse({ search: { provider: "algolia", ai: true, appId: "x", apiKey: "y", indexName: "z" } });
+    expect(result.search.provider).toBe("algolia");
+    expect(result.search.ai).toBe(true);
   });
 });
 

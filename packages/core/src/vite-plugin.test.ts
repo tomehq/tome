@@ -399,6 +399,93 @@ describe("vite-plugin without API config", () => {
   });
 });
 
+// ── Content negotiation: .md file emission in generateBundle ──
+
+describe("vite-plugin generateBundle content negotiation", () => {
+  function makeMockContext() {
+    const emittedFiles: Array<{ type: string; fileName: string; source: string }> = [];
+    return {
+      ctx: {
+        emitFile(file: any) {
+          emittedFiles.push(file);
+          return "ref";
+        },
+      },
+      emittedFiles,
+    };
+  }
+
+  it("emits .md files alongside HTML for each page", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\nWelcome.",
+      "pages/quickstart.md": "---\ntitle: Quickstart\n---\n# Quickstart\nGet started fast.",
+    });
+
+    const { ctx, emittedFiles } = makeMockContext();
+    await (plugin.generateBundle as Function).call(ctx, {}, {});
+
+    const mdFiles = emittedFiles.filter((f) => f.fileName.endsWith(".md") && !f.fileName.startsWith("llms"));
+    expect(mdFiles.length).toBeGreaterThanOrEqual(2);
+
+    const indexMd = mdFiles.find((f) => f.fileName === "index.md");
+    expect(indexMd).toBeDefined();
+    expect(indexMd!.source).toContain("Welcome.");
+
+    const quickstartMd = mdFiles.find((f) => f.fileName === "quickstart.md");
+    expect(quickstartMd).toBeDefined();
+    expect(quickstartMd!.source).toContain("Get started fast.");
+  });
+
+  it("does not emit .md for hidden or draft pages", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\nVisible.",
+      "pages/hidden.md": "---\ntitle: Hidden\nhidden: true\n---\n# Hidden\nSecret.",
+      "pages/draft.md": "---\ntitle: Draft\ndraft: true\n---\n# Draft\nWIP.",
+    });
+
+    const { ctx, emittedFiles } = makeMockContext();
+    await (plugin.generateBundle as Function).call(ctx, {}, {});
+
+    const mdFiles = emittedFiles.filter((f) => f.fileName.endsWith(".md") && !f.fileName.startsWith("llms"));
+    const hiddenMd = mdFiles.find((f) => f.fileName === "hidden.md");
+    const draftMd = mdFiles.find((f) => f.fileName === "draft.md");
+    expect(hiddenMd).toBeUndefined();
+    expect(draftMd).toBeUndefined();
+  });
+});
+
+// ── Analytics script injection: trackSearch/trackFeedback in HTML ──
+
+describe("vite-plugin analytics script injection", () => {
+  it("injects trackSearch and trackFeedback when analytics configured", async () => {
+    const configJs = `export default { name: "Test", analytics: { provider: "custom", key: "test-key" } };`;
+    const plugin = await createPlugin(
+      { "pages/index.md": "---\ntitle: Home\n---\n# Home\n" },
+      configJs,
+    );
+
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
+
+    expect(result).toContain("trackSearch");
+    expect(result).toContain("trackFeedback");
+    expect(result).toContain("__tome");
+    expect(result).toContain("test-key");
+  });
+
+  it("does not inject tracking methods when analytics not configured", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+    });
+
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
+
+    expect(result).not.toContain("trackSearch");
+    expect(result).not.toContain("trackFeedback");
+  });
+});
+
 // ── getPage guard (tested indirectly via load hook) ──────
 
 describe("vite-plugin getPage api-reference guard", () => {

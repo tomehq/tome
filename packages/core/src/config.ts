@@ -5,7 +5,7 @@ import { pathToFileURL } from "url";
 
 // ── CONFIG SCHEMA ────────────────────────────────────────
 export const ThemeSchema = z.object({
-  preset: z.enum(["amber", "editorial", "cipher", "mint"]).default("amber"),
+  preset: z.enum(["amber", "editorial", "cipher", "mint", "ocean", "rose", "forest", "slate", "sunset", "carbon"]).default("amber"),
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   mode: z.enum(["light", "dark", "auto"]).default("auto"),
   fonts: z.object({
@@ -31,6 +31,7 @@ export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.object({
 
 export const SearchSchema = z.object({
   provider: z.enum(["local", "algolia"]).default("local"),
+  ai: z.boolean().default(false),
   appId: z.string().optional(),
   apiKey: z.string().optional(),
   indexName: z.string().optional(),

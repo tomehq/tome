@@ -342,7 +342,7 @@ interface ShellProps {
   config: {
     name: string;
     theme?: { preset?: string; mode?: string; accent?: string; fonts?: { heading?: string; body?: string; code?: string } };
-    search?: { provider?: string; appId?: string; apiKey?: string; indexName?: string };
+    search?: { provider?: string; ai?: boolean; appId?: string; apiKey?: string; indexName?: string };
     ai?: { enabled?: boolean; provider?: "openai" | "anthropic" | "custom"; model?: string; apiKeyEnv?: string };
     toc?: { enabled?: boolean; depth?: number };
     topNav?: Array<{ label: string; href: string }>;
@@ -731,6 +731,12 @@ export function Shell({
           onNavigate={(id) => { onNavigate(id); setSearch(false); }}
           onClose={() => setSearch(false)}
           mobile={mobile}
+          aiSearch={config.search?.ai && config.ai?.enabled ? {
+            provider: config.ai.provider || "anthropic",
+            model: config.ai.model,
+            apiKey: (window as any).__TOME_AI_API_KEY__ || undefined,
+            context: docContext?.map((d) => `## ${d.title}\n${d.content}`).join("\n\n"),
+          } : undefined}
         />
       ) : null}
 
@@ -1442,18 +1448,22 @@ interface SearchResult {
 }
 
 // ── SEARCH MODAL (TOM-15) ────────────────────────────────
-function SearchModal({ allPages, onNavigate, onClose, mobile }: {
+function SearchModal({ allPages, onNavigate, onClose, mobile, aiSearch }: {
   allPages: Array<{ id: string; title: string; description?: string }>;
   onNavigate: (id: string) => void;
   onClose: () => void;
   mobile?: boolean;
+  aiSearch?: { provider: "openai" | "anthropic" | "custom"; model?: string; apiKey?: string; context?: string };
 }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(0);
   const [pagefindReady, setPagefindReady] = useState<boolean | null>(null);
+  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const aiDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Try to initialize Pagefind on mount
   useEffect(() => {
@@ -1526,6 +1536,42 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [q, doSearch]);
 
+  // AI-enhanced search: fire after longer debounce for synthesized answer
+  useEffect(() => {
+    if (!aiSearch?.apiKey || !q.trim() || q.length < 3) {
+      setAiAnswer(null);
+      return;
+    }
+    if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
+    aiDebounceRef.current = setTimeout(async () => {
+      setAiLoading(true);
+      try {
+        const { callAiProvider, buildSystemPrompt, getDefaultModel } = await import("./ai-api.js");
+        const model = aiSearch.model || getDefaultModel(aiSearch.provider);
+        // Build context from search results + full doc context
+        const searchContext = results.slice(0, 5).map(r => `Page: ${r.title}\n${r.excerpt || ""}`).join("\n\n");
+        const fullContext = aiSearch.context ? `${searchContext}\n\n---\n\n${aiSearch.context}` : searchContext;
+        const sysPrompt = buildSystemPrompt(
+          fullContext,
+          "You are a documentation search assistant. Answer the user's question concisely (2-3 sentences max) based on the documentation. Cite specific page names when relevant. If you can't answer from the docs, say so briefly."
+        );
+        const answer = await callAiProvider(
+          aiSearch.provider,
+          [{ role: "user", content: q }],
+          aiSearch.apiKey,
+          model,
+          sysPrompt,
+        );
+        setAiAnswer(answer);
+      } catch {
+        setAiAnswer(null);
+      } finally {
+        setAiLoading(false);
+      }
+    }, 500);
+    return () => { if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current); };
+  }, [q, results, aiSearch]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -1562,6 +1608,22 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
           />
           <kbd style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)", background: "var(--cdBg)", padding: "2px 6px", borderRadius: 2, border: "1px solid var(--bd)" }}>ESC</kbd>
         </div>
+        {/* AI Answer Card */}
+        {aiSearch && q.length >= 3 && (aiLoading || aiAnswer) && (
+          <div style={{
+            padding: "12px 18px", borderBottom: "1px solid var(--bd)",
+            background: "var(--acT)", fontSize: 13, lineHeight: 1.5, color: "var(--tx)",
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: 0.5, color: "var(--ac)", marginBottom: 6 }}>
+              AI Answer
+            </div>
+            {aiLoading ? (
+              <div style={{ color: "var(--txM)", fontStyle: "italic" }}>Thinking...</div>
+            ) : aiAnswer ? (
+              <div>{aiAnswer}</div>
+            ) : null}
+          </div>
+        )}
         {results.length > 0 && <div style={{ padding: 6, maxHeight: mobile ? "none" : 360, overflow: "auto", flex: mobile ? 1 : undefined }}>
           {results.map((r, i) => (
             <button key={r.id + i} onClick={() => onNavigate(r.id)} style={{
