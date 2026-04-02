@@ -175,7 +175,11 @@ export function parseSidebarsConfig(content: string): SidebarsConfig {
   // Remove single-line comments, then block comments.
   // Block comment removal uses indexOf loop instead of regex to avoid ReDoS
   // with the `[\s\S]*?` pattern.
-  let cleaned = content.replace(/\/\/[^\n]*$/gm, '');
+  // Remove single-line comments line by line to avoid any regex backtracking
+  let cleaned = content.split('\n').map(line => {
+    const idx = line.indexOf('//');
+    return idx >= 0 ? line.slice(0, idx) : line;
+  }).join('\n');
   {
     let result = '';
     let pos = 0;
@@ -377,16 +381,23 @@ export function convertDocusaurusContent(content: string): {
   //    e.g. import Tabs from '@theme/Tabs';
   //         import TabItem from '@theme/TabItem';
   //         import anything from '@site/...'
-  result = result.replace(
-    /^import\s+[^\n]+\s+from\s+['"]@(?:theme|site|docusaurus)\/[^'"]+['"];?[^\S\n]*$/gm,
-    '',
-  );
+  // Strip Docusaurus imports line by line to avoid regex backtracking
+  result = result.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('import ') && /from\s+['"]@(theme|site|docusaurus)\//.test(trimmed)) {
+      return '';
+    }
+    return line;
+  }).join('\n');
 
   // Also strip require-style imports
-  result = result.replace(
-    /^const\s+\S+\s*=\s*require\(['"]@(?:theme|site|docusaurus)\/[^'"]+['"]\);?[^\S\n]*$/gm,
-    '',
-  );
+  result = result.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('const ') && /require\(\s*['"]@(theme|site|docusaurus)\//.test(trimmed)) {
+      return '';
+    }
+    return line;
+  }).join('\n');
 
   // 2. Admonitions ---------------------------------------------------------
   //    :::note     → <Callout type="info">
