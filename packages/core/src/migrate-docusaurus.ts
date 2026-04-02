@@ -200,22 +200,39 @@ export function parseSidebarsConfig(content: string): SidebarsConfig {
     cleaned = result;
   }
 
-  // Find the main export (ESM or CJS)
-  // export default { ... } or module.exports = { ... }
-  const exportMatch = cleaned.match(
-    /(?:export\s+default|module\.exports\s*=)\s*(\{[\s\S]*\})\s*;?\s*$/,
-  );
+  // Find the main export (ESM or CJS) using indexOf to avoid ReDoS
+  let objStr: string | null = null;
+  const esmIdx = cleaned.indexOf('export default');
+  const cjsIdx = cleaned.indexOf('module.exports');
+  const startIdx = esmIdx >= 0 ? esmIdx : cjsIdx;
 
-  if (!exportMatch) return {};
+  if (startIdx >= 0) {
+    const braceStart = cleaned.indexOf('{', startIdx);
+    if (braceStart >= 0) {
+      // Find matching closing brace
+      let depth = 0;
+      let end = braceStart;
+      for (; end < cleaned.length; end++) {
+        if (cleaned[end] === '{') depth++;
+        else if (cleaned[end] === '}') { depth--; if (depth === 0) break; }
+      }
+      if (depth === 0) {
+        objStr = cleaned.slice(braceStart, end + 1);
+      }
+    }
+  }
 
-  let objStr = exportMatch[1];
+  if (!objStr) return {};
 
   // Convert JS object literal to valid JSON:
-  // - Add quotes around unquoted keys
+  // - Add quotes around unquoted keys (line by line to avoid backtracking)
   // - Replace single quotes with double quotes
   // - Remove trailing commas
-  objStr = objStr
-    .replace(/(\w+)\s*:/g, '"$1":')
+  // Quote unquoted keys: word followed by colon (per-line to limit backtracking scope)
+  objStr = objStr.split('\n').map(line => {
+    // Only quote keys that aren't already quoted
+    return line.replace(/(?<=^|[{,\s])(\w+)(?=\s*:)/g, '"$1"');
+  }).join('\n')
     .replace(/'/g, '"')
     .replace(/,\s*([}\]])/g, '$1');
 
