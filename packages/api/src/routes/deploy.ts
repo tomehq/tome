@@ -249,7 +249,7 @@ deploy.get("/projects", async (c) => {
   const user = c.get("user");
 
   const { results } = await c.env.TOME_DB.prepare(
-    `SELECT p.id, p.slug, p.name, p.created_at, p.updated_at,
+    `SELECT p.id, p.slug, p.name, p.password_required, p.created_at, p.updated_at,
             d.status as deploy_status, d.created_at as last_deploy_at,
             d.file_count, d.total_size
      FROM projects p
@@ -265,6 +265,7 @@ deploy.get("/projects", async (c) => {
       id: r.id,
       slug: r.slug,
       name: r.name,
+      passwordRequired: r.password_required === 1,
       deployStatus: r.deploy_status ?? null,
       lastDeployAt: r.last_deploy_at ?? null,
       fileCount: r.file_count ?? 0,

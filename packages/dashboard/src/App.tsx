@@ -1131,6 +1131,14 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
         .then(setAnalytics)
         .catch(() => setAnalytics(defaultAnalytics));
 
+      // Load password protection status from projects list
+      api<any[]>(`/api/deploy/projects`, { token })
+        .then((projects) => {
+          const proj = projects?.find((p: any) => p.slug === slug);
+          if (proj?.passwordRequired) setPasswordEnabled(true);
+        })
+        .catch(() => {});
+
       // Load GitHub status
       api<any>(`/api/github/status/${slug}`, { token })
         .then((data) => { setGithubConnected(data.connected); setGithubRepo(data.repository || ""); setGithubBranch(data.branch || "main"); })
@@ -1200,19 +1208,35 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
 
   // ── Password Protection handlers ──
   const savePassword = async () => {
+    if (!passwordValue.trim() || passwordValue.length < 4) return;
     setPasswordSaving(true);
     try {
-      await api(`/api/projects/${slug}/password`, { method: "POST", body: { enabled: true, password: passwordValue }, token });
+      // Hash password client-side using Web Crypto (PBKDF2)
+      const iterations = 100_000;
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const encoder = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(passwordValue), "PBKDF2", false, ["deriveBits"]);
+      const hash = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations, hash: "SHA-256" }, keyMaterial, 256);
+      const saltB64 = btoa(String.fromCharCode(...salt));
+      const hashB64 = btoa(String.fromCharCode(...new Uint8Array(hash)));
+      const passwordHash = `pbkdf2:${iterations}:${saltB64}:${hashB64}`;
+
+      await api("/api/deploy/protect", { method: "POST", body: { slug, passwordHash }, token });
       setPasswordEnabled(true);
-    } catch { /* silently fail */ } finally { setPasswordSaving(false); }
+      setPasswordValue("");
+    } catch (err) {
+      console.error("Failed to enable protection:", err);
+    } finally { setPasswordSaving(false); }
   };
   const removePassword = async () => {
     setPasswordSaving(true);
     try {
-      await api(`/api/projects/${slug}/password`, { method: "DELETE", token });
+      await api("/api/deploy/protect", { method: "DELETE", body: { slug }, token });
       setPasswordEnabled(false);
       setPasswordValue("");
-    } catch { /* silently fail */ } finally { setPasswordSaving(false); }
+    } catch (err) {
+      console.error("Failed to remove protection:", err);
+    } finally { setPasswordSaving(false); }
   };
 
   // ── GitHub handlers ──
