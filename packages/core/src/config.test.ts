@@ -22,6 +22,13 @@ describe("TomeConfigSchema", () => {
     expect(result.theme.accent).toBe("#ff6b4a");
   });
 
+  it("accepts all 10 theme presets", () => {
+    for (const preset of ["amber", "editorial", "cipher", "mint", "ocean", "rose", "forest", "slate", "sunset", "carbon"]) {
+      const result = TomeConfigSchema.parse({ theme: { preset } });
+      expect(result.theme.preset).toBe(preset);
+    }
+  });
+
   it("rejects an invalid theme preset", () => {
     expect(() => TomeConfigSchema.parse({ theme: { preset: "neon" } })).toThrow();
   });
@@ -389,6 +396,133 @@ describe("OverridesSchema", () => {
     expect(result.overrides?.Sidebar).toBe("./MySidebar.tsx");
     expect(result.overrides?.Toc).toBe("./MyToc.tsx");
     expect(result.overrides?.PageFooter).toBe("./MyPageFooter.tsx");
+  });
+});
+
+describe("FeedbackSchema", () => {
+  it("defaults feedback to undefined when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.feedback).toBeUndefined();
+  });
+
+  it("defaults enabled to true when feedback object provided", () => {
+    const result = TomeConfigSchema.parse({ feedback: {} });
+    expect(result.feedback?.enabled).toBe(true);
+  });
+
+  it("defaults textInput to false", () => {
+    const result = TomeConfigSchema.parse({ feedback: {} });
+    expect(result.feedback?.textInput).toBe(false);
+  });
+
+  it("accepts feedback with text input enabled", () => {
+    const result = TomeConfigSchema.parse({ feedback: { textInput: true } });
+    expect(result.feedback?.textInput).toBe(true);
+  });
+
+  it("accepts feedback disabled", () => {
+    const result = TomeConfigSchema.parse({ feedback: { enabled: false } });
+    expect(result.feedback?.enabled).toBe(false);
+  });
+});
+
+describe("ApiSchema asyncSpec", () => {
+  it("accepts asyncSpec alone", () => {
+    const result = TomeConfigSchema.parse({
+      api: { asyncSpec: "./asyncapi.yaml" },
+    });
+    expect(result.api?.asyncSpec).toBe("./asyncapi.yaml");
+  });
+
+  it("accepts both spec and asyncSpec", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", asyncSpec: "./asyncapi.yaml" },
+    });
+    expect(result.api?.spec).toBe("./openapi.yaml");
+    expect(result.api?.asyncSpec).toBe("./asyncapi.yaml");
+  });
+
+  it("accepts spec alone (backward compatible)", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml" },
+    });
+    expect(result.api?.spec).toBe("./openapi.yaml");
+  });
+
+  it("rejects api config with neither spec nor asyncSpec", () => {
+    expect(() => TomeConfigSchema.parse({
+      api: { path: "/reference" },
+    })).toThrow();
+  });
+});
+
+describe("SearchSchema ai option", () => {
+  it("defaults search.ai to false when search object provided", () => {
+    const result = TomeConfigSchema.parse({ search: {} });
+    expect(result.search.ai).toBe(false);
+  });
+
+  it("accepts search.ai = true", () => {
+    const result = TomeConfigSchema.parse({ search: { ai: true } });
+    expect(result.search.ai).toBe(true);
+  });
+
+  it("preserves provider when ai is set", () => {
+    const result = TomeConfigSchema.parse({ search: { provider: "algolia", ai: true, appId: "x", apiKey: "y", indexName: "z" } });
+    expect(result.search.provider).toBe("algolia");
+    expect(result.search.ai).toBe(true);
+  });
+});
+
+describe("BrandingSchema", () => {
+  it("defaults branding to undefined when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.branding).toBeUndefined();
+  });
+
+  it("defaults powered to true when branding object provided", () => {
+    const result = TomeConfigSchema.parse({ branding: {} });
+    expect(result.branding?.powered).toBe(true);
+  });
+
+  it("accepts branding.powered = false for white-labeling", () => {
+    const result = TomeConfigSchema.parse({ branding: { powered: false } });
+    expect(result.branding?.powered).toBe(false);
+  });
+
+  it("accepts branding.powered = true explicitly", () => {
+    const result = TomeConfigSchema.parse({ branding: { powered: true } });
+    expect(result.branding?.powered).toBe(true);
+  });
+});
+
+describe("ApiSchema path config", () => {
+  it("defaults api path to /api", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml" },
+    });
+    expect(result.api?.path).toBe("/api");
+  });
+
+  it("accepts a custom api path", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", path: "/reference" },
+    });
+    expect(result.api?.path).toBe("/reference");
+  });
+
+  it("accepts api path with nested segments", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", path: "/docs/api-reference" },
+    });
+    expect(result.api?.path).toBe("/docs/api-reference");
+  });
+
+  it("preserves playground default when path is set", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", path: "/reference" },
+    });
+    expect(result.api?.playground).toBe(true);
   });
 });
 

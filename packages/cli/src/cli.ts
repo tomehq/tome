@@ -1747,6 +1747,86 @@ migrate
     }
   });
 
+migrate
+  .command("docusaurus <source-dir>")
+  .description("Migrate a Docusaurus project to Tome")
+  .option("--out <dir>", "Output directory", ".")
+  .option("--dry-run", "Preview migration without writing files")
+  .action(async (sourceDir: string, opts: { out: string; dryRun?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Migrating from Docusaurus...\n"));
+
+    try {
+      const { migrateFromDocusaurus } = await import("@tomehq/core/migrate-docusaurus");
+      const resolvedSource = resolve(process.cwd(), sourceDir);
+      const resolvedOut = resolve(process.cwd(), opts.out);
+
+      const result = await migrateFromDocusaurus(resolvedSource, resolvedOut, {
+        dryRun: opts.dryRun,
+      });
+
+      if (opts.dryRun) {
+        console.log(pc.yellow("  Dry run — no files written.\n"));
+      }
+
+      console.log(pc.green("  ✓ ") + `Migrated ${pc.bold(String(result.pages))} pages`);
+      if (result.redirects > 0) {
+        console.log(pc.green("  ✓ ") + `${result.redirects} redirects preserved`);
+      }
+      if (result.warnings.length > 0) {
+        console.log(pc.yellow(`\n  ⚠ ${result.warnings.length} warning(s):`));
+        for (const w of result.warnings) {
+          console.log(pc.dim(`    - ${w}`));
+        }
+      }
+      console.log();
+    } catch (err) {
+      console.error(pc.red("\n  Migration failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+migrate
+  .command("vitepress <source-dir>")
+  .description("Migrate a VitePress project to Tome")
+  .option("--out <dir>", "Output directory", ".")
+  .option("--dry-run", "Preview migration without writing files")
+  .action(async (sourceDir: string, opts: { out: string; dryRun?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Migrating from VitePress...\n"));
+
+    try {
+      const { migrateFromVitepress } = await import("@tomehq/core/migrate-vitepress");
+      const resolvedSource = resolve(process.cwd(), sourceDir);
+      const resolvedOut = resolve(process.cwd(), opts.out);
+
+      const result = await migrateFromVitepress(resolvedSource, resolvedOut, {
+        dryRun: opts.dryRun,
+      });
+
+      if (opts.dryRun) {
+        console.log(pc.yellow("  Dry run — no files written.\n"));
+      }
+
+      console.log(pc.green("  ✓ ") + `Migrated ${pc.bold(String(result.pages))} pages`);
+      if (result.redirects > 0) {
+        console.log(pc.green("  ✓ ") + `${result.redirects} redirects preserved`);
+      }
+      if (result.warnings.length > 0) {
+        console.log(pc.yellow(`\n  ⚠ ${result.warnings.length} warning(s):`));
+        for (const w of result.warnings) {
+          console.log(pc.dim(`    - ${w}`));
+        }
+      }
+      console.log();
+    } catch (err) {
+      console.error(pc.red("\n  Migration failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
 // ── TYPEDOC ────────────────────────────────────────────
 program
   .command("typedoc")
@@ -1772,6 +1852,164 @@ program
       console.error(pc.red("\n  TypeDoc generation failed:\n"));
       console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
       process.exit(1);
+    }
+  });
+
+// ── PASSWORD PROTECTION ─────────────────────────────────
+
+// ── API DIFF ────────────────────────────────────────────
+
+program
+  .command("api:diff <old-spec> <new-spec>")
+  .description("Compare two OpenAPI specs and show changes")
+  .option("--json", "Output as JSON instead of markdown")
+  .option("--fail-on-breaking", "Exit with code 1 if breaking changes detected")
+  .action(async (oldSpecPath: string, newSpecPath: string, opts: { json?: boolean; failOnBreaking?: boolean }) => {
+    console.log(logo);
+    console.log(pc.dim("  Comparing API specs...\n"));
+
+    try {
+      const { parseOpenApiSpec } = await import("@tomehq/core/openapi");
+      const { diffOpenApiSpecs, generateChangelogEntry, formatChangelogMarkdown } = await import("@tomehq/core/api-diff");
+
+      const oldSpec = await parseOpenApiSpec(resolve(process.cwd(), oldSpecPath));
+      const newSpec = await parseOpenApiSpec(resolve(process.cwd(), newSpecPath));
+
+      const diff = diffOpenApiSpecs(oldSpec, newSpec);
+
+      if (opts.json) {
+        console.log(JSON.stringify(diff, null, 2));
+      } else {
+        if (diff.changes.length === 0) {
+          console.log(pc.green("  ✓ No changes detected.\n"));
+        } else {
+          console.log(`  ${pc.bold(String(diff.summary.total))} change(s) detected:\n`);
+          if (diff.summary.breaking > 0) {
+            console.log(pc.red(`    ✗ ${diff.summary.breaking} breaking`));
+          }
+          if (diff.summary.nonBreaking > 0) {
+            console.log(pc.green(`    ✓ ${diff.summary.nonBreaking} non-breaking`));
+          }
+          if (diff.summary.deprecations > 0) {
+            console.log(pc.yellow(`    ⚠ ${diff.summary.deprecations} deprecation(s)`));
+          }
+          if (diff.summary.docsOnly > 0) {
+            console.log(pc.dim(`    ○ ${diff.summary.docsOnly} docs-only`));
+          }
+
+          console.log();
+          const entry = generateChangelogEntry(diff);
+          const md = formatChangelogMarkdown(entry);
+          console.log(md);
+        }
+      }
+
+      if (opts.failOnBreaking && diff.hasBreaking) {
+        console.error(pc.red(`\n  ✗ ${diff.summary.breaking} breaking change(s) detected.\n`));
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(pc.red("\n  API diff failed:\n"));
+      console.error(`  ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("protect")
+  .description("Set or remove password protection for your site")
+  .option("--remove", "Remove password protection")
+  .action(async (opts: { remove?: boolean }) => {
+    console.log(logo);
+
+    const { readAuthToken } = await import("@tomehq/core/deploy");
+    const token = readAuthToken();
+    if (!token) {
+      console.error(pc.red("  Error: Not logged in.\n"));
+      console.log(pc.dim("  Run ") + pc.cyan("tome login") + pc.dim(" first to authenticate.\n"));
+      process.exit(1);
+    }
+
+    // Load config for project slug
+    const root = process.cwd();
+    let slug = "my-docs";
+    for (const configFile of ["tome.config.js", "tome.config.mjs", "tome.config.ts"]) {
+      const configPath = join(root, configFile);
+      if (existsSync(configPath)) {
+        try {
+          const { pathToFileURL } = await import("url");
+          const configUrl = pathToFileURL(configPath).href;
+          const mod = await import(configUrl);
+          const config = mod.default || mod;
+          if (config.name) {
+            slug = config.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          }
+        } catch {}
+        break;
+      }
+    }
+
+    const API_BASE = process.env.TOME_API_URL || "https://api.tome.center";
+
+    if (opts.remove) {
+      try {
+        const res = await fetch(`${API_BASE}/api/deploy/protect`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ slug }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: "Unknown error" }));
+          console.error(pc.red(`  Error: ${(body as any).error}\n`));
+          process.exit(1);
+        }
+        console.log(pc.green("  ✓ ") + `Password protection removed from ${pc.bold(slug)}.\n`);
+      } catch (err) {
+        console.error(pc.red(`  Error: ${err instanceof Error ? err.message : String(err)}\n`));
+        process.exit(1);
+      }
+    } else {
+      // Prompt for password
+      const readline = await import("readline");
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const password = await new Promise<string>((resolve) => {
+        rl.question("  Enter a password for your site: ", (answer) => {
+          rl.close();
+          resolve(answer);
+        });
+      });
+
+      if (!password || password.length < 4) {
+        console.error(pc.red("  Error: Password must be at least 4 characters.\n"));
+        process.exit(1);
+      }
+
+      try {
+        const { hashPassword } = await import("@tomehq/core/password");
+        const hash = await hashPassword(password);
+
+        const res = await fetch(`${API_BASE}/api/deploy/protect`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ slug, passwordHash: hash }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: "Unknown error" }));
+          console.error(pc.red(`  Error: ${(body as any).error}\n`));
+          process.exit(1);
+        }
+        console.log(pc.green("  ✓ ") + `Password protection enabled for ${pc.bold(slug)}.\n`);
+        console.log(pc.dim("  Visitors will be prompted for the password before accessing your docs.\n"));
+      } catch (err) {
+        console.error(pc.red(`  Error: ${err instanceof Error ? err.message : String(err)}\n`));
+        process.exit(1);
+      }
     }
   });
 

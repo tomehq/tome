@@ -35,78 +35,14 @@ const SendIcon = () => (
   </svg>
 );
 
-// ── API HELPERS ──────────────────────────────────────────
-function buildSystemPrompt(context?: string): string {
-  let prompt = "You are a helpful documentation assistant. Answer questions accurately based on the documentation provided below. If the answer isn't in the documentation, say so clearly. Keep answers concise and reference specific sections when possible.";
-  if (context) {
-    // Truncate context to stay within token limits (~100K chars ≈ 25K tokens)
-    const trimmed = context.length > 100000 ? context.slice(0, 100000) + "\n\n[Documentation truncated...]" : context;
-    prompt += `\n\nDocumentation:\n${trimmed}`;
-  }
-  return prompt;
-}
-
-async function callOpenAI(
-  messages: Message[],
-  apiKey: string,
-  model: string,
-  context?: string,
-): Promise<string> {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: buildSystemPrompt(context) },
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`OpenAI API error (${res.status}): ${err}`);
-  }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || "No response.";
-}
-
-async function callAnthropic(
-  messages: Message[],
-  apiKey: string,
-  model: string,
-  context?: string,
-): Promise<string> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1024,
-      system: buildSystemPrompt(context),
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Anthropic API error (${res.status}): ${err}`);
-  }
-  const data = await res.json();
-  return data.content?.[0]?.text || "No response.";
-}
-
-function getDefaultModel(provider: string): string {
-  if (provider === "openai") return "gpt-4o-mini";
-  return "claude-sonnet-4-20250514";
-}
+// ── API HELPERS (shared with AI search) ─────────────────
+import {
+  buildSystemPrompt,
+  callOpenAI,
+  callAnthropic,
+  getDefaultModel,
+  type AiMessage,
+} from "./ai-api.js";
 
 // ── COMPONENT ───────────────────────────────────────────
 export function AiChat({ provider, model, apiKey, context }: AiChatProps) {
@@ -147,10 +83,11 @@ export function AiChat({ provider, model, apiKey, context }: AiChatProps) {
 
     try {
       let response: string;
+      const sysPrompt = buildSystemPrompt(context);
       if (provider === "openai") {
-        response = await callOpenAI(updatedMessages, resolvedKey, resolvedModel, context);
+        response = await callOpenAI(updatedMessages as AiMessage[], resolvedKey, resolvedModel, sysPrompt);
       } else {
-        response = await callAnthropic(updatedMessages, resolvedKey, resolvedModel, context);
+        response = await callAnthropic(updatedMessages as AiMessage[], resolvedKey, resolvedModel, sysPrompt);
       }
       setMessages((prev) => [...prev, { role: "assistant", content: response }]);
     } catch (err) {

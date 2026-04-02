@@ -45,6 +45,8 @@ export interface WebhookPayload {
   error?: string;
   /** Domain that was verified */
   domain?: string;
+  /** Whether to show Tome branding in webhook messages */
+  showBranding?: boolean;
 }
 
 export interface WebhookResult {
@@ -104,7 +106,9 @@ export function formatSlackPayload(payload: WebhookPayload): Record<string, unkn
     elements: [
       {
         type: "mrkdwn",
-        text: `Sent by Tome · ${new Date(payload.timestamp).toLocaleString()}`,
+        text: payload.showBranding !== false
+          ? `Sent by Tome · ${new Date(payload.timestamp).toLocaleString()}`
+          : new Date(payload.timestamp).toLocaleString(),
       },
     ],
   });
@@ -146,7 +150,7 @@ export function formatDiscordPayload(payload: WebhookPayload): Record<string, un
     color,
     fields,
     timestamp: payload.timestamp,
-    footer: { text: "Tome" },
+    ...(payload.showBranding !== false ? { footer: { text: "Tome" } } : {}),
   };
 
   if (payload.error) {

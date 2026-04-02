@@ -38,6 +38,7 @@ import {
   LinkCard,
   CardGrid,
   ApiReference,
+  AsyncApiReference,
 } from "@tomehq/components";
 
 const MDX_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -575,10 +576,12 @@ function App() {
         lastUpdated={currentRoute?.lastUpdated}
         changelogEntries={!pageData?.isMdx ? pageData?.changelogEntries : undefined}
         apiManifest={(!pageData?.isMdx && pageData?.isApiReference) ? pageData.apiManifest : undefined}
+        asyncApiManifest={(!pageData?.isMdx && pageData?.isApiReference) ? (pageData as any).asyncApiManifest : undefined}
         apiBaseUrl={config.api?.baseUrl}
         apiPlayground={config.api?.playground}
         apiAuth={config.api?.auth}
         ApiReferenceComponent={ApiReference}
+        AsyncApiReferenceComponent={AsyncApiReference}
         onNavigate={navigateTo}
         allPages={allPages}
         docContext={docContext}

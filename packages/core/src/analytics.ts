@@ -22,7 +22,17 @@ export interface SearchEvent {
   siteId: string;
 }
 
-export type AnalyticsEvent = PageViewEvent | SearchEvent;
+export interface FeedbackEvent {
+  type: "feedback";
+  pageId: string;
+  rating: "up" | "down";
+  comment?: string;
+  timestamp: number;
+  sessionId: string;
+  siteId: string;
+}
+
+export type AnalyticsEvent = PageViewEvent | SearchEvent | FeedbackEvent;
 
 // ── AGGREGATION ───────────────────────────────────────
 
@@ -33,6 +43,10 @@ export interface AnalyticsSummary {
   topReferrers: Array<{ referrer: string; count: number }>;
   topSearchQueries: Array<{ query: string; count: number }>;
   viewsByDay: Array<{ date: string; views: number }>;
+  totalSearches: number;
+  zeroResultQueries: Array<{ query: string; count: number }>;
+  totalFeedback: number;
+  feedbackByRating: { up: number; down: number };
 }
 
 // ── CLIENT SCRIPT ─────────────────────────────────────
@@ -46,7 +60,8 @@ export function generateAnalyticsScript(options: {
   siteId: string;
 }): string {
   // Minified inline script - no cookies, privacy-first
-  return `<script>(function(){var e="${options.endpoint}",s="${options.siteId}";function h(d,u){for(var i=0,a=d+u,j=0;j<a.length;j++){i=((i<<5)-i)+a.charCodeAt(j);i|=0}return"s"+Math.abs(i).toString(36)}var d=new Date().toISOString().slice(0,10);var sid=h(d,navigator.userAgent);function t(){var p={type:"pageview",url:location.href,referrer:document.referrer,timestamp:Date.now(),sessionId:sid,siteId:s,userAgent:navigator.userAgent,screenWidth:screen.width};try{navigator.sendBeacon(e,JSON.stringify(p))}catch(x){var r=new XMLHttpRequest();r.open("POST",e);r.setRequestHeader("Content-Type","application/json");r.send(JSON.stringify(p))}}if(document.readyState==="complete"){t()}else{window.addEventListener("load",t)}})()</script>`;
+  // Exposes window.__tome with trackSearch and trackFeedback methods
+  return `<script>(function(){var e="${options.endpoint}",s="${options.siteId}";function h(d,u){for(var i=0,a=d+u,j=0;j<a.length;j++){i=((i<<5)-i)+a.charCodeAt(j);i|=0}return"s"+Math.abs(i).toString(36)}var d=new Date().toISOString().slice(0,10);var sid=h(d,navigator.userAgent);function send(p){try{navigator.sendBeacon(e,JSON.stringify(p))}catch(x){var r=new XMLHttpRequest();r.open("POST",e);r.setRequestHeader("Content-Type","application/json");r.send(JSON.stringify(p))}}function t(){send({type:"pageview",url:location.href,referrer:document.referrer,timestamp:Date.now(),sessionId:sid,siteId:s,userAgent:navigator.userAgent,screenWidth:screen.width})}if(document.readyState==="complete"){t()}else{window.addEventListener("load",t)}window.__tome={trackSearch:function(q,c){send({type:"search",query:q,resultsCount:c,timestamp:Date.now(),sessionId:sid,siteId:s})},trackFeedback:function(pid,r,cm){send({type:"feedback",pageId:pid,rating:r,comment:cm||"",timestamp:Date.now(),sessionId:sid,siteId:s})}}})()</script>`;
 }
 
 // ── AGGREGATION ───────────────────────────────────────
@@ -60,6 +75,9 @@ export function aggregateEvents(events: AnalyticsEvent[]): AnalyticsSummary {
   );
   const searchEvents = events.filter(
     (e): e is SearchEvent => e.type === "search",
+  );
+  const feedbackEvents = events.filter(
+    (e): e is FeedbackEvent => e.type === "feedback",
   );
 
   // Total page views
@@ -111,6 +129,24 @@ export function aggregateEvents(events: AnalyticsEvent[]): AnalyticsSummary {
     .map(([date, views]) => ({ date, views }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
+  // Zero-result search queries
+  const zeroResultCounts = new Map<string, number>();
+  for (const e of searchEvents) {
+    if (e.resultsCount === 0) {
+      zeroResultCounts.set(e.query, (zeroResultCounts.get(e.query) || 0) + 1);
+    }
+  }
+  const zeroResultQueries = Array.from(zeroResultCounts.entries())
+    .map(([query, count]) => ({ query, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Feedback aggregation
+  const feedbackByRating = { up: 0, down: 0 };
+  for (const e of feedbackEvents) {
+    if (e.rating === "up") feedbackByRating.up++;
+    else if (e.rating === "down") feedbackByRating.down++;
+  }
+
   return {
     totalPageViews,
     uniqueVisitors,
@@ -118,6 +154,10 @@ export function aggregateEvents(events: AnalyticsEvent[]): AnalyticsSummary {
     topReferrers,
     topSearchQueries,
     viewsByDay,
+    totalSearches: searchEvents.length,
+    zeroResultQueries,
+    totalFeedback: feedbackEvents.length,
+    feedbackByRating,
   };
 }
 

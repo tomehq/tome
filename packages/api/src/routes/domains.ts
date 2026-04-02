@@ -165,21 +165,39 @@ domains.delete("/:domain", async (c) => {
   return c.json({ removed: true });
 });
 
-// ── GET / — list domains for authenticated user ────────
+// ── GET / — list domains for authenticated user ─────────
+// Supports ?projectSlug=xxx to filter by project (used by dashboard)
 domains.get("/", async (c) => {
   const user = c.get("user");
+  const projectSlug = c.req.query("projectSlug");
 
-  const { results } = await c.env.TOME_DB.prepare(
-    `SELECT d.*, p.slug as project_slug FROM domains d
-     JOIN projects p ON d.project_id = p.id
-     WHERE p.user_id = ?`
-  )
-    .bind(user.id)
-    .all();
+  let query: string;
+  let binds: string[];
+
+  if (projectSlug) {
+    // Filter by specific project
+    query = `SELECT d.*, p.slug as project_slug FROM domains d
+             JOIN projects p ON d.project_id = p.id
+             WHERE p.user_id = ? AND p.slug = ?`;
+    binds = [user.id, projectSlug];
+  } else {
+    // All domains for user (backward compatible)
+    query = `SELECT d.*, p.slug as project_slug FROM domains d
+             JOIN projects p ON d.project_id = p.id
+             WHERE p.user_id = ?`;
+    binds = [user.id];
+  }
+
+  const stmt = c.env.TOME_DB.prepare(query);
+  const { results } = await (binds.length === 2
+    ? stmt.bind(binds[0], binds[1])
+    : stmt.bind(binds[0])
+  ).all();
 
   return c.json(
     (results ?? []).map((d: Record<string, unknown>) => ({
       domain: d.domain,
+      projectSlug: d.project_slug,
       verified: d.verified === 1,
       sslStatus: d.ssl_status,
       dnsRecords: [

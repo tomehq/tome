@@ -122,6 +122,9 @@ export type { MigrationResult as GitbookMigrationResult } from "./migrate-gitboo
 export { migrateFromMintlify, parseMintConfig, convertMintNavigation, convertMintConfig, convertMintlifyContent } from "./migrate-mintlify.js";
 export type { MigrationResult as MintlifyMigrationResult } from "./migrate-mintlify.js";
 
+export { migrateFromVitepress, parseVitepressConfig, convertSidebarToNavigation, convertVitepressContent, convertFrontmatter } from "./migrate-vitepress.js";
+export type { MigrationResult as VitepressMigrationResult } from "./migrate-vitepress.js";
+
 export { extractDocEntries, extractDocEntriesFromSource, generateMarkdown, generateTypeDocs } from "./typedoc.js";
 export type { TypeDocConfig, DocEntry, DocMember, DocParam } from "./typedoc.js";
 

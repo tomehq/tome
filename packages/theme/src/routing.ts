@@ -27,8 +27,12 @@ export function pathnameToPageId(
       .replace(/\/index\.html$/, "")
       .replace(/\.html$/, "")
       .replace(/\/$/, "") || "index";
-  const route = routes.find((r) => r.id === id);
-  return route ? id : null;
+  // Match by ID first (most common: urlPath matches ID)
+  const routeById = routes.find((r) => r.id === id);
+  if (routeById) return id;
+  // Match by urlPath (for synthetic routes where ID differs from URL, e.g. api-reference at /events-api)
+  const routeByUrl = routes.find((r) => r.urlPath === "/" + id || r.urlPath === "/" + id + "/");
+  return routeByUrl ? routeByUrl.id : null;
 }
 
 /**

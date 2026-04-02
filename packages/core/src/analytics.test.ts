@@ -5,6 +5,7 @@ import {
   aggregateEvents,
   type PageViewEvent,
   type SearchEvent,
+  type FeedbackEvent,
   type AnalyticsEvent,
 } from "./analytics.js";
 
@@ -200,5 +201,77 @@ describe("aggregateEvents", () => {
     expect(summary.topReferrers).toEqual([]);
     expect(summary.topSearchQueries).toEqual([]);
     expect(summary.viewsByDay).toEqual([]);
+    expect(summary.totalSearches).toBe(0);
+    expect(summary.zeroResultQueries).toEqual([]);
+    expect(summary.totalFeedback).toBe(0);
+    expect(summary.feedbackByRating).toEqual({ up: 0, down: 0 });
+  });
+});
+
+// ── Search analytics ──────────────────────────────────
+
+describe("search analytics", () => {
+  it("script includes trackSearch method", () => {
+    const script = generateAnalyticsScript({
+      endpoint: "https://example.com/_analytics",
+      siteId: "site-123",
+    });
+    expect(script).toContain("trackSearch");
+    expect(script).toContain("__tome");
+  });
+
+  it("script includes trackFeedback method", () => {
+    const script = generateAnalyticsScript({
+      endpoint: "https://example.com/_analytics",
+      siteId: "site-123",
+    });
+    expect(script).toContain("trackFeedback");
+  });
+
+  it("counts total searches", () => {
+    const events: AnalyticsEvent[] = [
+      { type: "search", query: "install", resultsCount: 3, timestamp: 1, sessionId: "s1", siteId: "x" },
+      { type: "search", query: "deploy", resultsCount: 0, timestamp: 2, sessionId: "s1", siteId: "x" },
+      { type: "search", query: "install", resultsCount: 3, timestamp: 3, sessionId: "s2", siteId: "x" },
+    ];
+    const summary = aggregateEvents(events);
+    expect(summary.totalSearches).toBe(3);
+  });
+
+  it("computes zero-result queries", () => {
+    const events: AnalyticsEvent[] = [
+      { type: "search", query: "install", resultsCount: 3, timestamp: 1, sessionId: "s1", siteId: "x" },
+      { type: "search", query: "nonexistent", resultsCount: 0, timestamp: 2, sessionId: "s1", siteId: "x" },
+      { type: "search", query: "nonexistent", resultsCount: 0, timestamp: 3, sessionId: "s2", siteId: "x" },
+      { type: "search", query: "missing", resultsCount: 0, timestamp: 4, sessionId: "s1", siteId: "x" },
+    ];
+    const summary = aggregateEvents(events);
+    expect(summary.zeroResultQueries).toEqual([
+      { query: "nonexistent", count: 2 },
+      { query: "missing", count: 1 },
+    ]);
+  });
+});
+
+// ── Feedback analytics ────────────────────────────────
+
+describe("feedback analytics", () => {
+  it("counts total feedback events", () => {
+    const events: AnalyticsEvent[] = [
+      { type: "feedback", pageId: "intro", rating: "up", timestamp: 1, sessionId: "s1", siteId: "x" },
+      { type: "feedback", pageId: "api", rating: "down", comment: "confusing", timestamp: 2, sessionId: "s1", siteId: "x" },
+    ];
+    const summary = aggregateEvents(events);
+    expect(summary.totalFeedback).toBe(2);
+  });
+
+  it("aggregates feedback by rating", () => {
+    const events: AnalyticsEvent[] = [
+      { type: "feedback", pageId: "intro", rating: "up", timestamp: 1, sessionId: "s1", siteId: "x" },
+      { type: "feedback", pageId: "api", rating: "down", timestamp: 2, sessionId: "s1", siteId: "x" },
+      { type: "feedback", pageId: "guide", rating: "up", timestamp: 3, sessionId: "s2", siteId: "x" },
+    ];
+    const summary = aggregateEvents(events);
+    expect(summary.feedbackByRating).toEqual({ up: 2, down: 1 });
   });
 });

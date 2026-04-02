@@ -172,6 +172,26 @@ describe("processMarkdown", () => {
     const result = await processMarkdown(source);
     expect(result.frontmatter.redirect_from).toBeUndefined();
   }, 15000);
+
+  it("parses access role from frontmatter", async () => {
+    const source = "---\ntitle: Admin Guide\naccess: admin\n---\n\nRestricted content.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.access).toBe("admin");
+  }, 15000);
+
+  it("accepts all valid access roles", async () => {
+    for (const role of ["viewer", "editor", "admin", "owner"]) {
+      const source = `---\ntitle: Test\naccess: ${role}\n---\n\nContent.`;
+      const result = await processMarkdown(source);
+      expect(result.frontmatter.access).toBe(role);
+    }
+  }, 15000);
+
+  it("defaults access to undefined when not set", async () => {
+    const source = "---\ntitle: Public Page\n---\n\nContent.";
+    const result = await processMarkdown(source);
+    expect(result.frontmatter.access).toBeUndefined();
+  }, 15000);
 });
 
 // ── Entity decoding in code blocks ──────────────────────

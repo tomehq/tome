@@ -5,7 +5,10 @@ import { pathToFileURL } from "url";
 
 // ── CONFIG SCHEMA ────────────────────────────────────────
 export const ThemeSchema = z.object({
-  preset: z.enum(["amber", "editorial", "cipher", "mint"]).default("amber"),
+  preset: z.string().default("amber").refine(
+    (v) => ["amber", "editorial", "cipher", "mint", "ocean", "rose", "forest", "slate", "sunset", "carbon"].includes(v),
+    { message: "Invalid theme preset" },
+  ),
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   mode: z.enum(["light", "dark", "auto"]).default("auto"),
   fonts: z.object({
@@ -31,20 +34,26 @@ export const NavigationGroupSchema: z.ZodType<NavigationGroup> = z.object({
 
 export const SearchSchema = z.object({
   provider: z.enum(["local", "algolia"]).default("local"),
+  ai: z.boolean().default(false),
   appId: z.string().optional(),
   apiKey: z.string().optional(),
   indexName: z.string().optional(),
-}).default({ provider: "local" as const });
+}).default({ provider: "local" as const, ai: false });
 
 export const ApiSchema = z.object({
-  spec: z.string(),
+  spec: z.string().optional(),
+  asyncSpec: z.string().optional(),
+  path: z.string().default("/api"),
   playground: z.boolean().default(true),
   baseUrl: z.string().optional(),
   auth: z.object({
     type: z.enum(["bearer", "apiKey", "oauth2"]).optional(),
     header: z.string().optional(),
   }).optional(),
-}).optional();
+}).refine(
+  (v) => v.spec || v.asyncSpec,
+  { message: "At least one of spec or asyncSpec must be provided" },
+).optional();
 
 export const AiSchema = z.object({
   enabled: z.boolean().default(false),
@@ -112,6 +121,15 @@ export const SocialLinkSchema = z.object({
 
 export const SocialLinksSchema = z.array(SocialLinkSchema).optional();
 
+export const FeedbackSchema = z.object({
+  enabled: z.boolean().default(true),
+  textInput: z.boolean().default(false),
+}).optional();
+
+export const BrandingSchema = z.object({
+  powered: z.boolean().default(true),
+}).optional();
+
 export const BannerSchema = z.object({
   text: z.string(),
   link: z.string().optional(),
@@ -145,6 +163,9 @@ export const TomeConfigSchema = z.object({
   versioning: VersioningSchema,
   toc: TocSchema,
   banner: BannerSchema,
+  branding: BrandingSchema,
+  feedback: FeedbackSchema,
+  snippetsDir: z.string().default("snippets"),
   editLink: EditLinkSchema,
   math: z.boolean().default(false),
   strictLinks: z.boolean().default(false),

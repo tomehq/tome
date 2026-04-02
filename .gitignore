@@ -13,6 +13,7 @@ coverage/
 /config.json
 .claude/
 .vercel/
+.wrangler/
 .agents/
 skills-lock.json
 *.pem

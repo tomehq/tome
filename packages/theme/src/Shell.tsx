@@ -342,11 +342,13 @@ interface ShellProps {
   config: {
     name: string;
     theme?: { preset?: string; mode?: string; accent?: string; fonts?: { heading?: string; body?: string; code?: string } };
-    search?: { provider?: string; appId?: string; apiKey?: string; indexName?: string };
+    search?: { provider?: string; ai?: boolean; appId?: string; apiKey?: string; indexName?: string };
     ai?: { enabled?: boolean; provider?: "openai" | "anthropic" | "custom"; model?: string; apiKeyEnv?: string };
     toc?: { enabled?: boolean; depth?: number };
     topNav?: Array<{ label: string; href: string }>;
     banner?: { text: string; link?: string; dismissible?: boolean };
+    branding?: { powered?: boolean };
+    feedback?: { enabled?: boolean; textInput?: boolean };
     socialLinks?: Array<{ platform: string; url: string; label?: string; icon?: string }>;
     [key: string]: unknown;
   };
@@ -366,6 +368,7 @@ interface ShellProps {
   lastUpdated?: string;
   changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
   apiManifest?: any;
+  asyncApiManifest?: any;
   apiBaseUrl?: string;
   apiPlayground?: boolean;
   apiAuth?: { type: "bearer" | "apiKey"; header?: string };
@@ -375,6 +378,7 @@ interface ShellProps {
     showPlayground?: boolean;
     playgroundAuth?: { type: "bearer" | "apiKey"; header?: string };
   }>;
+  AsyncApiReferenceComponent?: React.ComponentType<{ manifest: any }>;
   onNavigate: (id: string) => void;
   allPages: Array<{ id: string; title: string; description?: string }>;
   versioning?: VersioningInfo;
@@ -397,7 +401,7 @@ interface ShellProps {
 export function Shell({
   config, navigation, currentPageId, pageHtml, pageComponent, mdxComponents,
   pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries,
-  apiManifest, apiBaseUrl, apiPlayground, apiAuth, ApiReferenceComponent, onNavigate, allPages,
+  apiManifest, asyncApiManifest, apiBaseUrl, apiPlayground, apiAuth, ApiReferenceComponent, AsyncApiReferenceComponent, onNavigate, allPages,
   versioning, currentVersion, i18n, currentLocale, docContext, basePath = "", isDraft, dir: dirProp, overrides,
 }: ShellProps) {
   // RTL support: resolve text direction from prop, i18n.localeDirs, or default to "ltr"
@@ -421,6 +425,9 @@ export function Shell({
   const [localeDropdownOpen, setLocaleDropdown] = useState(false);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({});
+  const [feedbackRating, setFeedbackRating] = useState<Record<string, "up" | "down">>({});
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
   const [bannerDismissed, setBannerDismissed] = useState(() => {
     if (!config.banner?.text) return true;
     try {
@@ -726,6 +733,12 @@ export function Shell({
           onNavigate={(id) => { onNavigate(id); setSearch(false); }}
           onClose={() => setSearch(false)}
           mobile={mobile}
+          aiSearch={config.search?.ai && config.ai?.enabled ? {
+            provider: config.ai.provider || "anthropic",
+            model: config.ai.model,
+            apiKey: (window as any).__TOME_AI_API_KEY__ || undefined,
+            context: docContext?.map((d) => `## ${d.title}\n${d.content}`).join("\n\n"),
+          } : undefined}
         />
       ) : null}
 
@@ -860,7 +873,7 @@ export function Shell({
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </button>
             ) : <div />}
-            <span style={{ fontSize: 11, color: "var(--txM)", letterSpacing: 0.2 }}>Built with {"\u2661"} by Tome</span>
+            {config.branding?.powered !== false && <span style={{ fontSize: 11, color: "var(--txM)", letterSpacing: 0.2 }}>Built with {"\u2661"} by Tome</span>}
             <span style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)" }}>{typeof __TOME_VERSION__ !== "undefined" && __TOME_VERSION__ ? `v${__TOME_VERSION__}` : "v0.1.0"}</span>
           </div>
         </aside>
@@ -1125,7 +1138,7 @@ export function Shell({
 
           {/* Content + TOC */}
           <div ref={contentRef} style={{ flex: 1, overflow: "auto", display: "flex" }}>
-            <main style={{ flex: 1, maxWidth: mobile ? "100%" : apiManifest ? 1100 : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
+            <main style={{ flex: 1, maxWidth: mobile ? "100%" : (apiManifest || asyncApiManifest) ? 1100 : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
               {breadcrumbs.length > 0 && (
                 <nav aria-label="Breadcrumbs" data-testid="breadcrumbs" style={{
                   display: "flex", alignItems: "center", gap: 6,
@@ -1164,9 +1177,19 @@ export function Shell({
               )}
               {pageDescription && <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 32 }}>{pageDescription}</p>}
               <div style={{ borderTop: "1px solid var(--bd)", paddingTop: 28 }}>
-                {/* TOM-19: API Reference page */}
-                {apiManifest && ApiReferenceComponent ? (
-                  <ApiReferenceComponent manifest={apiManifest} baseUrl={apiBaseUrl} showPlayground={apiPlayground} playgroundAuth={apiAuth} />
+                {/* TOM-19 + TOM-66: API Reference page (OpenAPI + AsyncAPI) */}
+                {(apiManifest || asyncApiManifest) && (ApiReferenceComponent || AsyncApiReferenceComponent) ? (
+                  <>
+                    {apiManifest && ApiReferenceComponent && (
+                      <ApiReferenceComponent manifest={apiManifest} baseUrl={apiBaseUrl} showPlayground={apiPlayground} playgroundAuth={apiAuth} />
+                    )}
+                    {asyncApiManifest && AsyncApiReferenceComponent && (
+                      <>
+                        {apiManifest && <div style={{ borderTop: "1px solid var(--bd)", margin: "40px 0" }} />}
+                        <AsyncApiReferenceComponent manifest={asyncApiManifest} />
+                      </>
+                    )}
+                  </>
                 ) : /* TOM-49: Changelog page type */
                 changelogEntries && changelogEntries.length > 0 ? (
                   <ChangelogView entries={changelogEntries} />
@@ -1225,21 +1248,90 @@ export function Shell({
               )}
 
               {/* Feedback widget */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24, padding: "12px 0" }}>
-                {feedbackGiven[currentPageId] ? (
+              {config.feedback?.enabled !== false && (
+              <div data-testid="feedback-widget" style={{ marginTop: 24, padding: "12px 0" }}>
+                {feedbackSubmitted[currentPageId] ? (
+                  <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Thanks for your feedback!</span>
+                ) : feedbackGiven[currentPageId] && config.feedback?.textInput ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Any additional feedback? (optional)</span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input
+                        data-testid="feedback-text-input"
+                        type="text"
+                        value={feedbackComment}
+                        onChange={e => setFeedbackComment(e.target.value)}
+                        placeholder="Tell us more..."
+                        style={{
+                          flex: 1, padding: "6px 10px", fontSize: 13, fontFamily: "var(--font-body)",
+                          background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
+                          color: "var(--tx)", outline: "none",
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            (window as any).__tome?.trackFeedback(currentPageId, feedbackRating[currentPageId], feedbackComment);
+                            try { localStorage.setItem(`tome-feedback-${currentPageId}`, feedbackRating[currentPageId]); } catch {}
+                            setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                            setFeedbackComment("");
+                          }
+                        }}
+                      />
+                      <button
+                        data-testid="feedback-submit"
+                        onClick={() => {
+                          (window as any).__tome?.trackFeedback(currentPageId, feedbackRating[currentPageId], feedbackComment);
+                          try { localStorage.setItem(`tome-feedback-${currentPageId}`, feedbackRating[currentPageId]); } catch {}
+                          setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                          setFeedbackComment("");
+                        }}
+                        style={{
+                          background: "none", border: "1px solid var(--bd)", borderRadius: 2,
+                          padding: "6px 14px", cursor: "pointer", fontSize: 13, color: "var(--txM)",
+                        }}
+                      >Submit</button>
+                      <button
+                        onClick={() => {
+                          (window as any).__tome?.trackFeedback(currentPageId, feedbackRating[currentPageId]);
+                          try { localStorage.setItem(`tome-feedback-${currentPageId}`, feedbackRating[currentPageId]); } catch {}
+                          setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                        }}
+                        style={{
+                          background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--txM)",
+                        }}
+                      >Skip</button>
+                    </div>
+                  </div>
+                ) : feedbackGiven[currentPageId] ? (
                   <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Thanks for your feedback!</span>
                 ) : (
-                  <>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Was this helpful?</span>
-                    <button onClick={() => { setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true })); try { localStorage.setItem(`tome-feedback-${currentPageId}`, "up"); } catch {} }} style={{
+                    <button data-testid="feedback-up" onClick={() => {
+                      setFeedbackRating(prev => ({ ...prev, [currentPageId]: "up" }));
+                      setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true }));
+                      if (!config.feedback?.textInput) {
+                        (window as any).__tome?.trackFeedback(currentPageId, "up");
+                        try { localStorage.setItem(`tome-feedback-${currentPageId}`, "up"); } catch {}
+                        setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                      }
+                    }} style={{
                       background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "4px 10px", cursor: "pointer", fontSize: 13, color: "var(--txM)", transition: "border-color .15s",
                     }}>👍</button>
-                    <button onClick={() => { setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true })); try { localStorage.setItem(`tome-feedback-${currentPageId}`, "down"); } catch {} }} style={{
+                    <button data-testid="feedback-down" onClick={() => {
+                      setFeedbackRating(prev => ({ ...prev, [currentPageId]: "down" }));
+                      setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true }));
+                      if (!config.feedback?.textInput) {
+                        (window as any).__tome?.trackFeedback(currentPageId, "down");
+                        try { localStorage.setItem(`tome-feedback-${currentPageId}`, "down"); } catch {}
+                        setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                      }
+                    }} style={{
                       background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "4px 10px", cursor: "pointer", fontSize: 13, color: "var(--txM)", transition: "border-color .15s",
                     }}>👎</button>
-                  </>
+                  </div>
                 )}
               </div>
+              )}
 
               {/* Prev / Next link cards */}
               <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", marginTop: 24, paddingTop: 32, paddingBottom: 40, borderTop: "1px solid var(--bd)", gap: 16 }}>
@@ -1368,18 +1460,22 @@ interface SearchResult {
 }
 
 // ── SEARCH MODAL (TOM-15) ────────────────────────────────
-function SearchModal({ allPages, onNavigate, onClose, mobile }: {
+function SearchModal({ allPages, onNavigate, onClose, mobile, aiSearch }: {
   allPages: Array<{ id: string; title: string; description?: string }>;
   onNavigate: (id: string) => void;
   onClose: () => void;
   mobile?: boolean;
+  aiSearch?: { provider: "openai" | "anthropic" | "custom"; model?: string; apiKey?: string; context?: string };
 }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(0);
   const [pagefindReady, setPagefindReady] = useState<boolean | null>(null);
+  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const aiDebounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Try to initialize Pagefind on mount
   useEffect(() => {
@@ -1429,6 +1525,8 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
         }
         setResults(items);
         setSelected(0);
+        // Track search query in analytics
+        (window as any).__tome?.trackSearch(query, items.length);
         return;
       } catch {
         // Pagefind search failed, fall through to fallback
@@ -1436,8 +1534,11 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
     }
 
     // Fallback: client-side filtering
-    setResults(fallbackSearch(query));
+    const fallbackResults = fallbackSearch(query);
+    setResults(fallbackResults);
     setSelected(0);
+    // Track search query in analytics
+    (window as any).__tome?.trackSearch(query, fallbackResults.length);
   }, [fallbackSearch]);
 
   // Debounced search on query change
@@ -1446,6 +1547,42 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
     debounceRef.current = setTimeout(() => doSearch(q), 120);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [q, doSearch]);
+
+  // AI-enhanced search: fire after longer debounce for synthesized answer
+  useEffect(() => {
+    if (!aiSearch?.apiKey || !q.trim() || q.length < 3) {
+      setAiAnswer(null);
+      return;
+    }
+    if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
+    aiDebounceRef.current = setTimeout(async () => {
+      setAiLoading(true);
+      try {
+        const { callAiProvider, buildSystemPrompt, getDefaultModel } = await import("./ai-api.js");
+        const model = aiSearch.model || getDefaultModel(aiSearch.provider);
+        // Build context from search results + full doc context
+        const searchContext = results.slice(0, 5).map(r => `Page: ${r.title}\n${r.excerpt || ""}`).join("\n\n");
+        const fullContext = aiSearch.context ? `${searchContext}\n\n---\n\n${aiSearch.context}` : searchContext;
+        const sysPrompt = buildSystemPrompt(
+          fullContext,
+          "You are a documentation search assistant. Answer the user's question concisely (2-3 sentences max) based on the documentation. Cite specific page names when relevant. If you can't answer from the docs, say so briefly."
+        );
+        const answer = await callAiProvider(
+          aiSearch.provider,
+          [{ role: "user", content: q }],
+          aiSearch.apiKey || "",
+          model,
+          sysPrompt,
+        );
+        setAiAnswer(answer);
+      } catch {
+        setAiAnswer(null);
+      } finally {
+        setAiLoading(false);
+      }
+    }, 500);
+    return () => { if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current); };
+  }, [q, results, aiSearch]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -1483,6 +1620,22 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
           />
           <kbd style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)", background: "var(--cdBg)", padding: "2px 6px", borderRadius: 2, border: "1px solid var(--bd)" }}>ESC</kbd>
         </div>
+        {/* AI Answer Card */}
+        {aiSearch && q.length >= 3 && (aiLoading || aiAnswer) && (
+          <div style={{
+            padding: "12px 18px", borderBottom: "1px solid var(--bd)",
+            background: "var(--acT)", fontSize: 13, lineHeight: 1.5, color: "var(--tx)",
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: 0.5, color: "var(--ac)", marginBottom: 6 }}>
+              AI Answer
+            </div>
+            {aiLoading ? (
+              <div style={{ color: "var(--txM)", fontStyle: "italic" }}>Thinking...</div>
+            ) : aiAnswer ? (
+              <div>{aiAnswer}</div>
+            ) : null}
+          </div>
+        )}
         {results.length > 0 && <div style={{ padding: 6, maxHeight: mobile ? "none" : 360, overflow: "auto", flex: mobile ? 1 : undefined }}>
           {results.map((r, i) => (
             <button key={r.id + i} onClick={() => onNavigate(r.id)} style={{

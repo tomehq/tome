@@ -23,6 +23,8 @@ export interface OgImageConfig {
   secondaryTextColor: string;
   /** Base URL for OG image references */
   baseUrl?: string;
+  /** Show "Powered by Tome" branding (default: true) */
+  showBranding?: boolean;
 }
 
 export interface OgImageResult {
@@ -37,18 +39,16 @@ export interface OgImageResult {
 // ── THEME COLORS ────────────────────────────────────────
 
 const PRESET_COLORS: Record<string, { accent: string; bg: string; text: string; secondary: string }> = {
-  amber: {
-    accent: "#e8a845",
-    bg: "#1a1a1a",
-    text: "#ffffff",
-    secondary: "#a0a0a0",
-  },
-  editorial: {
-    accent: "#2563eb",
-    bg: "#ffffff",
-    text: "#111827",
-    secondary: "#6b7280",
-  },
+  amber: { accent: "#e8a845", bg: "#1a1a1a", text: "#ffffff", secondary: "#a0a0a0" },
+  editorial: { accent: "#ff6b4a", bg: "#080c1f", text: "#e8e6f0", secondary: "#9490ae" },
+  cipher: { accent: "#6666ff", bg: "#050508", text: "#d4ff00", secondary: "#6a7080" },
+  mint: { accent: "#0ea371", bg: "#0d1117", text: "#e6edf3", secondary: "#6e7681" },
+  ocean: { accent: "#0ea5e9", bg: "#0a1628", text: "#e0e8f0", secondary: "#6b8098" },
+  rose: { accent: "#f43f5e", bg: "#0f0a10", text: "#f0e4f0", secondary: "#8a7890" },
+  forest: { accent: "#22c55e", bg: "#091209", text: "#e0f0e0", secondary: "#6a8a6a" },
+  slate: { accent: "#94a3b8", bg: "#0f1115", text: "#e2e4e8", secondary: "#6e7278" },
+  sunset: { accent: "#f97316", bg: "#120c06", text: "#f0e4d4", secondary: "#907850" },
+  carbon: { accent: "#e4e4e4", bg: "#080808", text: "#d4d4d4", secondary: "#666666" },
 };
 
 // ── SVG TEMPLATE ────────────────────────────────────────
@@ -62,7 +62,7 @@ export function generateOgSvg(
   description: string | undefined,
   config: OgImageConfig,
 ): string {
-  const { siteName, accentColor, backgroundColor, textColor, secondaryTextColor } = config;
+  const { siteName, accentColor, backgroundColor, textColor, secondaryTextColor, showBranding } = config;
 
   // Truncate title if too long
   const displayTitle = title.length > 60 ? title.slice(0, 57) + "..." : title;
@@ -77,14 +77,17 @@ export function generateOgSvg(
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+  const brandingLine = showBranding !== false
+    ? `<rect x="80" y="540" width="60" height="4" rx="2" fill="${esc(accentColor)}" />\n  <text x="160" y="548" font-family="sans-serif" font-size="20" font-weight="400" fill="${esc(secondaryTextColor)}">Powered by Tome</text>`
+    : "";
+
   return `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <rect width="1200" height="630" fill="${esc(backgroundColor)}" />
   <rect x="0" y="0" width="1200" height="6" fill="${esc(accentColor)}" />
   <text x="80" y="100" font-family="sans-serif" font-size="24" font-weight="400" fill="${esc(secondaryTextColor)}">${esc(siteName)}</text>
   <text x="80" y="300" font-family="sans-serif" font-size="56" font-weight="700" fill="${esc(textColor)}">${esc(displayTitle)}</text>
   ${displayDesc ? `<text x="80" y="380" font-family="sans-serif" font-size="28" font-weight="400" fill="${esc(secondaryTextColor)}">${esc(displayDesc)}</text>` : ""}
-  <rect x="80" y="540" width="60" height="4" rx="2" fill="${esc(accentColor)}" />
-  <text x="160" y="548" font-family="sans-serif" font-size="20" font-weight="400" fill="${esc(secondaryTextColor)}">Powered by Tome</text>
+  ${brandingLine}
 </svg>`;
 }
 
@@ -99,7 +102,7 @@ export function buildOgTemplate(
   description: string | undefined,
   config: OgImageConfig,
 ): Record<string, unknown> {
-  const { siteName, accentColor, backgroundColor, textColor, secondaryTextColor } = config;
+  const { siteName, accentColor, backgroundColor, textColor, secondaryTextColor, showBranding } = config;
 
   const displayTitle = title.length > 70 ? title.slice(0, 67) + "..." : title;
   const displayDesc = description
@@ -187,7 +190,7 @@ export function buildOgTemplate(
               alignItems: "center",
               gap: "16px",
             },
-            children: [
+            children: showBranding !== false ? [
               {
                 type: "div",
                 props: {
@@ -209,7 +212,7 @@ export function buildOgTemplate(
                   children: "Powered by Tome",
                 },
               },
-            ],
+            ] : [],
           },
         },
       ],
@@ -233,6 +236,7 @@ export function buildOgConfig(config: TomeConfig): OgImageConfig {
     textColor: isDark ? preset.text : "#111827",
     secondaryTextColor: isDark ? preset.secondary : "#6b7280",
     baseUrl: config.baseUrl,
+    showBranding: config.branding?.powered !== false,
   };
 }
 

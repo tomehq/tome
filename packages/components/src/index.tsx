@@ -11,6 +11,16 @@ export {
   ApiReference,
 } from "./api.js";
 
+// ── ASYNCAPI COMPONENTS (TOM-66) ────────────────────────
+export {
+  ProtocolBadge,
+  DirectionBadge,
+  ChannelCard,
+  MessageBlock,
+  AsyncParameterTable,
+  AsyncApiReference,
+} from "./asyncapi.js";
+
 // ── API PLAYGROUND (TOM-20) ─────────────────────────────
 export { ApiPlayground } from "./ApiPlayground.js";
 
