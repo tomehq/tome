@@ -10,7 +10,7 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { resolve, join } from "path";
+import { resolve } from "path";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkFrontmatter from "remark-frontmatter";

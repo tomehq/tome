@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { checkSitePassword } from "./site-password.js";
-import { createMiddleware } from "hono/factory";
 import { Hono } from "hono";
 import type { Env } from "../types.js";
 import { generateSessionToken } from "../password.js";
