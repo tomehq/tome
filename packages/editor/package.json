@@ -5,11 +5,17 @@
   "description": "WYSIWYG markdown editor for Tome documentation",
   "type": "module",
   "main": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./sanitize": "./src/sanitize.ts",
+    "./editor.css": "./src/editor.css"
+  },
   "scripts": {
     "build": "echo 'Editor builds with dashboard'",
     "dev": "echo 'Editor runs with dashboard'"
   },
   "dependencies": {
+    "@tiptap/core": "^2.12.0",
     "@tiptap/react": "^2.12.0",
     "@tiptap/starter-kit": "^2.12.0",
     "@tiptap/pm": "^2.12.0",
