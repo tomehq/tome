@@ -188,18 +188,32 @@ editor.put("/pages/:id", async (c) => {
 });
 
 // ── POST /pages/:id/publish — deploy page to live site ──
+//
+// Two publish modes based on project configuration:
+//
+// 1. Git-connected projects (GitHub repo linked):
+//    - Commits the file to GitHub via API
+//    - The existing GitHub App webhook triggers a full site rebuild
+//    - The rebuild deploys ALL files from the repo (including this one)
+//    - Editor does NOT write directly to R2 (avoids dual source of truth)
+//    - This is the Mintlify model: Git is always the source of truth
+//
+// 2. Non-Git projects (no repo connected):
+//    - Writes the markdown file directly to R2
+//    - Page is immediately live
+//    - D1 editor_pages table is the source of truth
 
 editor.post("/pages/:id/publish", async (c) => {
   const user = c.get("user");
   const pageId = c.req.param("id");
 
   const page = await c.env.TOME_DB.prepare(
-    `SELECT ep.*, p.slug as project_slug FROM editor_pages ep
+    `SELECT ep.*, p.slug as project_slug, p.id as proj_id FROM editor_pages ep
      JOIN projects p ON ep.project_id = p.id
      WHERE ep.id = ? AND p.user_id = ?`,
   ).bind(pageId, user.id).first<{
     id: string; project_id: string; path: string; title: string;
-    content: string; frontmatter: string; project_slug: string;
+    content: string; frontmatter: string; project_slug: string; proj_id: string;
   }>();
 
   if (!page) {
@@ -213,27 +227,9 @@ editor.post("/pages/:id/publish", async (c) => {
     .map(([k, v]) => `${k}: ${typeof v === "string" ? `"${v}"` : v}`)
     .join("\n");
   const markdown = `---\n${frontmatterYaml}\n---\n\n${page.content}`;
-
-  // Determine file path in R2
   const filePath = `pages/${page.path}.md`;
-  const r2Key = `sites/${page.project_slug}/${filePath}`;
 
-  // Write to R2
-  await c.env.TOME_BUCKET.put(r2Key, markdown, {
-    customMetadata: { deploymentId: "editor", hash: "" },
-    httpMetadata: { contentType: "text/markdown; charset=utf-8" },
-  });
-
-  // Also write the HTML index for SPA routing
-  // (The actual HTML is generated client-side by the Tome theme)
-
-  // Update page status
-  await c.env.TOME_DB.prepare(
-    "UPDATE editor_pages SET status = 'published', updated_at = datetime('now') WHERE id = ?",
-  ).bind(pageId).run();
-
-  // Sync to GitHub if a repo is connected
-  let commitSha: string | undefined;
+  // Check if project has a connected GitHub repo
   const ghInfo = await c.env.TOME_DB.prepare(
     "SELECT github_repo, github_installation_id, github_branch FROM projects WHERE id = ?",
   ).bind(page.project_id).first<{
@@ -242,24 +238,50 @@ editor.post("/pages/:id/publish", async (c) => {
     github_branch: string | null;
   }>();
 
-  if (ghInfo?.github_repo && ghInfo.github_installation_id) {
-    const [owner, repo] = ghInfo.github_repo.split("/");
+  const isGitConnected = !!(ghInfo?.github_repo && ghInfo.github_installation_id);
+
+  let commitSha: string | undefined;
+
+  if (isGitConnected) {
+    // ── Git-connected: commit to GitHub, let webhook handle deploy ──
+    const [owner, repo] = ghInfo!.github_repo!.split("/");
     const result = await syncToGitHub({
       env: c.env,
       owner,
       repo,
-      branch: ghInfo.github_branch || "main",
-      installationId: ghInfo.github_installation_id,
+      branch: ghInfo!.github_branch || "main",
+      installationId: ghInfo!.github_installation_id!,
       filePath,
       content: markdown,
       commitMessage: `docs: update ${page.path} via Tome editor`,
     });
-    if (result) commitSha = result.sha;
+
+    if (!result) {
+      return c.json({ error: "Failed to commit to GitHub. Check your repository connection." }, 500);
+    }
+
+    commitSha = result.sha;
+    // NOTE: We do NOT write to R2 here. The GitHub webhook will trigger
+    // a full rebuild from the repo, which deploys all files including this one.
+    // This prevents the dual source of truth problem.
+  } else {
+    // ── Non-Git: write directly to R2 for immediate deploy ──
+    const r2Key = `sites/${page.project_slug}/${filePath}`;
+    await c.env.TOME_BUCKET.put(r2Key, markdown, {
+      customMetadata: { deploymentId: "editor", hash: "" },
+      httpMetadata: { contentType: "text/markdown; charset=utf-8" },
+    });
   }
+
+  // Update page status in D1
+  await c.env.TOME_DB.prepare(
+    "UPDATE editor_pages SET status = 'published', updated_at = datetime('now') WHERE id = ?",
+  ).bind(pageId).run();
 
   return c.json({
     ok: true,
     status: "published",
+    method: isGitConnected ? "github" : "direct",
     url: `https://${page.project_slug}.tome.center/${page.path}`,
     commitSha,
   });

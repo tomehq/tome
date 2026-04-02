@@ -143,8 +143,18 @@ export default function EditorPage({ slug, token }: { slug: string; token: strin
   const handlePublish = async () => {
     if (!selectedId) return;
     setPublishing(true);
-    try { await api(`/api/editor/pages/${selectedId}/publish`, { method: "POST", token }); setPages((prev) => prev.map((p) => p.id === selectedId ? { ...p, status: "published" } : p)); }
-    catch { /* silently fail */ } finally { setPublishing(false); }
+    try {
+      const result = await api<{ ok: boolean; method?: string; commitSha?: string }>(`/api/editor/pages/${selectedId}/publish`, { method: "POST", token });
+      setPages((prev) => prev.map((p) => p.id === selectedId ? { ...p, status: "published" } : p));
+      if (result.method === "github" && result.commitSha) {
+        setSaveStatus(`Published & committed to GitHub (${result.commitSha.slice(0, 7)})`);
+      } else {
+        setSaveStatus("Published");
+      }
+    } catch (err) {
+      setSaveStatus("Publish failed");
+      console.error("Publish failed:", err);
+    } finally { setPublishing(false); }
   };
 
   const handleNewPage = async (path: string, title: string) => {
