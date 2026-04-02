@@ -61,9 +61,8 @@ describe("pathnameToPageId", () => {
 
   it("resolves versioned index", () => {
     // /docs/v1/ → strip basePath → /v1/ → strip leading / → v1/ → strip trailing / → v1
-    // But our route ID is "v1/index", not "v1", so this needs to resolve properly
-    // After all stripping: "v1" — not in routes (v1/index is). Let's test this edge case.
-    expect(pathnameToPageId("/docs/v1", basePath, routes)).toBeNull();
+    // Route v1/index has urlPath "/v1/" — matches via URL-based resolution
+    expect(pathnameToPageId("/docs/v1", basePath, routes)).toBe("v1/index");
   });
 
   describe("with empty basePath", () => {

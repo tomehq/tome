@@ -1077,3 +1077,95 @@ describe("API reference path configuration", () => {
     expect(routesModule).toContain('"/docs/api-reference"');
   });
 });
+
+// ── AsyncAPI integration ────────────────────────────────
+
+const ASYNCAPI_JSON = JSON.stringify({
+  asyncapi: "2.6.0",
+  info: { title: "Test Events API", version: "1.0.0" },
+  channels: {
+    "user/signedup": {
+      subscribe: {
+        operationId: "onUserSignup",
+        summary: "User signed up",
+        message: {
+          payload: { type: "object", properties: { userId: { type: "string" } } },
+        },
+      },
+    },
+  },
+  servers: {
+    production: { url: "wss://events.example.com", protocol: "wss" },
+  },
+});
+
+describe("AsyncAPI vite-plugin integration", () => {
+  it("creates api-reference route with asyncSpec only", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "asyncapi.json": ASYNCAPI_JSON,
+      },
+      `export default { name: "Test", api: { asyncSpec: "./asyncapi.json" } };`,
+    );
+
+    const routesModule = await (plugin.load as Function)("\0virtual:tome/routes");
+    expect(routesModule).toContain("api-reference");
+  });
+
+  it("exports asyncApiManifest in synthetic page module", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "asyncapi.json": ASYNCAPI_JSON,
+      },
+      `export default { name: "Test", api: { asyncSpec: "./asyncapi.json" } };`,
+    );
+
+    const pageModule = await (plugin.load as Function)("\0virtual:tome/page/api-reference");
+    expect(pageModule).toContain("asyncApiManifest");
+    expect(pageModule).toContain("isApiReference");
+    expect(pageModule).toContain("user/signedup");
+  });
+
+  it("exports both manifests when both specs configured", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "openapi.json": OPENAPI_JSON,
+        "asyncapi.json": ASYNCAPI_JSON,
+      },
+      `export default { name: "Test", api: { spec: "./openapi.json", asyncSpec: "./asyncapi.json" } };`,
+    );
+
+    const pageModule = await (plugin.load as Function)("\0virtual:tome/page/api-reference");
+    expect(pageModule).toContain("apiManifest");
+    expect(pageModule).toContain("asyncApiManifest");
+    expect(pageModule).toContain("listUsers");
+    expect(pageModule).toContain("user/signedup");
+  });
+
+  it("virtual:tome/api exports both manifests", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "openapi.json": OPENAPI_JSON,
+        "asyncapi.json": ASYNCAPI_JSON,
+      },
+      `export default { name: "Test", api: { spec: "./openapi.json", asyncSpec: "./asyncapi.json" } };`,
+    );
+
+    const apiModule = await (plugin.load as Function)("\0virtual:tome/api");
+    expect(apiModule).toContain("openapi");
+    expect(apiModule).toContain("asyncapi");
+  });
+
+  it("does not create api-reference route without any spec", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+    });
+
+    const routesModule = await (plugin.load as Function)("\0virtual:tome/routes");
+    expect(routesModule).not.toContain("api-reference");
+  });
+});
