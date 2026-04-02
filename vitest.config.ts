@@ -68,6 +68,15 @@ export default defineConfig({
           setupFiles: [resolve(root("dashboard"), "src/test-setup.ts")],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: "editor",
+          root: root("editor"),
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+        },
+      },
     ],
   },
 });
