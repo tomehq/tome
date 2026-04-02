@@ -1558,7 +1558,7 @@ function SearchModal({ allPages, onNavigate, onClose, mobile, aiSearch }: {
         const answer = await callAiProvider(
           aiSearch.provider,
           [{ role: "user", content: q }],
-          aiSearch.apiKey,
+          aiSearch.apiKey || "",
           model,
           sysPrompt,
         );

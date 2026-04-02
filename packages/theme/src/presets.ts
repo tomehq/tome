@@ -49,13 +49,13 @@ export const THEME_PRESETS = {
   cipher: {
     dark: {
       bg:"#050508",sf:"#0c0c12",sfH:"#12121a",bd:"#1a1a25",
-      tx:"#d4ff00",tx2:"#8a90a0",txM:"#6a7080",
+      tx:"#d4ff00",tx2:"#8a90a0",txM:"#7e8494",
       ac:"#6666ff",acD:"rgba(102,102,255,0.10)",acT:"#8080ff",
       cdBg:"#08080e",cdTx:"#b0c870",sbBg:"#08080d",hdBg:"rgba(5,5,8,0.88)",
     },
     light: {
       bg:"#f0f2f5",sf:"#ffffff",sfH:"#e8eaef",bd:"#d0d4db",
-      tx:"#0f1219",tx2:"#4a5060",txM:"#6a7080",
+      tx:"#0f1219",tx2:"#4a5060",txM:"#5c6272",
       ac:"#2020cc",acD:"rgba(32,32,204,0.08)",acT:"#1a1aa8",
       cdBg:"#e6e9ef",cdTx:"#2a3520",sbBg:"#ebedf2",hdBg:"rgba(240,242,245,0.90)",
     },
@@ -64,7 +64,7 @@ export const THEME_PRESETS = {
   mint: {
     dark: {
       bg:"#0d1117",sf:"#161b22",sfH:"#1c2129",bd:"#21262d",
-      tx:"#e6edf3",tx2:"#8b949e",txM:"#6e7681",
+      tx:"#e6edf3",tx2:"#8b949e",txM:"#7d858f",
       ac:"#0ea371",acD:"rgba(14,163,113,0.10)",acT:"#2dd4a0",
       cdBg:"#0a0e14",cdTx:"#adbac7",sbBg:"#0d1117",hdBg:"rgba(13,17,23,0.88)",
     },
@@ -79,13 +79,13 @@ export const THEME_PRESETS = {
   ocean: {
     dark: {
       bg:"#0a1628",sf:"#0f1d33",sfH:"#142540",bd:"#1a2e50",
-      tx:"#e0e8f0",tx2:"#8ca0b8",txM:"#6b8098",
+      tx:"#e0e8f0",tx2:"#8ca0b8",txM:"#7b92aa",
       ac:"#0ea5e9",acD:"rgba(14,165,233,0.10)",acT:"#38bdf8",
       cdBg:"#081320",cdTx:"#94b4d0",sbBg:"#0a1628",hdBg:"rgba(10,22,40,0.90)",
     },
     light: {
       bg:"#f0f7ff",sf:"#ffffff",sfH:"#e8f0fa",bd:"#ccdcef",
-      tx:"#0c1929",tx2:"#3d5a78",txM:"#5a7a98",
+      tx:"#0c1929",tx2:"#3d5a78",txM:"#4a6a88",
       ac:"#0369a1",acD:"rgba(3,105,161,0.07)",acT:"#025e8f",
       cdBg:"#e4edf7",cdTx:"#1a3050",sbBg:"#eef4fc",hdBg:"rgba(240,247,255,0.92)",
     },
@@ -101,7 +101,7 @@ export const THEME_PRESETS = {
     light: {
       bg:"#fef7f7",sf:"#ffffff",sfH:"#fceef0",bd:"#f0d4d8",
       tx:"#1a0f12",tx2:"#6b4048",txM:"#8a5a64",
-      ac:"#e11d48",acD:"rgba(225,29,72,0.06)",acT:"#be123c",
+      ac:"#c81e3e",acD:"rgba(200,30,62,0.06)",acT:"#a81835",
       cdBg:"#f8eaec",cdTx:"#3a1a22",sbBg:"#fdf2f4",hdBg:"rgba(254,247,247,0.92)",
     },
     fonts: { heading: "Playfair Display", body: "Source Sans 3", code: "Fira Code" },
@@ -124,7 +124,7 @@ export const THEME_PRESETS = {
   slate: {
     dark: {
       bg:"#0f1115",sf:"#16181e",sfH:"#1c1f26",bd:"#24272e",
-      tx:"#e2e4e8",tx2:"#9498a0",txM:"#6e7278",
+      tx:"#e2e4e8",tx2:"#9498a0",txM:"#808690",
       ac:"#94a3b8",acD:"rgba(148,163,184,0.10)",acT:"#b0bec8",
       cdBg:"#0c0e12",cdTx:"#a8acb4",sbBg:"#0f1115",hdBg:"rgba(15,17,21,0.88)",
     },
@@ -154,7 +154,7 @@ export const THEME_PRESETS = {
   carbon: {
     dark: {
       bg:"#080808",sf:"#101010",sfH:"#171717",bd:"#1f1f1f",
-      tx:"#d4d4d4",tx2:"#888888",txM:"#666666",
+      tx:"#d4d4d4",tx2:"#888888",txM:"#787878",
       ac:"#e4e4e4",acD:"rgba(228,228,228,0.08)",acT:"#f0f0f0",
       cdBg:"#0a0a0a",cdTx:"#a0a0a0",sbBg:"#080808",hdBg:"rgba(8,8,8,0.90)",
     },
@@ -164,7 +164,7 @@ export const THEME_PRESETS = {
       ac:"#262626",acD:"rgba(38,38,38,0.06)",acT:"#1a1a1a",
       cdBg:"#eaeaea",cdTx:"#1a1a1a",sbBg:"#f0f0f0",hdBg:"rgba(245,245,245,0.92)",
     },
-    fonts: { heading: "IBM Plex Sans", body: "IBM Plex Sans", code: "IBM Plex Mono" },
+    fonts: { heading: "Geist", body: "Geist", code: "Geist Mono" },
   },
 } as const satisfies Record<string, ThemePreset>;
 
