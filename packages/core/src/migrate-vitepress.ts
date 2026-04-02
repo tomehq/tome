@@ -420,7 +420,7 @@ export function convertVitepressContent(content: string): {
 
   // ---- :::details Summary → Accordion -----------------------------------
   {
-    const detailsRe = /^:::\s*details\s+(.*[^\s])[^\S\n]*$/gm;
+    const detailsRe = /^:::\s*details\s+(\S[^\n]*\S)[^\S\n]*$/gm;
     let result = "";
     let lastIndex = 0;
     let match: RegExpExecArray | null;
@@ -456,7 +456,7 @@ export function convertVitepressContent(content: string): {
 
   // ---- :::info / :::tip / :::warning / :::danger → Callout --------------
   {
-    const containerRe = /^:::\s*(info|tip|warning|danger|note)(?:[^\S\n]+[^\n]*)?[^\S\n]*$/gm;
+    const containerRe = /^:::\s*(info|tip|warning|danger|note)(?:[^\S\n][^\n]*)?$/gm;
     let result = "";
     let lastIndex = 0;
     let match: RegExpExecArray | null;

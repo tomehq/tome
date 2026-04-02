@@ -99,33 +99,61 @@ export function parseDocusaurusConfig(content: string): DocusaurusConfig {
   const faviconMatch = content.match(/favicon\s*:\s*['"`]([^'"`]+)['"`]/);
   if (faviconMatch) config.favicon = faviconMatch[1];
 
-  // Extract navbar title from themeConfig
-  const navbarTitleMatch = content.match(
-    /navbar\s*:\s*\{[^}]*title\s*:\s*['"`]([^'"`]+)['"`]/s,
-  );
-  if (navbarTitleMatch) {
-    config.themeConfig = config.themeConfig || {};
-    config.themeConfig.navbar = config.themeConfig.navbar || {};
-    config.themeConfig.navbar.title = navbarTitleMatch[1];
+  // Extract navbar title from themeConfig.
+  // Use indexOf-based extraction to avoid ReDoS-prone nested quantifiers.
+  {
+    const navbarIdx = content.indexOf('navbar');
+    if (navbarIdx !== -1) {
+      const braceIdx = content.indexOf('{', navbarIdx);
+      if (braceIdx !== -1) {
+        // Search for `title:` within a reasonable window after the opening brace
+        const searchEnd = Math.min(braceIdx + 500, content.length);
+        const navbarChunk = content.slice(braceIdx, searchEnd);
+        const titleMatch = navbarChunk.match(/title\s*:\s*['"`]([^'"`]+)['"`]/);
+        if (titleMatch) {
+          config.themeConfig = config.themeConfig || {};
+          config.themeConfig.navbar = config.themeConfig.navbar || {};
+          config.themeConfig.navbar.title = titleMatch[1];
+        }
+      }
+    }
   }
 
-  // Extract navbar logo src
-  const logoSrcMatch = content.match(
-    /logo\s*:\s*\{[^}]*src\s*:\s*['"`]([^'"`]+)['"`]/s,
-  );
-  if (logoSrcMatch) {
-    config.themeConfig = config.themeConfig || {};
-    config.themeConfig.navbar = config.themeConfig.navbar || {};
-    config.themeConfig.navbar.logo = { src: logoSrcMatch[1] };
+  // Extract navbar logo src.
+  // Use indexOf to locate `logo` block, then regex within a bounded chunk.
+  {
+    const logoIdx = content.indexOf('logo');
+    if (logoIdx !== -1) {
+      const braceIdx = content.indexOf('{', logoIdx);
+      if (braceIdx !== -1) {
+        const searchEnd = Math.min(braceIdx + 500, content.length);
+        const logoChunk = content.slice(braceIdx, searchEnd);
+        const srcMatch = logoChunk.match(/src\s*:\s*['"`]([^'"`]+)['"`]/);
+        if (srcMatch) {
+          config.themeConfig = config.themeConfig || {};
+          config.themeConfig.navbar = config.themeConfig.navbar || {};
+          config.themeConfig.navbar.logo = { src: srcMatch[1] };
+        }
+      }
+    }
   }
 
-  // Extract colorMode defaultMode
-  const colorModeMatch = content.match(
-    /colorMode\s*:\s*\{[^}]*defaultMode\s*:\s*['"`]([^'"`]+)['"`]/s,
-  );
-  if (colorModeMatch) {
-    config.themeConfig = config.themeConfig || {};
-    config.themeConfig.colorMode = { defaultMode: colorModeMatch[1] };
+  // Extract colorMode defaultMode.
+  // Use indexOf to locate `colorMode` block, then regex within a bounded chunk.
+  {
+    const colorModeIdx = content.indexOf('colorMode');
+    if (colorModeIdx !== -1) {
+      const braceIdx = content.indexOf('{', colorModeIdx);
+      if (braceIdx !== -1) {
+        const searchEnd = Math.min(braceIdx + 500, content.length);
+        const colorModeChunk = content.slice(braceIdx, searchEnd);
+        const modeMatch = colorModeChunk.match(/defaultMode\s*:\s*['"`]([^'"`]+)['"`]/);
+        if (modeMatch) {
+          config.themeConfig = config.themeConfig || {};
+          config.themeConfig.colorMode = { defaultMode: modeMatch[1] };
+        }
+      }
+    }
   }
 
   return config;
@@ -144,9 +172,29 @@ export function parseDocusaurusConfig(content: string): DocusaurusConfig {
 export function parseSidebarsConfig(content: string): SidebarsConfig {
   // Try to extract the sidebars object as JSON-like content.
   // Strip comments first.
-  let cleaned = content
-    .replace(/\/\/.*$/gm, '')
-    .replace(/\/\*[\s\S]*?\*\//g, '');
+  // Remove single-line comments, then block comments.
+  // Block comment removal uses indexOf loop instead of regex to avoid ReDoS
+  // with the `[\s\S]*?` pattern.
+  let cleaned = content.replace(/\/\/[^\n]*$/gm, '');
+  {
+    let result = '';
+    let pos = 0;
+    while (pos < cleaned.length) {
+      const openIdx = cleaned.indexOf('/*', pos);
+      if (openIdx === -1) {
+        result += cleaned.slice(pos);
+        break;
+      }
+      result += cleaned.slice(pos, openIdx);
+      const closeIdx = cleaned.indexOf('*/', openIdx + 2);
+      if (closeIdx === -1) {
+        // Unclosed block comment — discard the rest
+        break;
+      }
+      pos = closeIdx + 2;
+    }
+    cleaned = result;
+  }
 
   // Find the main export (ESM or CJS)
   // export default { ... } or module.exports = { ... }
@@ -330,13 +378,13 @@ export function convertDocusaurusContent(content: string): {
   //         import TabItem from '@theme/TabItem';
   //         import anything from '@site/...'
   result = result.replace(
-    /^import\s+.*?\s+from\s+['"]@(?:theme|site|docusaurus)\/[^'"]+['"];?\s*$/gm,
+    /^import\s+[^\n]+\s+from\s+['"]@(?:theme|site|docusaurus)\/[^'"]+['"];?[^\S\n]*$/gm,
     '',
   );
 
   // Also strip require-style imports
   result = result.replace(
-    /^const\s+.*?=\s*require\(['"]@(?:theme|site|docusaurus)\/[^'"]+['"]\);?\s*$/gm,
+    /^const\s+\S+\s*=\s*require\(['"]@(?:theme|site|docusaurus)\/[^'"]+['"]\);?[^\S\n]*$/gm,
     '',
   );
 
