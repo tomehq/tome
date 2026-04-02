@@ -25,11 +25,13 @@
     "./migrate-gitbook": "./dist/migrate-gitbook.js",
     "./migrate-mintlify": "./dist/migrate-mintlify.js",
     "./typedoc": "./dist/typedoc.js",
-    "./content-source": "./dist/content-source.js"
+    "./content-source": "./dist/content-source.js",
+    "./password": "./dist/password.js",
+    "./remark-snippets": "./dist/remark-snippets.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts src/typedoc.ts src/content-source.ts --format esm --dts",
-    "dev": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts src/typedoc.ts --format esm --dts --watch",
+    "build": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts src/typedoc.ts src/content-source.ts src/password.ts src/remark-snippets.ts --format esm --dts",
+    "dev": "tsup src/index.ts src/vite-plugin.ts src/config.ts src/mcp-server.ts src/openapi.ts src/deploy.ts src/billing.ts src/domains.ts src/analytics.ts src/linter.ts src/og-image.ts src/preview.ts src/webhooks.ts src/changelog.ts src/git-dates.ts src/link-checker.ts src/migrate-gitbook.ts src/migrate-mintlify.ts src/typedoc.ts src/password.ts src/remark-snippets.ts --format esm --dts --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -58,6 +60,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@types/mdast": "^4.0.4",
     "@types/node": "^25.0.0",
     "tsup": "^8.0.0",
     "typescript": "^6.0.0",

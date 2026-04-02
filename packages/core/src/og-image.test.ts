@@ -104,6 +104,45 @@ describe("generateOgSvg", () => {
   });
 });
 
+// ── White labeling ─────────────────────────────────────
+
+describe("OG image white labeling", () => {
+  it("includes branding in SVG by default", () => {
+    const svg = generateOgSvg("Title", undefined, defaultConfig);
+    expect(svg).toContain("Powered by Tome");
+  });
+
+  it("includes branding in SVG when showBranding is true", () => {
+    const svg = generateOgSvg("Title", undefined, { ...defaultConfig, showBranding: true });
+    expect(svg).toContain("Powered by Tome");
+  });
+
+  it("excludes branding from SVG when showBranding is false", () => {
+    const svg = generateOgSvg("Title", undefined, { ...defaultConfig, showBranding: false });
+    expect(svg).not.toContain("Powered by Tome");
+  });
+
+  it("includes branding in satori template by default", () => {
+    const template = buildOgTemplate("Title", undefined, defaultConfig);
+    expect(JSON.stringify(template)).toContain("Powered by Tome");
+  });
+
+  it("excludes branding from satori template when showBranding is false", () => {
+    const template = buildOgTemplate("Title", undefined, { ...defaultConfig, showBranding: false });
+    expect(JSON.stringify(template)).not.toContain("Powered by Tome");
+  });
+
+  it("buildOgConfig passes showBranding from TomeConfig", () => {
+    const config = buildOgConfig(mockTomeConfig({ branding: { powered: false } }));
+    expect(config.showBranding).toBe(false);
+  });
+
+  it("buildOgConfig defaults showBranding to true", () => {
+    const config = buildOgConfig(mockTomeConfig());
+    expect(config.showBranding).toBe(true);
+  });
+});
+
 // ── buildOgTemplate ────────────────────────────────────
 
 describe("buildOgTemplate", () => {

@@ -697,11 +697,11 @@ describe("vite-plugin configureServer redirects", () => {
     };
     (plugin.configureServer as Function)(mockServer);
 
-    // Test the redirect middleware
+    // Test the redirect middleware (index 1 — content negotiation is at index 0)
     const writeHead = vi.fn();
     const end = vi.fn();
     const next = vi.fn();
-    middlewares[0](
+    middlewares[1](
       { url: "/old-page" },
       { writeHead, end },
       next,
@@ -726,7 +726,7 @@ describe("vite-plugin configureServer redirects", () => {
     const writeHead = vi.fn();
     const end = vi.fn();
     const next = vi.fn();
-    middlewares[0]({ url: "/legacy-home" }, { writeHead, end }, next);
+    middlewares[1]({ url: "/legacy-home" }, { writeHead, end }, next);
     expect(writeHead).toHaveBeenCalledWith(301, { Location: "/" });
     expect(end).toHaveBeenCalled();
   });
@@ -752,7 +752,7 @@ describe("vite-plugin configureServer redirects", () => {
     (plugin.configureServer as Function)(mockServer);
 
     const next = vi.fn();
-    middlewares[0]({ url: "/not-redirected" }, { writeHead: vi.fn(), end: vi.fn() }, next);
+    middlewares[1]({ url: "/not-redirected" }, { writeHead: vi.fn(), end: vi.fn() }, next);
     expect(next).toHaveBeenCalled();
   });
 });
@@ -840,5 +840,153 @@ describe("vite-plugin transformIndexHtml analytics injection", () => {
 
     // HTML should NOT have analytics beacon
     expect(result).not.toContain("sendBeacon");
+  });
+});
+
+// ── Configurable API reference path ─────────────────────
+
+// ── Content negotiation ─────────────────────────────────
+
+describe("content negotiation", () => {
+  it("injects llms.txt link tag into HTML head", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+    });
+
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
+    expect(result).toContain('rel="alternate"');
+    expect(result).toContain('type="text/markdown"');
+    expect(result).toContain('href="/llms.txt"');
+  });
+
+  it("serves markdown content via .md suffix in dev server", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home page content\n",
+    });
+
+    // Simulate configureServer middleware
+    const middlewares: Function[] = [];
+    const mockServer = {
+      middlewares: { use: (fn: Function) => middlewares.push(fn) },
+      watcher: { add: vi.fn(), on: vi.fn() },
+    };
+    (plugin.configureServer as Function)(mockServer);
+
+    // The first middleware should be content negotiation
+    const contentNegotiationMiddleware = middlewares[0];
+
+    // Test .md suffix request
+    const req = { url: "/index.md", headers: { accept: "text/html" } };
+    let statusCode = 0;
+    let headers: Record<string, string> = {};
+    let body = "";
+    const res = {
+      writeHead: (code: number, h: Record<string, string>) => { statusCode = code; headers = h; },
+      end: (b: string) => { body = b; },
+    };
+    let nextCalled = false;
+    const next = () => { nextCalled = true; };
+
+    await contentNegotiationMiddleware(req, res, next);
+
+    expect(statusCode).toBe(200);
+    expect(headers["Content-Type"]).toContain("text/markdown");
+    expect(body).toContain("Home page content");
+    expect(nextCalled).toBe(false);
+  });
+
+  it("passes through non-.md requests", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+    });
+
+    const middlewares: Function[] = [];
+    const mockServer = {
+      middlewares: { use: (fn: Function) => middlewares.push(fn) },
+      watcher: { add: vi.fn(), on: vi.fn() },
+    };
+    (plugin.configureServer as Function)(mockServer);
+
+    const req = { url: "/index", headers: { accept: "text/html" } };
+    const res = { writeHead: vi.fn(), end: vi.fn() };
+    let nextCalled = false;
+    const next = () => { nextCalled = true; };
+
+    await middlewares[0](req, res, next);
+
+    expect(nextCalled).toBe(true);
+    expect(res.writeHead).not.toHaveBeenCalled();
+  });
+});
+
+// ── White labeling ──────────────────────────────────────
+
+describe("vite-plugin white labeling", () => {
+  it("includes Tome branding in JSON-LD by default", async () => {
+    const plugin = await createPlugin({
+      "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+    });
+
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
+    expect(result).toContain("powered by Tome");
+  });
+
+  it("excludes Tome branding from JSON-LD when branding.powered is false", async () => {
+    const plugin = await createPlugin(
+      { "pages/index.md": "---\ntitle: Home\n---\n# Home\n" },
+      `export default { name: "Test", branding: { powered: false } };`,
+    );
+
+    const html = "<html><head></head><body>test</body></html>";
+    const result = (plugin.transformIndexHtml as Function)(html);
+    expect(result).not.toContain("powered by Tome");
+    expect(result).toContain("Documentation for Test");
+  });
+});
+
+describe("API reference path configuration", () => {
+  it("uses /api as the default API route path", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "openapi.json": OPENAPI_JSON,
+      },
+      `export default { name: "Test", api: { spec: "./openapi.json" } };`,
+    );
+
+    const pageLoaderModule = await (plugin.load as Function)("\0virtual:tome/page-loader");
+    expect(pageLoaderModule).toContain("api-reference");
+
+    const routesModule = await (plugin.load as Function)("\0virtual:tome/routes");
+    expect(routesModule).toContain('"/api"');
+  });
+
+  it("uses a custom API route path when configured", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "openapi.json": OPENAPI_JSON,
+      },
+      `export default { name: "Test", api: { spec: "./openapi.json", path: "/reference" } };`,
+    );
+
+    const routesModule = await (plugin.load as Function)("\0virtual:tome/routes");
+    expect(routesModule).toContain('"/reference"');
+    expect(routesModule).not.toContain('"/api"');
+  });
+
+  it("uses a nested custom API path", async () => {
+    const plugin = await createPlugin(
+      {
+        "pages/index.md": "---\ntitle: Home\n---\n# Home\n",
+        "openapi.json": OPENAPI_JSON,
+      },
+      `export default { name: "Test", api: { spec: "./openapi.json", path: "/docs/api-reference" } };`,
+    );
+
+    const routesModule = await (plugin.load as Function)("\0virtual:tome/routes");
+    expect(routesModule).toContain('"/docs/api-reference"');
   });
 });

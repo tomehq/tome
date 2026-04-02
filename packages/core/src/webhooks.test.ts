@@ -488,3 +488,27 @@ describe("webhooks config schema", () => {
     expect(result.success).toBe(false);
   });
 });
+
+// ── White labeling ────────────────────────────────────
+
+describe("webhook white labeling", () => {
+  it("includes Tome branding in Slack payload by default", () => {
+    const result = formatSlackPayload(basePayload);
+    expect(JSON.stringify(result)).toContain("Sent by Tome");
+  });
+
+  it("excludes Tome branding from Slack payload when showBranding is false", () => {
+    const result = formatSlackPayload({ ...basePayload, showBranding: false });
+    expect(JSON.stringify(result)).not.toContain("Sent by Tome");
+  });
+
+  it("includes Tome footer in Discord payload by default", () => {
+    const result = formatDiscordPayload(basePayload);
+    expect(JSON.stringify(result)).toContain('"text":"Tome"');
+  });
+
+  it("excludes Tome footer from Discord payload when showBranding is false", () => {
+    const result = formatDiscordPayload({ ...basePayload, showBranding: false });
+    expect(JSON.stringify(result)).not.toContain('"text":"Tome"');
+  });
+});

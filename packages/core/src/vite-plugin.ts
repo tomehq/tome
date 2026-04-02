@@ -136,6 +136,17 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         resolvedPlugins = resolved;
       }
     }
+
+    // Add built-in snippets remark plugin if snippets directory exists
+    const snippetsDir = resolve(root, config.snippetsDir || "snippets");
+    if (existsSync(snippetsDir)) {
+      const { default: remarkSnippets } = await import("./remark-snippets.js");
+      if (!resolvedPlugins) resolvedPlugins = {};
+      if (!resolvedPlugins.remarkPlugins) resolvedPlugins.remarkPlugins = [];
+      // Prepend snippets plugin so it runs before user plugins
+      resolvedPlugins.remarkPlugins.unshift([remarkSnippets, { snippetsDir }]);
+    }
+
     // Build i18n config if configured with multiple locales
     const i18nConfig: I18nConfig | undefined = config.i18n && config.i18n.locales.length > 1
       ? {
@@ -258,7 +269,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         id: "api-reference",
         filePath: "__api-reference__",
         absolutePath: "__api-reference__",
-        urlPath: "/api",
+        urlPath: config.api?.path || "/api",
         frontmatter: { title: "API Reference", hidden: false },
         isMdx: false,
       } as PageRoute);
@@ -388,6 +399,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         result = result.replace('</head>', pluginHeadTags.join('\n') + '\n</head>');
       }
 
+      // Content negotiation: link to llms.txt for AI agent discovery
+      const llmsLink = `<link rel="alternate" type="text/markdown" href="/llms.txt" title="LLM-optimized documentation" />`;
+      result = result.replace('</head>', `${llmsLink}\n</head>`);
+
       // Inject WebSite JSON-LD schema into the main index.html
       const siteUrlForJsonLd = (config.baseUrl || "").replace(/\/$/, "");
       const websiteSchema = {
@@ -395,7 +410,9 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         "@type": "WebSite",
         name: config.name,
         url: siteUrlForJsonLd || undefined,
-        description: `Documentation site powered by Tome`,
+        description: config.branding?.powered !== false
+          ? `Documentation site powered by Tome`
+          : `Documentation for ${config.name}`,
         potentialAction: {
           "@type": "SearchAction",
           target: siteUrlForJsonLd ? `${siteUrlForJsonLd}/search?q={search_term_string}` : undefined,
@@ -430,6 +447,36 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
     },
 
     configureServer(srv) {
+      // Content negotiation middleware — serve raw markdown for .md suffix or Accept: text/markdown
+      srv.middlewares.use(async (req, res, next) => {
+        if (!req.url || !config) return next();
+        const urlPath = req.url.split("?")[0];
+
+        // Check for .md suffix
+        const isMdRequest = urlPath.endsWith(".md");
+        // Check Accept header for text/markdown or text/plain
+        const acceptHeader = req.headers.accept || "";
+        const wantsMarkdown = acceptHeader.includes("text/markdown") || acceptHeader.includes("text/plain");
+
+        if (isMdRequest || wantsMarkdown) {
+          // Strip .md suffix to find the page route
+          const pagePath = isMdRequest ? urlPath.replace(/\.md$/, "") : urlPath;
+          const normalizedPath = pagePath === "" || pagePath === "/index" ? "/" : pagePath;
+          const route = routes.find((r) => r.urlPath === normalizedPath);
+
+          if (route && route.filePath !== "__api-reference__") {
+            try {
+              const source = readFileSync(route.absolutePath, "utf-8");
+              res.writeHead(200, { "Content-Type": "text/markdown; charset=utf-8" });
+              res.end(source);
+              return;
+            } catch {}
+          }
+        }
+
+        next();
+      });
+
       // Redirect middleware — matches config-level and frontmatter-level redirects
       srv.middlewares.use((req, res, next) => {
         if (!req.url || !config) return next();
@@ -461,6 +508,11 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
 
       // Watch pages directory for changes
       srv.watcher.add(pagesDir);
+      // Watch snippets directory for HMR
+      const snippetsDirPath = resolve(root, config.snippetsDir || "snippets");
+      if (existsSync(snippetsDirPath)) {
+        srv.watcher.add(snippetsDirPath);
+      }
 
       srv.watcher.on("change", async (file) => {
         if (file.startsWith(pagesDir) && /\.(md|mdx)$/.test(file)) {
@@ -741,7 +793,9 @@ export default { ${exportNames.join(", ")} };
       const llmsTxtLines = [
         `# ${config.name}`,
         "",
-        "> Documentation site powered by Tome",
+        config.branding?.powered !== false
+          ? "> Documentation site powered by Tome"
+          : `> ${config.name} documentation`,
         "",
         ...visibleRoutes.map((r) => {
           const url = baseUrl ? `${baseUrl.replace(/\/$/, "")}${r.urlPath}` : r.urlPath;
@@ -773,6 +827,35 @@ export default { ${exportNames.join(", ")} };
         fileName: "llms-full.txt",
         source: fullParts.join("\n---\n\n"),
       });
+
+      // ── Per-page .md files for content negotiation ────────
+      for (const r of visibleRoutes) {
+        if (r.filePath === "__api-reference__") continue;
+        try {
+          const page = await getPage(r.id);
+          const rawContent = page?.raw;
+          if (rawContent) {
+            // Emit as {urlPath}.md (strip leading slash)
+            const mdPath = r.urlPath === "/" ? "index.md" : `${r.urlPath.replace(/^\//, "")}.md`;
+            this.emitFile({
+              type: "asset",
+              fileName: mdPath,
+              source: rawContent,
+            });
+          } else if (r.isMdx) {
+            // For MDX files, read raw source and emit
+            try {
+              const rawMdx = readFileSync(r.absolutePath, "utf-8");
+              const mdPath = r.urlPath === "/" ? "index.md" : `${r.urlPath.replace(/^\//, "")}.md`;
+              this.emitFile({
+                type: "asset",
+                fileName: mdPath,
+                source: rawMdx,
+              });
+            } catch {}
+          }
+        } catch {}
+      }
 
       // ── Redirect generation ───────────────────────────────
       const allRedirects: Array<{ from: string; to: string }> = [
@@ -891,7 +974,9 @@ export default { ${exportNames.join(", ")} };
         "@type": "WebSite",
         name: config.name,
         url: siteUrl || undefined,
-        description: `Documentation site powered by Tome`,
+        description: config.branding?.powered !== false
+          ? `Documentation site powered by Tome`
+          : `Documentation for ${config.name}`,
         potentialAction: {
           "@type": "SearchAction",
           target: siteUrl ? `${siteUrl}/search?q={search_term_string}` : undefined,

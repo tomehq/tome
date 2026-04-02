@@ -392,6 +392,85 @@ describe("OverridesSchema", () => {
   });
 });
 
+describe("FeedbackSchema", () => {
+  it("defaults feedback to undefined when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.feedback).toBeUndefined();
+  });
+
+  it("defaults enabled to true when feedback object provided", () => {
+    const result = TomeConfigSchema.parse({ feedback: {} });
+    expect(result.feedback?.enabled).toBe(true);
+  });
+
+  it("defaults textInput to false", () => {
+    const result = TomeConfigSchema.parse({ feedback: {} });
+    expect(result.feedback?.textInput).toBe(false);
+  });
+
+  it("accepts feedback with text input enabled", () => {
+    const result = TomeConfigSchema.parse({ feedback: { textInput: true } });
+    expect(result.feedback?.textInput).toBe(true);
+  });
+
+  it("accepts feedback disabled", () => {
+    const result = TomeConfigSchema.parse({ feedback: { enabled: false } });
+    expect(result.feedback?.enabled).toBe(false);
+  });
+});
+
+describe("BrandingSchema", () => {
+  it("defaults branding to undefined when not provided", () => {
+    const result = TomeConfigSchema.parse({});
+    expect(result.branding).toBeUndefined();
+  });
+
+  it("defaults powered to true when branding object provided", () => {
+    const result = TomeConfigSchema.parse({ branding: {} });
+    expect(result.branding?.powered).toBe(true);
+  });
+
+  it("accepts branding.powered = false for white-labeling", () => {
+    const result = TomeConfigSchema.parse({ branding: { powered: false } });
+    expect(result.branding?.powered).toBe(false);
+  });
+
+  it("accepts branding.powered = true explicitly", () => {
+    const result = TomeConfigSchema.parse({ branding: { powered: true } });
+    expect(result.branding?.powered).toBe(true);
+  });
+});
+
+describe("ApiSchema path config", () => {
+  it("defaults api path to /api", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml" },
+    });
+    expect(result.api?.path).toBe("/api");
+  });
+
+  it("accepts a custom api path", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", path: "/reference" },
+    });
+    expect(result.api?.path).toBe("/reference");
+  });
+
+  it("accepts api path with nested segments", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", path: "/docs/api-reference" },
+    });
+    expect(result.api?.path).toBe("/docs/api-reference");
+  });
+
+  it("preserves playground default when path is set", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", path: "/reference" },
+    });
+    expect(result.api?.playground).toBe(true);
+  });
+});
+
 describe("I18nSchema localeDirs (RTL support)", () => {
   it("accepts localeDirs with valid ltr/rtl values", () => {
     const result = TomeConfigSchema.parse({

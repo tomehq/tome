@@ -11,6 +11,8 @@ import { webhooks } from "./routes/webhooks.js";
 import { analytics } from "./routes/analytics.js";
 import { authRoutes } from "./routes/auth.js";
 import { isApiHost, resolveHostname, serveFromR2 } from "./serve.js";
+import { siteAuth } from "./routes/site-auth.js";
+import { validateSessionToken } from "./password.js";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -23,7 +25,6 @@ app.use("*", async (c, next) => {
   if (isApiHost(host)) return next();
 
   // Platform hostnames — proxy to origin (Vercel landing page).
-  // The *.tome.center/* Worker route catches www, but it's not a hosted site.
   const bare = host.replace(/:\d+$/, "");
   if (bare === "www.tome.center" || bare === "tome.center") {
     return fetch(c.req.raw);
@@ -31,6 +32,27 @@ app.use("*", async (c, next) => {
 
   const slug = await resolveHostname(host, c.env.TOME_DB);
   if (!slug) return c.text("Site not found", 404);
+
+  // Password protection check
+  const row = await c.env.TOME_DB.prepare(
+    "SELECT password_required FROM projects WHERE slug = ? LIMIT 1"
+  ).bind(slug).first<{ password_required: number }>();
+
+  if (row?.password_required === 1) {
+    // Allow auth endpoints through
+    if (c.req.path.startsWith("/api/sites/")) {
+      return next();
+    }
+
+    // Check session cookie
+    const cookieHeader = c.req.header("cookie") ?? "";
+    const match = cookieHeader.match(/(?:^|;\s*)tome_site_session=([^;]*)/);
+    const sessionToken = match ? match[1] : null;
+
+    if (!sessionToken || validateSessionToken(sessionToken) !== slug) {
+      return c.redirect(`/api/sites/${slug}/password`);
+    }
+  }
 
   return serveFromR2(slug, c.req.path, c.env.TOME_BUCKET);
 });
@@ -95,6 +117,7 @@ app.route("/api/deploy", deploy);
 app.route("/api/domains", domains);
 app.route("/api/billing", billing);
 app.route("/api/auth", authRoutes);
+app.route("/api/sites", siteAuth);
 
 // ── R2 static site serving ───────────────────────────────
 // Serves deployed sites: GET /sites/{slug}/{path}

@@ -1775,5 +1775,105 @@ program
     }
   });
 
+// ── PASSWORD PROTECTION ─────────────────────────────────
+
+program
+  .command("protect")
+  .description("Set or remove password protection for your site")
+  .option("--remove", "Remove password protection")
+  .action(async (opts: { remove?: boolean }) => {
+    console.log(logo);
+
+    const { readAuthToken } = await import("@tomehq/core/deploy");
+    const token = readAuthToken();
+    if (!token) {
+      console.error(pc.red("  Error: Not logged in.\n"));
+      console.log(pc.dim("  Run ") + pc.cyan("tome login") + pc.dim(" first to authenticate.\n"));
+      process.exit(1);
+    }
+
+    // Load config for project slug
+    const root = process.cwd();
+    let slug = "my-docs";
+    for (const configFile of ["tome.config.js", "tome.config.mjs", "tome.config.ts"]) {
+      const configPath = join(root, configFile);
+      if (existsSync(configPath)) {
+        try {
+          const { pathToFileURL } = await import("url");
+          const configUrl = pathToFileURL(configPath).href;
+          const mod = await import(configUrl);
+          const config = mod.default || mod;
+          if (config.name) {
+            slug = config.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          }
+        } catch {}
+        break;
+      }
+    }
+
+    const API_BASE = process.env.TOME_API_URL || "https://api.tome.center";
+
+    if (opts.remove) {
+      try {
+        const res = await fetch(`${API_BASE}/api/deploy/protect`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ slug }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: "Unknown error" }));
+          console.error(pc.red(`  Error: ${(body as any).error}\n`));
+          process.exit(1);
+        }
+        console.log(pc.green("  ✓ ") + `Password protection removed from ${pc.bold(slug)}.\n`);
+      } catch (err) {
+        console.error(pc.red(`  Error: ${err instanceof Error ? err.message : String(err)}\n`));
+        process.exit(1);
+      }
+    } else {
+      // Prompt for password
+      const readline = await import("readline");
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const password = await new Promise<string>((resolve) => {
+        rl.question("  Enter a password for your site: ", (answer) => {
+          rl.close();
+          resolve(answer);
+        });
+      });
+
+      if (!password || password.length < 4) {
+        console.error(pc.red("  Error: Password must be at least 4 characters.\n"));
+        process.exit(1);
+      }
+
+      try {
+        const { hashPassword } = await import("@tomehq/core/password");
+        const hash = await hashPassword(password);
+
+        const res = await fetch(`${API_BASE}/api/deploy/protect`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ slug, passwordHash: hash }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: "Unknown error" }));
+          console.error(pc.red(`  Error: ${(body as any).error}\n`));
+          process.exit(1);
+        }
+        console.log(pc.green("  ✓ ") + `Password protection enabled for ${pc.bold(slug)}.\n`);
+        console.log(pc.dim("  Visitors will be prompted for the password before accessing your docs.\n"));
+      } catch (err) {
+        console.error(pc.red(`  Error: ${err instanceof Error ? err.message : String(err)}\n`));
+        process.exit(1);
+      }
+    }
+  });
+
 // ── PARSE ────────────────────────────────────────────────
 program.parse();

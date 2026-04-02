@@ -445,4 +445,53 @@ function guessContentType(path: string): string {
   return types[ext ?? ""] ?? "application/octet-stream";
 }
 
+// ── POST /protect — set password protection on a project ──
+deploy.post("/protect", async (c) => {
+  const user = c.get("user");
+  const body = await c.req.json<{ slug: string; passwordHash: string }>();
+
+  if (!body.slug || !body.passwordHash) {
+    return c.json({ error: "Missing slug or passwordHash" }, 400);
+  }
+
+  // Verify the project belongs to this user
+  const project = await c.env.TOME_DB.prepare(
+    "SELECT id FROM projects WHERE slug = ? AND user_id = ?"
+  ).bind(body.slug, user.id).first<{ id: string }>();
+
+  if (!project) {
+    return c.json({ error: "Project not found or not owned by you" }, 404);
+  }
+
+  await c.env.TOME_DB.prepare(
+    "UPDATE projects SET password_required = 1, password_hash = ? WHERE id = ?"
+  ).bind(body.passwordHash, project.id).run();
+
+  return c.json({ ok: true, message: "Password protection enabled" });
+});
+
+// ── DELETE /protect — remove password protection from a project ──
+deploy.delete("/protect", async (c) => {
+  const user = c.get("user");
+  const body = await c.req.json<{ slug: string }>();
+
+  if (!body.slug) {
+    return c.json({ error: "Missing slug" }, 400);
+  }
+
+  const project = await c.env.TOME_DB.prepare(
+    "SELECT id FROM projects WHERE slug = ? AND user_id = ?"
+  ).bind(body.slug, user.id).first<{ id: string }>();
+
+  if (!project) {
+    return c.json({ error: "Project not found or not owned by you" }, 404);
+  }
+
+  await c.env.TOME_DB.prepare(
+    "UPDATE projects SET password_required = 0, password_hash = NULL WHERE id = ?"
+  ).bind(project.id).run();
+
+  return c.json({ ok: true, message: "Password protection removed" });
+});
+
 export { deploy };

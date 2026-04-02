@@ -347,6 +347,8 @@ interface ShellProps {
     toc?: { enabled?: boolean; depth?: number };
     topNav?: Array<{ label: string; href: string }>;
     banner?: { text: string; link?: string; dismissible?: boolean };
+    branding?: { powered?: boolean };
+    feedback?: { enabled?: boolean; textInput?: boolean };
     socialLinks?: Array<{ platform: string; url: string; label?: string; icon?: string }>;
     [key: string]: unknown;
   };
@@ -421,6 +423,9 @@ export function Shell({
   const [localeDropdownOpen, setLocaleDropdown] = useState(false);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({});
+  const [feedbackRating, setFeedbackRating] = useState<Record<string, "up" | "down">>({});
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
   const [bannerDismissed, setBannerDismissed] = useState(() => {
     if (!config.banner?.text) return true;
     try {
@@ -860,7 +865,7 @@ export function Shell({
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </button>
             ) : <div />}
-            <span style={{ fontSize: 11, color: "var(--txM)", letterSpacing: 0.2 }}>Built with {"\u2661"} by Tome</span>
+            {config.branding?.powered !== false && <span style={{ fontSize: 11, color: "var(--txM)", letterSpacing: 0.2 }}>Built with {"\u2661"} by Tome</span>}
             <span style={{ fontFamily: "var(--font-code)", fontSize: 10, color: "var(--txM)" }}>{typeof __TOME_VERSION__ !== "undefined" && __TOME_VERSION__ ? `v${__TOME_VERSION__}` : "v0.1.0"}</span>
           </div>
         </aside>
@@ -1225,21 +1230,90 @@ export function Shell({
               )}
 
               {/* Feedback widget */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24, padding: "12px 0" }}>
-                {feedbackGiven[currentPageId] ? (
+              {config.feedback?.enabled !== false && (
+              <div data-testid="feedback-widget" style={{ marginTop: 24, padding: "12px 0" }}>
+                {feedbackSubmitted[currentPageId] ? (
+                  <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Thanks for your feedback!</span>
+                ) : feedbackGiven[currentPageId] && config.feedback?.textInput ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Any additional feedback? (optional)</span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input
+                        data-testid="feedback-text-input"
+                        type="text"
+                        value={feedbackComment}
+                        onChange={e => setFeedbackComment(e.target.value)}
+                        placeholder="Tell us more..."
+                        style={{
+                          flex: 1, padding: "6px 10px", fontSize: 13, fontFamily: "var(--font-body)",
+                          background: "var(--sf)", border: "1px solid var(--bd)", borderRadius: 2,
+                          color: "var(--tx)", outline: "none",
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            (window as any).__tome?.trackFeedback(currentPageId, feedbackRating[currentPageId], feedbackComment);
+                            try { localStorage.setItem(`tome-feedback-${currentPageId}`, feedbackRating[currentPageId]); } catch {}
+                            setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                            setFeedbackComment("");
+                          }
+                        }}
+                      />
+                      <button
+                        data-testid="feedback-submit"
+                        onClick={() => {
+                          (window as any).__tome?.trackFeedback(currentPageId, feedbackRating[currentPageId], feedbackComment);
+                          try { localStorage.setItem(`tome-feedback-${currentPageId}`, feedbackRating[currentPageId]); } catch {}
+                          setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                          setFeedbackComment("");
+                        }}
+                        style={{
+                          background: "none", border: "1px solid var(--bd)", borderRadius: 2,
+                          padding: "6px 14px", cursor: "pointer", fontSize: 13, color: "var(--txM)",
+                        }}
+                      >Submit</button>
+                      <button
+                        onClick={() => {
+                          (window as any).__tome?.trackFeedback(currentPageId, feedbackRating[currentPageId]);
+                          try { localStorage.setItem(`tome-feedback-${currentPageId}`, feedbackRating[currentPageId]); } catch {}
+                          setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                        }}
+                        style={{
+                          background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--txM)",
+                        }}
+                      >Skip</button>
+                    </div>
+                  </div>
+                ) : feedbackGiven[currentPageId] ? (
                   <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Thanks for your feedback!</span>
                 ) : (
-                  <>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontSize: 13, color: "var(--txM)", fontFamily: "var(--font-body)" }}>Was this helpful?</span>
-                    <button onClick={() => { setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true })); try { localStorage.setItem(`tome-feedback-${currentPageId}`, "up"); } catch {} }} style={{
+                    <button data-testid="feedback-up" onClick={() => {
+                      setFeedbackRating(prev => ({ ...prev, [currentPageId]: "up" }));
+                      setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true }));
+                      if (!config.feedback?.textInput) {
+                        (window as any).__tome?.trackFeedback(currentPageId, "up");
+                        try { localStorage.setItem(`tome-feedback-${currentPageId}`, "up"); } catch {}
+                        setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                      }
+                    }} style={{
                       background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "4px 10px", cursor: "pointer", fontSize: 13, color: "var(--txM)", transition: "border-color .15s",
                     }}>👍</button>
-                    <button onClick={() => { setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true })); try { localStorage.setItem(`tome-feedback-${currentPageId}`, "down"); } catch {} }} style={{
+                    <button data-testid="feedback-down" onClick={() => {
+                      setFeedbackRating(prev => ({ ...prev, [currentPageId]: "down" }));
+                      setFeedbackGiven(prev => ({ ...prev, [currentPageId]: true }));
+                      if (!config.feedback?.textInput) {
+                        (window as any).__tome?.trackFeedback(currentPageId, "down");
+                        try { localStorage.setItem(`tome-feedback-${currentPageId}`, "down"); } catch {}
+                        setFeedbackSubmitted(prev => ({ ...prev, [currentPageId]: true }));
+                      }
+                    }} style={{
                       background: "none", border: "1px solid var(--bd)", borderRadius: 2, padding: "4px 10px", cursor: "pointer", fontSize: 13, color: "var(--txM)", transition: "border-color .15s",
                     }}>👎</button>
-                  </>
+                  </div>
                 )}
               </div>
+              )}
 
               {/* Prev / Next link cards */}
               <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", marginTop: 24, paddingTop: 32, paddingBottom: 40, borderTop: "1px solid var(--bd)", gap: 16 }}>
@@ -1429,6 +1503,8 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
         }
         setResults(items);
         setSelected(0);
+        // Track search query in analytics
+        (window as any).__tome?.trackSearch(query, items.length);
         return;
       } catch {
         // Pagefind search failed, fall through to fallback
@@ -1436,8 +1512,11 @@ function SearchModal({ allPages, onNavigate, onClose, mobile }: {
     }
 
     // Fallback: client-side filtering
-    setResults(fallbackSearch(query));
+    const fallbackResults = fallbackSearch(query);
+    setResults(fallbackResults);
     setSelected(0);
+    // Track search query in analytics
+    (window as any).__tome?.trackSearch(query, fallbackResults.length);
   }, [fallbackSearch]);
 
   // Debounced search on query change

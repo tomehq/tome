@@ -38,6 +38,7 @@ export const SearchSchema = z.object({
 
 export const ApiSchema = z.object({
   spec: z.string(),
+  path: z.string().default("/api"),
   playground: z.boolean().default(true),
   baseUrl: z.string().optional(),
   auth: z.object({
@@ -112,6 +113,15 @@ export const SocialLinkSchema = z.object({
 
 export const SocialLinksSchema = z.array(SocialLinkSchema).optional();
 
+export const FeedbackSchema = z.object({
+  enabled: z.boolean().default(true),
+  textInput: z.boolean().default(false),
+}).optional();
+
+export const BrandingSchema = z.object({
+  powered: z.boolean().default(true),
+}).optional();
+
 export const BannerSchema = z.object({
   text: z.string(),
   link: z.string().optional(),
@@ -145,6 +155,9 @@ export const TomeConfigSchema = z.object({
   versioning: VersioningSchema,
   toc: TocSchema,
   banner: BannerSchema,
+  branding: BrandingSchema,
+  feedback: FeedbackSchema,
+  snippetsDir: z.string().default("snippets"),
   editLink: EditLinkSchema,
   math: z.boolean().default(false),
   strictLinks: z.boolean().default(false),
