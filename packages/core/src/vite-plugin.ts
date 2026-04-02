@@ -9,6 +9,7 @@ import { discoverPages, buildNavigation, type PageRoute, type NavigationGroup, t
 import { fetchRemoteContent, type ContentSource } from "./content-source.js";
 import { processMarkdown, extractHeadingsFromSource, type ProcessedPage, type MarkdownPluginOptions, type MarkdownMathOptions } from "./markdown.js";
 import { parseOpenApiSpec, type ApiManifest } from "./openapi.js";
+import { parseAsyncApiSpec, type AsyncApiManifest } from "./asyncapi.js";
 import { recmaSandbox } from "./recma-sandbox.js";
 import { generateAnalyticsScript } from "./analytics.js";
 import { getGitLastUpdated } from "./git-dates.js";
@@ -82,6 +83,7 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
   let routes: PageRoute[] = [];
   let navigation: NavigationGroup[] = [];
   let apiManifest: ApiManifest | null = null;
+  let asyncApiManifest: AsyncApiManifest | null = null;
   let isDevMode = false;
 
   // Cache processed pages (HTML only — MDX pages are loaded directly by Vite)
@@ -249,6 +251,17 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       }
     }
 
+    // TOM-66: Parse AsyncAPI spec if configured
+    asyncApiManifest = null;
+    if (config.api?.asyncSpec) {
+      const asyncSpecPath = resolve(root, config.api.asyncSpec);
+      try {
+        asyncApiManifest = await parseAsyncApiSpec(asyncSpecPath);
+      } catch (err) {
+        console.warn(`[tome] Failed to parse AsyncAPI spec: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
     // TOM-54: Compute git last-updated dates
     gitDates.clear();
     if (config.lastUpdated !== false) {
@@ -263,8 +276,8 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
       }
     }
 
-    // Add synthetic API reference route
-    if (apiManifest) {
+    // Add synthetic API reference route (OpenAPI and/or AsyncAPI)
+    if (apiManifest || asyncApiManifest) {
       routes.push({
         id: "api-reference",
         filePath: "__api-reference__",
@@ -610,10 +623,10 @@ export default function tomePlugin(options: TomePluginOptions = {}): Plugin[] {
         `;
       }
 
-      // TOM-19: Serve API manifest as virtual module
+      // TOM-19 + TOM-66: Serve API manifests as virtual module
       if (id === RESOLVED_API) {
-        if (!apiManifest) return `export default null;`;
-        return `export default ${JSON.stringify(apiManifest)};`;
+        if (!apiManifest && !asyncApiManifest) return `export default null;`;
+        return `export default ${JSON.stringify({ openapi: apiManifest, asyncapi: asyncApiManifest })};`;
       }
 
       // TOM-24: Serve analytics config as virtual module
@@ -695,14 +708,19 @@ export default { ${exportNames.join(", ")} };
       if (id.startsWith(RESOLVED_PAGE_PREFIX)) {
         const pageId = id.slice(RESOLVED_PAGE_PREFIX.length);
 
-        // TOM-19: Synthetic API reference page
-        if (pageId === "api-reference" && apiManifest) {
+        // TOM-19 + TOM-66: Synthetic API reference page (OpenAPI and/or AsyncAPI)
+        if (pageId === "api-reference" && (apiManifest || asyncApiManifest)) {
+          const headings = [
+            ...(apiManifest?.tags || []).map((t) => ({ depth: 2, text: t.name, id: t.name.toLowerCase().replace(/\s+/g, "-") })),
+            ...(asyncApiManifest?.tags || []).map((t) => ({ depth: 2, text: t.name, id: `async-${t.name.toLowerCase().replace(/\s+/g, "-")}` })),
+          ];
           return `
             export const isApiReference = true;
             export const apiManifest = ${JSON.stringify(apiManifest)};
+            export const asyncApiManifest = ${JSON.stringify(asyncApiManifest)};
             export default ${JSON.stringify({
               html: "",
-              headings: apiManifest.tags.map((t) => ({ depth: 2, text: t.name, id: t.name.toLowerCase().replace(/\s+/g, "-") })),
+              headings,
               frontmatter: { title: "API Reference" },
             })};
           `;

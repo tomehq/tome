@@ -368,6 +368,7 @@ interface ShellProps {
   lastUpdated?: string;
   changelogEntries?: Array<{ version: string; date?: string; url?: string; sections: Array<{ type: string; items: string[] }> }>;
   apiManifest?: any;
+  asyncApiManifest?: any;
   apiBaseUrl?: string;
   apiPlayground?: boolean;
   apiAuth?: { type: "bearer" | "apiKey"; header?: string };
@@ -377,6 +378,7 @@ interface ShellProps {
     showPlayground?: boolean;
     playgroundAuth?: { type: "bearer" | "apiKey"; header?: string };
   }>;
+  AsyncApiReferenceComponent?: React.ComponentType<{ manifest: any }>;
   onNavigate: (id: string) => void;
   allPages: Array<{ id: string; title: string; description?: string }>;
   versioning?: VersioningInfo;
@@ -399,7 +401,7 @@ interface ShellProps {
 export function Shell({
   config, navigation, currentPageId, pageHtml, pageComponent, mdxComponents,
   pageTitle, pageDescription, headings, tocEnabled = true, editUrl, lastUpdated, changelogEntries,
-  apiManifest, apiBaseUrl, apiPlayground, apiAuth, ApiReferenceComponent, onNavigate, allPages,
+  apiManifest, asyncApiManifest, apiBaseUrl, apiPlayground, apiAuth, ApiReferenceComponent, AsyncApiReferenceComponent, onNavigate, allPages,
   versioning, currentVersion, i18n, currentLocale, docContext, basePath = "", isDraft, dir: dirProp, overrides,
 }: ShellProps) {
   // RTL support: resolve text direction from prop, i18n.localeDirs, or default to "ltr"
@@ -1136,7 +1138,7 @@ export function Shell({
 
           {/* Content + TOC */}
           <div ref={contentRef} style={{ flex: 1, overflow: "auto", display: "flex" }}>
-            <main style={{ flex: 1, maxWidth: mobile ? "100%" : apiManifest ? 1100 : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
+            <main style={{ flex: 1, maxWidth: mobile ? "100%" : (apiManifest || asyncApiManifest) ? 1100 : 760, padding: mobile ? "24px 16px 60px" : "40px 48px 80px", margin: "0 auto", minWidth: 0 }}>
               {breadcrumbs.length > 0 && (
                 <nav aria-label="Breadcrumbs" data-testid="breadcrumbs" style={{
                   display: "flex", alignItems: "center", gap: 6,
@@ -1175,9 +1177,19 @@ export function Shell({
               )}
               {pageDescription && <p style={{ fontSize: 16, color: "var(--tx2)", lineHeight: 1.6, marginBottom: 32 }}>{pageDescription}</p>}
               <div style={{ borderTop: "1px solid var(--bd)", paddingTop: 28 }}>
-                {/* TOM-19: API Reference page */}
-                {apiManifest && ApiReferenceComponent ? (
-                  <ApiReferenceComponent manifest={apiManifest} baseUrl={apiBaseUrl} showPlayground={apiPlayground} playgroundAuth={apiAuth} />
+                {/* TOM-19 + TOM-66: API Reference page (OpenAPI + AsyncAPI) */}
+                {(apiManifest || asyncApiManifest) && (ApiReferenceComponent || AsyncApiReferenceComponent) ? (
+                  <>
+                    {apiManifest && ApiReferenceComponent && (
+                      <ApiReferenceComponent manifest={apiManifest} baseUrl={apiBaseUrl} showPlayground={apiPlayground} playgroundAuth={apiAuth} />
+                    )}
+                    {asyncApiManifest && AsyncApiReferenceComponent && (
+                      <>
+                        {apiManifest && <div style={{ borderTop: "1px solid var(--bd)", margin: "40px 0" }} />}
+                        <AsyncApiReferenceComponent manifest={asyncApiManifest} />
+                      </>
+                    )}
+                  </>
                 ) : /* TOM-49: Changelog page type */
                 changelogEntries && changelogEntries.length > 0 ? (
                   <ChangelogView entries={changelogEntries} />

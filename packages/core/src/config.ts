@@ -41,7 +41,8 @@ export const SearchSchema = z.object({
 }).default({ provider: "local" as const, ai: false });
 
 export const ApiSchema = z.object({
-  spec: z.string(),
+  spec: z.string().optional(),
+  asyncSpec: z.string().optional(),
   path: z.string().default("/api"),
   playground: z.boolean().default(true),
   baseUrl: z.string().optional(),
@@ -49,7 +50,10 @@ export const ApiSchema = z.object({
     type: z.enum(["bearer", "apiKey", "oauth2"]).optional(),
     header: z.string().optional(),
   }).optional(),
-}).optional();
+}).refine(
+  (v) => v.spec || v.asyncSpec,
+  { message: "At least one of spec or asyncSpec must be provided" },
+).optional();
 
 export const AiSchema = z.object({
   enabled: z.boolean().default(false),

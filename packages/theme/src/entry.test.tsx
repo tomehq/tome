@@ -151,6 +151,12 @@ vi.mock("@tomehq/components", () => ({
   LinkCard: () => <div />,
   CardGrid: () => <div />,
   ApiReference: MockApiReference,
+  AsyncApiReference: (p: any) => <div data-testid="async-api-ref" />,
+  ProtocolBadge: () => <div />,
+  DirectionBadge: () => <div />,
+  ChannelCard: () => <div />,
+  MessageBlock: () => <div />,
+  AsyncParameterTable: () => <div />,
 }));
 
 // ── Global stubs ─────────────────────────────────────────

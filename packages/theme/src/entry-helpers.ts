@@ -52,6 +52,7 @@ export interface ApiReferencePage {
   headings: Array<{ depth: number; text: string; id: string }>;
   changelogEntries?: undefined;
   apiManifest: any;
+  asyncApiManifest?: any;
 }
 
 export type LoadedPage = HtmlPage | MdxPage | ApiReferencePage;
@@ -124,9 +125,13 @@ export async function loadPage(
   // Regular .md page — mod.default is { html, frontmatter, headings }
   if (!mod.default) throw new PageNotFoundError(id);
 
-  // API reference page (synthetic route from OpenAPI spec)
-  if (mod.isApiReference && mod.apiManifest) {
-    return { isMdx: false, isApiReference: true, ...mod.default, apiManifest: mod.apiManifest };
+  // API reference page (synthetic route from OpenAPI/AsyncAPI spec)
+  if (mod.isApiReference && (mod.apiManifest || mod.asyncApiManifest)) {
+    return {
+      isMdx: false, isApiReference: true, ...mod.default,
+      apiManifest: mod.apiManifest,
+      asyncApiManifest: mod.asyncApiManifest,
+    };
   }
 
   // Changelog page type

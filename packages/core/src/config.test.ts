@@ -426,6 +426,36 @@ describe("FeedbackSchema", () => {
   });
 });
 
+describe("ApiSchema asyncSpec", () => {
+  it("accepts asyncSpec alone", () => {
+    const result = TomeConfigSchema.parse({
+      api: { asyncSpec: "./asyncapi.yaml" },
+    });
+    expect(result.api?.asyncSpec).toBe("./asyncapi.yaml");
+  });
+
+  it("accepts both spec and asyncSpec", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml", asyncSpec: "./asyncapi.yaml" },
+    });
+    expect(result.api?.spec).toBe("./openapi.yaml");
+    expect(result.api?.asyncSpec).toBe("./asyncapi.yaml");
+  });
+
+  it("accepts spec alone (backward compatible)", () => {
+    const result = TomeConfigSchema.parse({
+      api: { spec: "./openapi.yaml" },
+    });
+    expect(result.api?.spec).toBe("./openapi.yaml");
+  });
+
+  it("rejects api config with neither spec nor asyncSpec", () => {
+    expect(() => TomeConfigSchema.parse({
+      api: { path: "/reference" },
+    })).toThrow();
+  });
+});
+
 describe("SearchSchema ai option", () => {
   it("defaults search.ai to false when search object provided", () => {
     const result = TomeConfigSchema.parse({ search: {} });
