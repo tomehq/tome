@@ -15,6 +15,7 @@
 
 import { Hono } from "hono";
 import type { Env, User } from "../types.js";
+import { syncToGitHub } from "./editor-github.js";
 
 const editor = new Hono<{ Bindings: Env; Variables: { user: User } }>();
 
@@ -231,10 +232,36 @@ editor.post("/pages/:id/publish", async (c) => {
     "UPDATE editor_pages SET status = 'published', updated_at = datetime('now') WHERE id = ?",
   ).bind(pageId).run();
 
+  // Sync to GitHub if a repo is connected
+  let commitSha: string | undefined;
+  const ghInfo = await c.env.TOME_DB.prepare(
+    "SELECT github_repo, github_installation_id, github_branch FROM projects WHERE id = ?",
+  ).bind(page.project_id).first<{
+    github_repo: string | null;
+    github_installation_id: number | null;
+    github_branch: string | null;
+  }>();
+
+  if (ghInfo?.github_repo && ghInfo.github_installation_id) {
+    const [owner, repo] = ghInfo.github_repo.split("/");
+    const result = await syncToGitHub({
+      env: c.env,
+      owner,
+      repo,
+      branch: ghInfo.github_branch || "main",
+      installationId: ghInfo.github_installation_id,
+      filePath,
+      content: markdown,
+      commitMessage: `docs: update ${page.path} via Tome editor`,
+    });
+    if (result) commitSha = result.sha;
+  }
+
   return c.json({
     ok: true,
     status: "published",
     url: `https://${page.project_slug}.tome.center/${page.path}`,
+    commitSha,
   });
 });
 

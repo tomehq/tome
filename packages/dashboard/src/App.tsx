@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import EditorPage from "./EditorPage";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -498,6 +499,10 @@ const BASE = "/dashboard";
 
 function matchRoute(path: string): { page: string; params: Record<string, string> } {
   const route = path.replace(BASE, "") || "/";
+  const editorMatch = route.match(/^\/project\/([^/]+)\/editor$/);
+  if (editorMatch) {
+    return { page: "editor", params: { slug: editorMatch[1] } };
+  }
   if (route.startsWith("/project/")) {
     return { page: "project", params: { slug: route.slice(9) } };
   }
@@ -1316,6 +1321,14 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
           </h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            className="btn-ghost"
+            style={{ whiteSpace: "nowrap", padding: "10px 20px", fontSize: 13, display: "flex", alignItems: "center", gap: 8, borderRadius: 6 }}
+            onClick={() => navigate(`/project/${slug}/editor`)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+            Editor
+          </button>
           {latestDeployment?.url && (
               <a
                 href={latestDeployment.url}
@@ -2372,6 +2385,9 @@ export function App() {
 
   let content: React.ReactNode;
   switch (page) {
+    case "editor":
+      content = <EditorPage slug={params.slug} token={token} user={user} />;
+      break;
     case "project":
       content = <ProjectDetailPage slug={params.slug} token={token} user={user} />;
       break;
