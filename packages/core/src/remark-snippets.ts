@@ -18,6 +18,9 @@ import remarkGfm from "remark-gfm";
 import type { Root, Paragraph, Text } from "mdast";
 import type { Plugin } from "unified";
 
+/** Regex to match YAML frontmatter block at start of content */
+const FRONTMATTER_REGEX = /^---\n[\s\S]*?\n---\n/;
+
 export interface RemarkSnippetsOptions {
   /** Absolute path to the snippets directory */
   snippetsDir: string;
@@ -106,7 +109,7 @@ function resolveSnippetsInTree(
             let content = resolveSnippet(snippetsDir, file);
 
             // Strip frontmatter from snippet content
-            const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
+            const fmMatch = content.match(FRONTMATTER_REGEX);
             if (fmMatch) {
               content = content.slice(fmMatch[0].length);
             }

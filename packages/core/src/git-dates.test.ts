@@ -46,7 +46,10 @@ describe("formatRelativeDate", () => {
   });
 
   it("returns singular month", () => {
-    expect(formatRelativeDate("2025-05-16T12:00:00Z")).toBe("1 month ago");
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    d.setDate(d.getDate() - 1);
+    expect(formatRelativeDate(d.toISOString())).toBe("1 month ago");
   });
 
   it("returns years ago", () => {

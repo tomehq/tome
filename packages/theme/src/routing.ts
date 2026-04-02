@@ -18,8 +18,10 @@ export function pathnameToPageId(
   routes: MinimalRoute[],
 ): string | null {
   let relative = pathname;
-  if (basePath && relative.startsWith(basePath)) {
-    relative = relative.slice(basePath.length);
+  // Handle basePath stripping — treat "/" basePath as empty to avoid stripping all leading slashes
+  const normalizedBase = basePath === "/" ? "" : basePath.replace(/\/+$/, "");
+  if (normalizedBase && relative.startsWith(normalizedBase)) {
+    relative = relative.slice(normalizedBase.length);
   }
   const id =
     relative
@@ -31,7 +33,9 @@ export function pathnameToPageId(
   const routeById = routes.find((r) => r.id === id);
   if (routeById) return id;
   // Match by urlPath (for synthetic routes where ID differs from URL, e.g. api-reference at /events-api)
-  const routeByUrl = routes.find((r) => r.urlPath === "/" + id || r.urlPath === "/" + id + "/");
+  const urlPath = "/" + id;
+  const urlPathWithSlash = urlPath + "/";
+  const routeByUrl = routes.find((r) => r.urlPath === urlPath || r.urlPath === urlPathWithSlash);
   return routeByUrl ? routeByUrl.id : null;
 }
 
