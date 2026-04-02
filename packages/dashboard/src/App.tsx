@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import EditorPage from "./EditorPage";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -498,6 +499,10 @@ const BASE = "/dashboard";
 
 function matchRoute(path: string): { page: string; params: Record<string, string> } {
   const route = path.replace(BASE, "") || "/";
+  const editorMatch = route.match(/^\/project\/([^/]+)\/editor$/);
+  if (editorMatch) {
+    return { page: "editor", params: { slug: editorMatch[1] } };
+  }
   if (route.startsWith("/project/")) {
     return { page: "project", params: { slug: route.slice(9) } };
   }
@@ -1162,6 +1167,21 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Capture GitHub App installation callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const installId = params.get("installation_id");
+    const setupAction = params.get("setup_action");
+    if (installId && setupAction === "install") {
+      setGithubInstallId(installId);
+      // Clean URL params so they don't persist on refresh
+      const url = new URL(window.location.href);
+      url.searchParams.delete("installation_id");
+      url.searchParams.delete("setup_action");
+      window.history.replaceState({}, "", url.pathname);
+    }
+  }, []);
+
   const addDomain = async (e: React.FormEvent) => {
     e.preventDefault();
     // Strip protocol and trailing slashes from domain input
@@ -1316,6 +1336,14 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
           </h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            className="btn-ghost"
+            style={{ whiteSpace: "nowrap", padding: "10px 20px", fontSize: 13, display: "flex", alignItems: "center", gap: 8, borderRadius: 6 }}
+            onClick={() => navigate(`/project/${slug}/editor`)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+            Editor
+          </button>
           {latestDeployment?.url && (
               <a
                 href={latestDeployment.url}
@@ -1670,46 +1698,58 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
                 </div>
               </div>
             </div>
+          ) : githubInstallId ? (
+            /* Step 2: Installation detected — enter repo details */
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)", display: "inline-block" }} />
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--green)", fontWeight: 600 }}>
+                  GitHub App installed (ID: {githubInstallId})
+                </p>
+              </div>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", marginBottom: 12 }}>
+                Enter the repository you want to connect for auto-deploy.
+              </p>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <input
+                  className="input-field"
+                  placeholder="owner/repository"
+                  value={githubRepoInput}
+                  onChange={(e) => setGithubRepoInput(e.target.value)}
+                  style={{ flex: 1 }}
+                  aria-label="GitHub repository"
+                />
+                <input
+                  className="input-field"
+                  placeholder="main"
+                  value={githubBranch}
+                  onChange={(e) => setGithubBranch(e.target.value)}
+                  style={{ width: 120 }}
+                  aria-label="Branch name"
+                />
+                <button className="btn-primary" onClick={connectGithub} disabled={!githubRepoInput.trim()} style={{ padding: "10px 24px", fontSize: 13 }}>
+                  Connect
+                </button>
+              </div>
+            </div>
           ) : (
+            /* Step 1: No installation — show install button */
             <div>
               <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", marginBottom: 16 }}>
-                Connect a GitHub repository to enable automatic deployments on push.
+                Install the Tome Deploy GitHub App to enable automatic deployments on push and PR previews.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <input
-                    className="input-field"
-                    placeholder="owner/repository"
-                    value={githubRepoInput}
-                    onChange={(e) => setGithubRepoInput(e.target.value)}
-                    style={{ flex: 1 }}
-                    aria-label="GitHub repository"
-                  />
-                  <input
-                    className="input-field"
-                    placeholder="Installation ID"
-                    value={githubInstallId}
-                    onChange={(e) => setGithubInstallId(e.target.value)}
-                    style={{ width: 160 }}
-                    aria-label="GitHub installation ID"
-                  />
-                </div>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Branch:</div>
-                  <input
-                    className="input-field"
-                    placeholder="main"
-                    value={githubBranch}
-                    onChange={(e) => setGithubBranch(e.target.value)}
-                    style={{ width: 140 }}
-                    aria-label="Branch name"
-                  />
-                  <div style={{ flex: 1 }} />
-                  <button className="btn-primary" onClick={connectGithub} disabled={!githubRepoInput.trim()} style={{ padding: "10px 24px", fontSize: 13 }}>
-                    Connect
-                  </button>
-                </div>
-              </div>
+              <a
+                href={`https://github.com/apps/tome-deploy/installations/new?state=${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+                style={{ display: "inline-block", padding: "10px 24px", fontSize: 13, textDecoration: "none", borderRadius: 6 }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                  Install Tome Deploy on GitHub
+                </span>
+              </a>
             </div>
           )}
         </div>
@@ -2372,6 +2412,9 @@ export function App() {
 
   let content: React.ReactNode;
   switch (page) {
+    case "editor":
+      content = <EditorPage slug={params.slug} token={token} user={user} />;
+      break;
     case "project":
       content = <ProjectDetailPage slug={params.slug} token={token} user={user} />;
       break;

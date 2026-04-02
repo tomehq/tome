@@ -15,6 +15,7 @@ import { siteAuth } from "./routes/site-auth.js";
 import { github } from "./routes/github.js";
 import { sso } from "./routes/sso.js";
 import { roles } from "./routes/roles.js";
+import { editor } from "./routes/editor.js";
 import { validateSsoSession } from "./sso/session.js";
 import { validateSessionToken } from "./password.js";
 import { checkPageAccess } from "./middleware/rbac.js";
@@ -174,6 +175,7 @@ app.use("/api/sso/config", auth);
 app.use("/api/sso/config/*", auth);
 app.use("/api/roles", auth);
 app.use("/api/roles/*", auth);
+app.use("/api/editor/*", auth);
 
 app.route("/api/deploy", deploy);
 app.route("/api/domains", domains);
@@ -183,6 +185,7 @@ app.route("/api/sites", siteAuth);
 app.route("/api/github", github);
 app.route("/api/sso", sso);
 app.route("/api/roles", roles);
+app.route("/api/editor", editor);
 
 // ── R2 static site serving ───────────────────────────────
 // Serves deployed sites: GET /sites/{slug}/{path}
