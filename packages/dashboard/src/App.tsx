@@ -1088,13 +1088,34 @@ function ProjectsPage({ token }: { token: string }) {
 
 // ── Project Detail Page ────────────────────────────────────
 
-function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
+function ProjectDetailPage({ slug, token, user }: { slug: string; token: string; user: User }) {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [domains, setDomains] = useState<DomainStatus[]>([]);
   const [newDomain, setNewDomain] = useState("");
   const [domainError, setDomainError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Password protection
+  const [passwordEnabled, setPasswordEnabled] = useState(false);
+  const [passwordValue, setPasswordValue] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  // GitHub App
+  const [githubConnected, setGithubConnected] = useState(false);
+  const [githubRepo, setGithubRepo] = useState("");
+  const [githubBranch, setGithubBranch] = useState("main");
+  const [githubRepoInput, setGithubRepoInput] = useState("");
+  const [githubInstallId, setGithubInstallId] = useState("");
+  // SSO
+  const [ssoConfig, setSsoConfig] = useState<any>(null);
+  const [ssoType, setSsoType] = useState<"saml" | "oidc">("oidc");
+  const [ssoSaving, setSsoSaving] = useState(false);
+  const [ssoFields, setSsoFields] = useState({ idpSsoUrl: "", idpCert: "", entityId: "", issuer: "", clientId: "", clientSecret: "", allowedDomains: "" });
+  // RBAC
+  const [roles, setRoles] = useState<Array<{ email: string; role: string }>>([]);
+  const [newRoleEmail, setNewRoleEmail] = useState("");
+  const [newRole, setNewRole] = useState("viewer");
+  // Analytics tab
+  const [analyticsTab, setAnalyticsTab] = useState<"overview" | "search" | "feedback">("overview");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -1109,6 +1130,21 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
       api<AnalyticsSummary>(`/api/analytics/summary?siteId=${slug}&range=30`, { token })
         .then(setAnalytics)
         .catch(() => setAnalytics(defaultAnalytics));
+
+      // Load GitHub status
+      api<any>(`/api/github/status/${slug}`, { token })
+        .then((data) => { setGithubConnected(data.connected); setGithubRepo(data.repository || ""); setGithubBranch(data.branch || "main"); })
+        .catch(() => {});
+
+      // Load SSO config
+      api<any>(`/api/sso/config/${slug}`, { token })
+        .then(setSsoConfig)
+        .catch(() => setSsoConfig(null));
+
+      // Load roles
+      api<any[]>(`/api/roles/${slug}`, { token })
+        .then((data) => setRoles(data || []))
+        .catch(() => setRoles([]));
     } catch {
       // silently fail
     } finally {
@@ -1160,6 +1196,71 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
     } catch {
       // silently fail
     }
+  };
+
+  // ── Password Protection handlers ──
+  const savePassword = async () => {
+    setPasswordSaving(true);
+    try {
+      await api(`/api/projects/${slug}/password`, { method: "POST", body: { enabled: true, password: passwordValue }, token });
+      setPasswordEnabled(true);
+    } catch { /* silently fail */ } finally { setPasswordSaving(false); }
+  };
+  const removePassword = async () => {
+    setPasswordSaving(true);
+    try {
+      await api(`/api/projects/${slug}/password`, { method: "DELETE", token });
+      setPasswordEnabled(false);
+      setPasswordValue("");
+    } catch { /* silently fail */ } finally { setPasswordSaving(false); }
+  };
+
+  // ── GitHub handlers ──
+  const connectGithub = async () => {
+    if (!githubRepoInput.trim()) return;
+    try {
+      await api(`/api/github/connect`, { method: "POST", body: { slug, repository: githubRepoInput, branch: githubBranch, installationId: githubInstallId }, token });
+      setGithubConnected(true);
+      setGithubRepo(githubRepoInput);
+      setGithubRepoInput("");
+      setGithubInstallId("");
+    } catch { /* silently fail */ }
+  };
+  const disconnectGithub = async () => {
+    try {
+      await api(`/api/github/disconnect/${slug}`, { method: "POST", token });
+      setGithubConnected(false);
+      setGithubRepo("");
+    } catch { /* silently fail */ }
+  };
+
+  // ── SSO handlers ──
+  const saveSso = async () => {
+    setSsoSaving(true);
+    try {
+      const body = ssoType === "saml"
+        ? { type: "saml", idpSsoUrl: ssoFields.idpSsoUrl, idpCert: ssoFields.idpCert, entityId: ssoFields.entityId, allowedDomains: ssoFields.allowedDomains }
+        : { type: "oidc", issuer: ssoFields.issuer, clientId: ssoFields.clientId, clientSecret: ssoFields.clientSecret, allowedDomains: ssoFields.allowedDomains };
+      const config = await api<any>(`/api/sso/config/${slug}`, { method: "POST", body, token });
+      setSsoConfig(config);
+    } catch { /* silently fail */ } finally { setSsoSaving(false); }
+  };
+
+  // ── Role management handlers ──
+  const addRole = async () => {
+    if (!newRoleEmail.trim()) return;
+    try {
+      await api(`/api/roles/${slug}`, { method: "POST", body: { email: newRoleEmail, role: newRole }, token });
+      setRoles((prev) => [...prev, { email: newRoleEmail, role: newRole }]);
+      setNewRoleEmail("");
+      setNewRole("viewer");
+    } catch { /* silently fail */ }
+  };
+  const removeRole = async (email: string) => {
+    try {
+      await api(`/api/roles/${slug}/${encodeURIComponent(email)}`, { method: "DELETE", token });
+      setRoles((prev) => prev.filter((r) => r.email !== email));
+    } catch { /* silently fail */ }
   };
 
   if (loading) {
@@ -1240,30 +1341,120 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
       {analytics && (
         <div style={{ marginBottom: 40 }}>
           <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontStyle: "italic", fontSize: 24, color: "var(--tx)", marginBottom: 16 }}>Analytics</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 16 }}>
-            <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
-              <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
-                {analytics.totalPageViews.toLocaleString()}
-              </div>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Page Views</div>
-            </div>
-            <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
-              <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
-                {analytics.uniqueVisitors.toLocaleString()}
-              </div>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Visitors</div>
-            </div>
+
+          {/* Tab bar */}
+          <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid var(--bd)", paddingBottom: 0 }}>
+            {(["overview", "search", "feedback"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setAnalyticsTab(tab)}
+                style={{
+                  padding: "8px 16px", background: "none", border: "none", borderBottom: analyticsTab === tab ? "2px solid var(--coral)" : "2px solid transparent",
+                  fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: analyticsTab === tab ? 600 : 400,
+                  color: analyticsTab === tab ? "var(--coral)" : "var(--txM)", cursor: "pointer",
+                  textTransform: "capitalize", transition: "all .2s", marginBottom: -1,
+                }}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
-          {analytics.topPages.length > 0 && (
-            <div>
-              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Top Pages</p>
-              {analytics.topPages.slice(0, 5).map((p) => (
-                <div key={p.url} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--bd)", fontFamily: "Inter, sans-serif", fontSize: 13 }}>
-                  <span style={{ color: "var(--tx2)" }}>{p.url}</span>
-                  <span style={{ color: "var(--txM)", fontFamily: '"Fira Code", monospace', fontSize: 12 }}>{p.views}</span>
+
+          {/* Overview tab */}
+          {analyticsTab === "overview" && (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 16 }}>
+                <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
+                  <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
+                    {analytics.totalPageViews.toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Page Views</div>
                 </div>
-              ))}
-            </div>
+                <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
+                  <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
+                    {analytics.uniqueVisitors.toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Visitors</div>
+                </div>
+              </div>
+              {analytics.topPages.length > 0 && (
+                <div>
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Top Pages</p>
+                  {analytics.topPages.slice(0, 5).map((p) => (
+                    <div key={p.url} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--bd)", fontFamily: "Inter, sans-serif", fontSize: 13 }}>
+                      <span style={{ color: "var(--tx2)" }}>{p.url}</span>
+                      <span style={{ color: "var(--txM)", fontFamily: '"Fira Code", monospace', fontSize: 12 }}>{p.views}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Search tab */}
+          {analyticsTab === "search" && (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 16 }}>
+                <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
+                  <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
+                    {((analytics as any).totalSearches ?? 0).toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Total Searches</div>
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Top Queries</p>
+                {((analytics as any).topQueries ?? []).length > 0 ? (
+                  ((analytics as any).topQueries as { query: string; count: number }[]).slice(0, 10).map((q: { query: string; count: number }) => (
+                    <div key={q.query} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--bd)", fontFamily: "Inter, sans-serif", fontSize: 13 }}>
+                      <span style={{ color: "var(--tx2)" }}>{q.query}</span>
+                      <span style={{ color: "var(--txM)", fontFamily: '"Fira Code", monospace', fontSize: 12 }}>{q.count}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)" }}>No search data yet.</p>
+                )}
+              </div>
+              <div>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Zero-Result Queries</p>
+                {((analytics as any).zeroResultQueries ?? []).length > 0 ? (
+                  ((analytics as any).zeroResultQueries as { query: string; count: number }[]).slice(0, 10).map((q: { query: string; count: number }) => (
+                    <div key={q.query} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--bd)", fontFamily: "Inter, sans-serif", fontSize: 13 }}>
+                      <span style={{ color: "var(--red)" }}>{q.query}</span>
+                      <span style={{ color: "var(--txM)", fontFamily: '"Fira Code", monospace', fontSize: 12 }}>{q.count}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)" }}>No zero-result queries.</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Feedback tab */}
+          {analyticsTab === "feedback" && (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 16 }}>
+                <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
+                  <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--green)" }}>
+                    {((analytics as any).thumbsUp ?? 0).toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Thumbs Up</div>
+                </div>
+                <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
+                  <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--red)" }}>
+                    {((analytics as any).thumbsDown ?? 0).toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Thumbs Down</div>
+                </div>
+                <div className="stat-card" style={{ textAlign: "left", padding: 24 }}>
+                  <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: "var(--tx)" }}>
+                    {(((analytics as any).thumbsUp ?? 0) + ((analytics as any).thumbsDown ?? 0)).toLocaleString()}
+                  </div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>Total Feedback</div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -1365,6 +1556,291 @@ function ProjectDetailPage({ slug, token }: { slug: string; token: string }) {
           )}
         </div>
       </div>
+
+      {/* Password Protection */}
+      <div style={{ marginBottom: 40 }}>
+        <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontStyle: "italic", fontSize: 24, color: "var(--tx)", marginBottom: 16 }}>Password Protection</h3>
+        <div className="card" style={{ padding: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <div>
+              <p style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, color: "var(--tx)", marginBottom: 4 }}>Require password to access site</p>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)" }}>Visitors must enter a password before viewing your documentation.</p>
+            </div>
+            <button
+              onClick={() => { if (passwordEnabled) { removePassword(); } else { setPasswordEnabled(true); } }}
+              style={{
+                width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer",
+                background: passwordEnabled ? "var(--coral)" : "var(--bd)",
+                position: "relative", transition: "background .2s", flexShrink: 0,
+              }}
+              disabled={passwordSaving}
+            >
+              <span style={{
+                position: "absolute", top: 2, left: passwordEnabled ? 22 : 2,
+                width: 20, height: 20, borderRadius: "50%", background: "#fff",
+                transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              }} />
+            </button>
+          </div>
+          {passwordEnabled && (
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <input
+                className="input-field"
+                type="password"
+                placeholder="Enter site password"
+                value={passwordValue}
+                onChange={(e) => setPasswordValue(e.target.value)}
+                style={{ flex: 1 }}
+                aria-label="Site password"
+              />
+              <button className="btn-primary" onClick={savePassword} disabled={passwordSaving || !passwordValue.trim()} style={{ padding: "10px 20px", fontSize: 13 }}>
+                {passwordSaving ? "Saving..." : "Save"}
+              </button>
+              <button className="btn-ghost btn-sm" onClick={removePassword} disabled={passwordSaving} style={{ padding: "10px 16px", fontSize: 13, borderRadius: 6 }}>
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* GitHub Integration */}
+      <div style={{ marginBottom: 40 }}>
+        <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontStyle: "italic", fontSize: 24, color: "var(--tx)", marginBottom: 16 }}>GitHub Integration</h3>
+        <div className="card" style={{ padding: 24 }}>
+          {githubConnected ? (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--green)", display: "inline-block" }} />
+                  <div>
+                    <p style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, color: "var(--tx)" }}>{githubRepo}</p>
+                    <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--txM)", marginTop: 2 }}>
+                      Branch: <span style={{ fontFamily: '"Fira Code", monospace', fontSize: 12 }}>{githubBranch}</span>
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{
+                    fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600,
+                    textTransform: "uppercase", letterSpacing: "0.5px",
+                    padding: "3px 10px", borderRadius: 4,
+                    background: "rgba(21,128,61,0.1)", color: "var(--green)",
+                  }}>Connected</span>
+                  <button className="btn-ghost btn-sm btn-danger" onClick={disconnectGithub} style={{ padding: "6px 14px", fontSize: 12, borderRadius: 4, minHeight: 0 }}>
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--txM)", marginBottom: 16 }}>
+                Connect a GitHub repository to enable automatic deployments on push.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <input
+                    className="input-field"
+                    placeholder="owner/repository"
+                    value={githubRepoInput}
+                    onChange={(e) => setGithubRepoInput(e.target.value)}
+                    style={{ flex: 1 }}
+                    aria-label="GitHub repository"
+                  />
+                  <input
+                    className="input-field"
+                    placeholder="Installation ID"
+                    value={githubInstallId}
+                    onChange={(e) => setGithubInstallId(e.target.value)}
+                    style={{ width: 160 }}
+                    aria-label="GitHub installation ID"
+                  />
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Branch:</div>
+                  <input
+                    className="input-field"
+                    placeholder="main"
+                    value={githubBranch}
+                    onChange={(e) => setGithubBranch(e.target.value)}
+                    style={{ width: 140 }}
+                    aria-label="Branch name"
+                  />
+                  <div style={{ flex: 1 }} />
+                  <button className="btn-primary" onClick={connectGithub} disabled={!githubRepoInput.trim()} style={{ padding: "10px 24px", fontSize: 13 }}>
+                    Connect
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* SSO Configuration (Team plan only) */}
+      {user.plan === "team" && (
+        <div style={{ marginBottom: 40 }}>
+          <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontStyle: "italic", fontSize: 24, color: "var(--tx)", marginBottom: 16 }}>Single Sign-On (SSO)</h3>
+          <div className="card" style={{ padding: 24 }}>
+            {/* Provider radio */}
+            <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+              {(["saml", "oidc"] as const).map((type) => (
+                <label key={type} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 14, color: ssoType === type ? "var(--coral)" : "var(--tx2)" }}>
+                  <input
+                    type="radio"
+                    name="sso-type"
+                    checked={ssoType === type}
+                    onChange={() => setSsoType(type)}
+                    style={{ accentColor: "var(--coral)" }}
+                  />
+                  {type === "saml" ? "SAML 2.0" : "OIDC"}
+                </label>
+              ))}
+            </div>
+
+            {/* SAML fields */}
+            {ssoType === "saml" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>IdP SSO URL</div>
+                  <input className="input-field" placeholder="https://idp.example.com/sso" value={ssoFields.idpSsoUrl} onChange={(e) => setSsoFields({ ...ssoFields, idpSsoUrl: e.target.value })} aria-label="IdP SSO URL" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>IdP Certificate</div>
+                  <textarea className="input-field" placeholder="Paste X.509 certificate here" value={ssoFields.idpCert} onChange={(e) => setSsoFields({ ...ssoFields, idpCert: e.target.value })} rows={3} style={{ resize: "vertical", fontFamily: '"Fira Code", monospace', fontSize: 12 }} aria-label="IdP certificate" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Entity ID</div>
+                  <input className="input-field" placeholder="urn:example:sp" value={ssoFields.entityId} onChange={(e) => setSsoFields({ ...ssoFields, entityId: e.target.value })} aria-label="Entity ID" />
+                </div>
+              </div>
+            )}
+
+            {/* OIDC fields */}
+            {ssoType === "oidc" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Issuer URL</div>
+                  <input className="input-field" placeholder="https://accounts.google.com" value={ssoFields.issuer} onChange={(e) => setSsoFields({ ...ssoFields, issuer: e.target.value })} aria-label="OIDC issuer URL" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Client ID</div>
+                  <input className="input-field" placeholder="your-client-id" value={ssoFields.clientId} onChange={(e) => setSsoFields({ ...ssoFields, clientId: e.target.value })} aria-label="Client ID" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Client Secret</div>
+                  <input className="input-field" type="password" placeholder="your-client-secret" value={ssoFields.clientSecret} onChange={(e) => setSsoFields({ ...ssoFields, clientSecret: e.target.value })} aria-label="Client secret" />
+                </div>
+              </div>
+            )}
+
+            {/* Allowed domains (shared) */}
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Allowed Email Domains</div>
+              <input className="input-field" placeholder="example.com, corp.io" value={ssoFields.allowedDomains} onChange={(e) => setSsoFields({ ...ssoFields, allowedDomains: e.target.value })} aria-label="Allowed email domains" />
+            </div>
+
+            {/* Save button */}
+            <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 12 }}>
+              <button className="btn-primary" onClick={saveSso} disabled={ssoSaving} style={{ padding: "10px 24px", fontSize: 13 }}>
+                {ssoSaving ? "Saving..." : "Save SSO Configuration"}
+              </button>
+              {ssoConfig && (
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "var(--green)" }}>
+                  SSO is active
+                </span>
+              )}
+            </div>
+
+            {/* SP Metadata URL */}
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--bd)" }}>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>SP Metadata URL</div>
+              <div className="token-box">
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {`${API_URL}/api/sso/metadata/${slug}`}
+                </span>
+                <button className="nav-link" onClick={() => navigator.clipboard.writeText(`${API_URL}/api/sso/metadata/${slug}`)} style={{ fontSize: 12, padding: "4px 8px" }} aria-label="Copy SP metadata URL">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Management (only if SSO configured) */}
+      {ssoConfig && (
+        <div style={{ marginBottom: 40 }}>
+          <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontStyle: "italic", fontSize: 24, color: "var(--tx)", marginBottom: 16 }}>Team Members</h3>
+          <div className="card" style={{ padding: 24 }}>
+            {/* Members table */}
+            {roles.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div className="table-header" style={{ gridTemplateColumns: "1fr 120px 80px" }}>
+                  <span>Email</span><span>Role</span><span>Action</span>
+                </div>
+                {roles.map((r) => (
+                  <div key={r.email} className="table-row" style={{ gridTemplateColumns: "1fr 120px 80px" }}>
+                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "var(--tx2)" }}>{r.email}</span>
+                    <span style={{
+                      fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600,
+                      textTransform: "uppercase", letterSpacing: "0.3px",
+                      padding: "3px 10px", borderRadius: 4,
+                      background: r.role === "admin" || r.role === "owner" ? "var(--coralD)" : "var(--cdBg)",
+                      color: r.role === "admin" || r.role === "owner" ? "var(--coral)" : "var(--txM)",
+                      display: "inline-block",
+                    }}>
+                      {r.role}
+                    </span>
+                    <span>
+                      <button
+                        className="btn-ghost btn-sm"
+                        style={{ color: "var(--red)", fontSize: 11, padding: "4px 12px", minHeight: 0, borderRadius: 4 }}
+                        onClick={() => removeRole(r.email)}
+                      >
+                        Remove
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add member form */}
+            <div>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "var(--txM)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Add Member</div>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <input
+                  className="input-field"
+                  placeholder="email@example.com"
+                  value={newRoleEmail}
+                  onChange={(e) => setNewRoleEmail(e.target.value)}
+                  style={{ flex: 1 }}
+                  aria-label="Member email"
+                />
+                <select
+                  className="input-field"
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                  style={{ width: 120 }}
+                  aria-label="Member role"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                  <option value="owner">Owner</option>
+                </select>
+                <button className="btn-primary" onClick={addRole} disabled={!newRoleEmail.trim()} style={{ padding: "10px 20px", fontSize: 13 }}>
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Danger Zone */}
       <div style={{ paddingTop: 24, borderTop: "1px solid var(--bd)" }}>
@@ -1860,7 +2336,7 @@ export function App() {
   let content: React.ReactNode;
   switch (page) {
     case "project":
-      content = <ProjectDetailPage slug={params.slug} token={token} />;
+      content = <ProjectDetailPage slug={params.slug} token={token} user={user} />;
       break;
     case "billing":
       content = <BillingPage token={token} user={user} />;
