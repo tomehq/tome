@@ -132,7 +132,6 @@ describe("GitHub webhook handler", () => {
   });
 
   it("returns 503 when GitHub App not configured", async () => {
-    const app = makeApp(mockDb(), { GITHUB_APP_WEBHOOK_SECRET: "" });
     // Override env to remove webhook secret
     const appNoSecret = new Hono<{ Bindings: Env }>();
     appNoSecret.use("*", async (c, next) => {

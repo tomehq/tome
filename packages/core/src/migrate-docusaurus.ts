@@ -15,7 +15,7 @@ import {
   readdirSync,
   statSync,
 } from 'fs';
-import { join, relative, dirname, extname, basename } from 'path';
+import { join, relative, dirname, extname } from 'path';
 import matter from 'gray-matter';
 
 // ---------------------------------------------------------------------------
