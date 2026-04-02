@@ -38,10 +38,10 @@ app.use("*", async (c, next) => {
   const slug = await resolveHostname(host, c.env.TOME_DB);
   if (!slug) return c.text("Site not found", 404);
 
-  // Access control check (SSO > password > public)
+  // Single query for all access control fields (SSO, password, project ID)
   const row = await c.env.TOME_DB.prepare(
-    "SELECT password_required, sso_enabled FROM projects WHERE slug = ? LIMIT 1"
-  ).bind(slug).first<{ password_required: number; sso_enabled: number }>();
+    "SELECT id, password_required, sso_enabled, sso_config_id FROM projects WHERE slug = ? LIMIT 1"
+  ).bind(slug).first<{ id: string; password_required: number; sso_enabled: number; sso_config_id: string | null }>();
 
   // Allow SSO/auth endpoints through
   if (c.req.path.startsWith("/api/")) {
@@ -56,36 +56,29 @@ app.use("*", async (c, next) => {
 
     if (ssoToken) {
       const ssoResult = await validateSsoSession(c.env.SSO_SESSION_SECRET, ssoToken, slug);
-      if (ssoResult) {
+      if (ssoResult && row.id) {
         // RBAC: check page-level access if project has roles configured
-        const project = await c.env.TOME_DB.prepare(
-          "SELECT id FROM projects WHERE slug = ? LIMIT 1"
-        ).bind(slug).first<{ id: string }>();
+        const pagePath = c.req.path === "/" ? "/index" : c.req.path.replace(/\.html$/, "");
+        const pageMeta = await c.env.TOME_DB.prepare(
+          "SELECT access_role FROM page_metadata WHERE project_id = ? AND path = ? LIMIT 1"
+        ).bind(row.id, pagePath).first<{ access_role: string | null }>();
 
-        if (project) {
-          // Look up page-level access requirement from page_metadata
-          const pagePath = c.req.path === "/" ? "/index" : c.req.path.replace(/\.html$/, "");
-          const pageMeta = await c.env.TOME_DB.prepare(
-            "SELECT access_role FROM page_metadata WHERE project_id = ? AND path = ? LIMIT 1"
-          ).bind(project.id, pagePath).first<{ access_role: string | null }>();
+        const requiredRole = pageMeta?.access_role ?? undefined;
 
-          const requiredRole = pageMeta?.access_role ?? undefined;
+        // Only enforce RBAC if there are role assignments for this project
+        const roleCount = await c.env.TOME_DB.prepare(
+          "SELECT COUNT(*) as cnt FROM project_roles WHERE project_id = ?"
+        ).bind(row.id).first<{ cnt: number }>();
 
-          // Only enforce RBAC if there are role assignments for this project
-          const roleCount = await c.env.TOME_DB.prepare(
-            "SELECT COUNT(*) as cnt FROM project_roles WHERE project_id = ?"
-          ).bind(project.id).first<{ cnt: number }>();
-
-          if (roleCount && roleCount.cnt > 0) {
-            const allowed = await checkPageAccess(
-              c.env.TOME_DB,
-              project.id,
-              ssoResult.email,
-              requiredRole,
-            );
-            if (!allowed) {
-              return c.text("Access denied: insufficient role", 403);
-            }
+        if (roleCount && roleCount.cnt > 0) {
+          const allowed = await checkPageAccess(
+            c.env.TOME_DB,
+            row.id,
+            ssoResult.email,
+            requiredRole,
+          );
+          if (!allowed) {
+            return c.text("Access denied: insufficient role", 403);
           }
         }
 
@@ -102,7 +95,11 @@ app.use("*", async (c, next) => {
     const match = cookieHeader.match(/(?:^|;\s*)tome_site_session=([^;]*)/);
     const sessionToken = match ? match[1] : null;
 
-    if (!sessionToken || validateSessionToken(sessionToken) !== slug) {
+    if (!sessionToken) {
+      return c.redirect(`/api/sites/${slug}/password`);
+    }
+    const tokenSlug = await validateSessionToken(sessionToken, c.env.SSO_SESSION_SECRET);
+    if (tokenSlug !== slug) {
       return c.redirect(`/api/sites/${slug}/password`);
     }
   }

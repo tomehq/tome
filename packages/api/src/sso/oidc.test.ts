@@ -6,8 +6,8 @@ import {
   decodeJwtPayload,
   discoverOidcEndpoints,
   exchangeCode,
-  base64url,
 } from "./oidc";
+import { base64url } from "../utils";
 
 // Mock global fetch
 const mockFetch = vi.fn();

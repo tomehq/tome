@@ -1122,7 +1122,7 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
     try {
       const [deps, doms] = await Promise.all([
         api<Deployment[]>(`/api/deploy/projects/${slug}/deployments`, { token }),
-        api<DomainStatus[]>("/api/domains", { token }).catch(() => [] as DomainStatus[]),
+        api<DomainStatus[]>(`/api/domains?projectSlug=${slug}`, { token }).catch(() => [] as DomainStatus[]),
       ]);
       setDeployments(deps);
       setDomains(doms);
@@ -1523,9 +1523,22 @@ function ProjectDetailPage({ slug, token, user }: { slug: string; token: string;
                       </div>
                     </div>
                   </div>
-                  <button className="btn-ghost btn-sm" onClick={() => removeDomain(d.domain)} style={{ padding: "4px 12px", borderRadius: 4, minHeight: 0 }}>
-                    Remove
-                  </button>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {!d.verified && (
+                      <button className="btn-primary btn-sm" onClick={async () => {
+                        try {
+                          const result = await api<DomainStatus>(`/api/domains/${d.domain}/verify`, { token });
+                          if (result.verified) { loadData(); }
+                          else { setDomainError("DNS not yet propagated. Try again in a few minutes."); }
+                        } catch { setDomainError("Verification check failed."); }
+                      }} style={{ padding: "4px 12px", borderRadius: 4, minHeight: 0 }}>
+                        Verify DNS
+                      </button>
+                    )}
+                    <button className="btn-ghost btn-sm" onClick={() => removeDomain(d.domain)} style={{ padding: "4px 12px", borderRadius: 4, minHeight: 0 }}>
+                      Remove
+                    </button>
+                  </div>
                 </div>
                 {d.dnsRecords.map((rec, i) => (
                   <div key={i} className="dns-record">

@@ -16,7 +16,7 @@
 
 import { Hono } from "hono";
 import type { Env, User } from "../types.js";
-import { buildAuthnRequest, buildSamlRedirectUrl, parseSamlResponse, extractSamlClaims, buildSpMetadata } from "../sso/saml.js";
+import { buildAuthnRequest, buildSamlRedirectUrl, parseSamlResponse, extractSamlClaims, buildSpMetadata, validateSamlSignature } from "../sso/saml.js";
 import { buildAuthorizationUrl, exchangeCode, validateIdToken, generateCodeVerifier, generateCodeChallenge, discoverOidcEndpoints } from "../sso/oidc.js";
 import { createSsoSession } from "../sso/session.js";
 
@@ -120,6 +120,15 @@ sso.post("/sites/:slug/saml/acs", async (c) => {
 
   try {
     const parsed = parseSamlResponse(samlResponse);
+
+    // Validate SAML signature if IdP certificate is configured
+    if (project.saml_idp_certificate) {
+      const sigValid = await validateSamlSignature(parsed.rawXml, project.saml_idp_certificate);
+      if (!sigValid) {
+        return c.json({ error: "SAML signature validation failed" }, 401);
+      }
+    }
+
     const claims = extractSamlClaims(parsed.attributes);
 
     if (!claims.email) {
@@ -128,7 +137,12 @@ sso.post("/sites/:slug/saml/acs", async (c) => {
 
     // Check allowed domains
     if (project.allowed_domains) {
-      const domains = JSON.parse(project.allowed_domains) as string[];
+      let domains: string[];
+      try {
+        domains = JSON.parse(project.allowed_domains) as string[];
+      } catch {
+        return c.json({ error: "Invalid allowed_domains configuration" }, 500);
+      }
       const emailDomain = claims.email.split("@")[1];
       if (domains.length > 0 && !domains.includes(emailDomain)) {
         return c.json({ error: "Email domain not allowed" }, 403);
@@ -221,7 +235,12 @@ sso.get("/sites/:slug/oidc/callback", async (c) => {
 
     // Check allowed domains
     if (project.allowed_domains) {
-      const domains = JSON.parse(project.allowed_domains) as string[];
+      let domains: string[];
+      try {
+        domains = JSON.parse(project.allowed_domains) as string[];
+      } catch {
+        return c.json({ error: "Invalid allowed_domains configuration" }, 500);
+      }
       const emailDomain = claims.email.split("@")[1];
       if (domains.length > 0 && !domains.includes(emailDomain)) {
         return c.json({ error: "Email domain not allowed" }, 403);
@@ -336,7 +355,7 @@ sso.get("/config/:slug", async (c) => {
     samlEntityId: config.saml_entity_id,
     oidcIssuer: config.oidc_issuer,
     oidcClientId: config.oidc_client_id,
-    allowedDomains: config.allowed_domains ? JSON.parse(config.allowed_domains) : [],
+    allowedDomains: config.allowed_domains ? (() => { try { return JSON.parse(config.allowed_domains!); } catch { return []; } })() : [],
   });
 });
 

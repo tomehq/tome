@@ -2,7 +2,14 @@
  * HTML template for the password protection page.
  * Self-contained - no external dependencies.
  */
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export function passwordPageHtml(slug: string, error?: string): string {
+  const safeSlug = escapeHtml(slug);
+  const safeError = error ? escapeHtml(error) : undefined;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,8 +48,8 @@ export function passwordPageHtml(slug: string, error?: string): string {
   <div class="card">
     <h1>Password Required</h1>
     <p>This documentation is password-protected. Enter the password to continue.</p>
-    ${error ? `<div class="error">${error}</div>` : ""}
-    <form method="POST" action="/api/sites/${slug}/authenticate">
+    ${safeError ? `<div class="error">${safeError}</div>` : ""}
+    <form method="POST" action="/api/sites/${safeSlug}/authenticate">
       <input type="password" name="password" placeholder="Enter password" autofocus required />
       <input type="hidden" name="redirect" value="/" />
       <button type="submit">Continue</button>

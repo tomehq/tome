@@ -3,6 +3,8 @@
  * Uses Web Crypto API (Cloudflare Workers compatible, no Node.js crypto).
  */
 
+import { base64url, base64urlToBase64 } from "../utils.js";
+
 /**
  * Discover OIDC endpoints from the issuer's well-known configuration.
  */
@@ -207,16 +209,4 @@ interface JwkKey {
   [key: string]: unknown;
 }
 
-export function base64url(input: string | ArrayBuffer): string {
-  const bytes = typeof input === "string"
-    ? new TextEncoder().encode(input)
-    : new Uint8Array(input);
-  const base64 = btoa(String.fromCharCode(...bytes));
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function base64urlToBase64(input: string): string {
-  let s = input.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4 !== 0) s += "=";
-  return s;
-}
+// base64url and base64urlToBase64 imported from ../utils.js

@@ -6,6 +6,8 @@
  * cryptographically signed JWTs suitable for SSO sessions.
  */
 
+import { base64url, base64urlToBase64 } from "../utils.js";
+
 const DEFAULT_EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 /**
@@ -99,17 +101,6 @@ export async function validateSsoSession(
   };
 }
 
-/**
- * Base64url encoding helper.
- */
-export function base64url(input: string | ArrayBuffer): string {
-  const bytes = typeof input === "string"
-    ? new TextEncoder().encode(input)
-    : new Uint8Array(input);
-  const base64 = btoa(String.fromCharCode(...bytes));
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
 // ── Internal helpers ──────────────────────────────────────
 
 async function importHmacKey(secret: string): Promise<CryptoKey> {
@@ -120,12 +111,6 @@ async function importHmacKey(secret: string): Promise<CryptoKey> {
     false,
     ["sign"],
   );
-}
-
-function base64urlToBase64(input: string): string {
-  let s = input.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4 !== 0) s += "=";
-  return s;
 }
 
 function base64urlDecode(input: string): Uint8Array {

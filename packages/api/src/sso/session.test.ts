@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { createSsoSession, validateSsoSession, base64url } from "./session";
+import { createSsoSession, validateSsoSession } from "./session";
+import { base64url } from "../utils";
 
 const SECRET = "test-secret-key-for-hmac-signing";
 

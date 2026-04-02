@@ -58,23 +58,38 @@ export async function verifyPassword(password: string, stored: string): Promise<
 
 /**
  * Generate a signed session token for password-protected site access.
- * Returns a base64-encoded JSON payload with expiry.
+ * Uses HMAC-SHA256 to prevent token forgery.
+ * Returns "payloadB64.signatureB64" format.
  */
-export function generateSessionToken(slug: string, expiresInMs: number = 24 * 60 * 60 * 1000): string {
+export async function generateSessionToken(slug: string, secret: string, expiresInMs: number = 24 * 60 * 60 * 1000): Promise<string> {
   const payload = {
     slug,
     exp: Date.now() + expiresInMs,
     nonce: Math.random().toString(36).slice(2),
   };
-  return btoa(JSON.stringify(payload));
+  const payloadB64 = btoa(JSON.stringify(payload));
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payloadB64));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+  return `${payloadB64}.${sigB64}`;
 }
 
 /**
- * Validate a session token. Returns the slug if valid, null if expired or invalid.
+ * Validate a signed session token. Returns the slug if valid, null if expired/invalid/tampered.
  */
-export function validateSessionToken(token: string): string | null {
+export async function validateSessionToken(token: string, secret: string): Promise<string | null> {
   try {
-    const payload = JSON.parse(atob(token));
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [payloadB64, sigB64] = parts;
+
+    // Verify HMAC signature
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+    const sig = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify("HMAC", key, sig, new TextEncoder().encode(payloadB64));
+    if (!valid) return null;
+
+    const payload = JSON.parse(atob(payloadB64));
     if (!payload.slug || !payload.exp) return null;
     if (Date.now() > payload.exp) return null;
     return payload.slug;

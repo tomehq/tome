@@ -6,6 +6,8 @@ import {
   validateSessionToken,
 } from "./password.js";
 
+const TEST_SECRET = "test-secret-key-for-hmac-signing";
+
 // ── hashPassword / verifyPassword ────────────────────────
 
 describe("hashPassword", () => {
@@ -60,62 +62,78 @@ describe("verifyPassword", () => {
 // ── Session tokens ───────────────────────────────────────
 
 describe("generateSessionToken", () => {
-  it("returns a base64-encoded string", () => {
-    const token = generateSessionToken("my-docs");
-    expect(() => atob(token)).not.toThrow();
+  it("returns a payload.signature format string", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
+    const parts = token.split(".");
+    expect(parts).toHaveLength(2);
+    // Payload part should be valid base64
+    expect(() => atob(parts[0])).not.toThrow();
   });
 
-  it("includes the slug in the payload", () => {
-    const token = generateSessionToken("my-docs");
-    const payload = JSON.parse(atob(token));
+  it("includes the slug in the payload", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
+    const payloadB64 = token.split(".")[0];
+    const payload = JSON.parse(atob(payloadB64));
     expect(payload.slug).toBe("my-docs");
   });
 
-  it("includes an expiry timestamp", () => {
-    const token = generateSessionToken("my-docs");
-    const payload = JSON.parse(atob(token));
+  it("includes an expiry timestamp", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
+    const payloadB64 = token.split(".")[0];
+    const payload = JSON.parse(atob(payloadB64));
     expect(payload.exp).toBeGreaterThan(Date.now());
   });
 
-  it("respects custom expiry duration", () => {
-    const token = generateSessionToken("my-docs", 1000); // 1 second
-    const payload = JSON.parse(atob(token));
+  it("respects custom expiry duration", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET, 1000); // 1 second
+    const payloadB64 = token.split(".")[0];
+    const payload = JSON.parse(atob(payloadB64));
     expect(payload.exp).toBeLessThanOrEqual(Date.now() + 1500);
   });
 });
 
 describe("validateSessionToken", () => {
-  it("returns slug for a valid token", () => {
-    const token = generateSessionToken("my-docs");
-    const slug = validateSessionToken(token);
+  it("returns slug for a valid token", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
+    const slug = await validateSessionToken(token, TEST_SECRET);
     expect(slug).toBe("my-docs");
   });
 
-  it("returns null for expired token", () => {
-    const token = generateSessionToken("my-docs", -1000); // Already expired
-    const slug = validateSessionToken(token);
+  it("returns null for expired token", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET, -1000); // Already expired
+    const slug = await validateSessionToken(token, TEST_SECRET);
     expect(slug).toBeNull();
   });
 
-  it("returns null for invalid base64", () => {
-    const slug = validateSessionToken("not-base64!!!@@@");
+  it("returns null for invalid format (no signature)", async () => {
+    const slug = await validateSessionToken("not-base64!!!@@@", TEST_SECRET);
     expect(slug).toBeNull();
   });
 
-  it("returns null for empty string", () => {
-    const slug = validateSessionToken("");
+  it("returns null for empty string", async () => {
+    const slug = await validateSessionToken("", TEST_SECRET);
     expect(slug).toBeNull();
   });
 
-  it("returns null for token missing slug", () => {
-    const token = btoa(JSON.stringify({ exp: Date.now() + 10000 }));
-    const slug = validateSessionToken(token);
+  it("returns null for token with wrong secret", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
+    const slug = await validateSessionToken(token, "wrong-secret");
     expect(slug).toBeNull();
   });
 
-  it("returns null for token missing exp", () => {
-    const token = btoa(JSON.stringify({ slug: "test" }));
-    const slug = validateSessionToken(token);
+  it("returns null for tampered payload", async () => {
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
+    const [, sig] = token.split(".");
+    // Create a different payload
+    const tamperedPayload = btoa(JSON.stringify({ slug: "hacked", exp: Date.now() + 100000 }));
+    const slug = await validateSessionToken(`${tamperedPayload}.${sig}`, TEST_SECRET);
+    expect(slug).toBeNull();
+  });
+
+  it("returns null for unsigned token (old format)", async () => {
+    // Simulate old unsigned token format (plain base64, no signature)
+    const oldToken = btoa(JSON.stringify({ slug: "my-docs", exp: Date.now() + 100000 }));
+    const slug = await validateSessionToken(oldToken, TEST_SECRET);
     expect(slug).toBeNull();
   });
 });

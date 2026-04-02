@@ -59,7 +59,8 @@ export function checkSitePassword(slug: string) {
     const sessionToken = getCookie(cookieHeader, "tome_site_session");
 
     if (sessionToken) {
-      const tokenSlug = validateSessionToken(sessionToken);
+      const secret = c.env.SSO_SESSION_SECRET;
+      const tokenSlug = await validateSessionToken(sessionToken, secret);
       if (tokenSlug === slug) {
         return next();
       }

@@ -50,6 +50,7 @@ export function buildSamlRedirectUrl(
  * Uses regex-based XML parsing (no DOMParser in Workers).
  */
 export function parseSamlResponse(responseB64: string): {
+  rawXml: string;
   assertion: string;
   issuer: string;
   nameId: string;
@@ -73,7 +74,7 @@ export function parseSamlResponse(responseB64: string): {
 
   const attributes = extractAttributes(xml);
 
-  return { assertion, issuer, nameId, attributes };
+  return { rawXml: xml, assertion, issuer, nameId, attributes };
 }
 
 /**

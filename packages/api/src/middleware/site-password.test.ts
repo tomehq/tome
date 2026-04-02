@@ -5,6 +5,8 @@ import { Hono } from "hono";
 import type { Env } from "../types.js";
 import { generateSessionToken } from "../password.js";
 
+const TEST_SECRET = "test-secret-key-for-hmac-signing";
+
 // ── Helpers ──────────────────────────────────────────────
 
 function mockDb(passwordRequired: boolean = false) {
@@ -22,7 +24,7 @@ function mockDb(passwordRequired: boolean = false) {
 function makeApp(slug: string, db: D1Database) {
   const app = new Hono<{ Bindings: Env }>();
   app.use("*", async (c, next) => {
-    (c.env as any) = { TOME_DB: db };
+    (c.env as any) = { TOME_DB: db, SSO_SESSION_SECRET: TEST_SECRET };
     await next();
   });
   app.use("*", checkSitePassword(slug));
@@ -48,7 +50,7 @@ describe("site-password middleware", () => {
   });
 
   it("allows access with valid session cookie", async () => {
-    const token = generateSessionToken("my-docs");
+    const token = await generateSessionToken("my-docs", TEST_SECRET);
     const app = makeApp("my-docs", mockDb(true));
     const res = await app.request("/", {
       headers: { cookie: `tome_site_session=${token}` },
@@ -57,7 +59,7 @@ describe("site-password middleware", () => {
   });
 
   it("redirects with expired session cookie", async () => {
-    const token = generateSessionToken("my-docs", -1000); // already expired
+    const token = await generateSessionToken("my-docs", TEST_SECRET, -1000); // already expired
     const app = makeApp("my-docs", mockDb(true));
     const res = await app.request("/", {
       headers: { cookie: `tome_site_session=${token}` },
@@ -66,7 +68,7 @@ describe("site-password middleware", () => {
   });
 
   it("redirects with cookie for wrong slug", async () => {
-    const token = generateSessionToken("other-docs");
+    const token = await generateSessionToken("other-docs", TEST_SECRET);
     const app = makeApp("my-docs", mockDb(true));
     const res = await app.request("/", {
       headers: { cookie: `tome_site_session=${token}` },

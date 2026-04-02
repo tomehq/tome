@@ -21,7 +21,7 @@ function mockDb(passwordHash: string | null = null) {
 function makeApp(db: D1Database) {
   const app = new Hono<{ Bindings: Env }>();
   app.use("*", async (c, next) => {
-    (c.env as any) = { TOME_DB: db };
+    (c.env as any) = { TOME_DB: db, SSO_SESSION_SECRET: "test-secret-key-for-hmac-signing" };
     await next();
   });
   app.route("/api/sites", siteAuth);

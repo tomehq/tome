@@ -42,7 +42,7 @@ siteAuth.post("/:slug/authenticate", async (c) => {
   }
 
   // Generate session token and set cookie
-  const token = generateSessionToken(slug);
+  const token = await generateSessionToken(slug, c.env.SSO_SESSION_SECRET);
   const headers = new Headers();
   headers.set("Set-Cookie", `tome_site_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
   headers.set("Location", redirect);

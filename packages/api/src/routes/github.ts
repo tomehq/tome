@@ -9,6 +9,7 @@
  */
 
 import { Hono } from "hono";
+import type { Context } from "hono";
 import type { Env, User } from "../types.js";
 import {
   verifyWebhookSignature,
@@ -65,7 +66,12 @@ github.post("/webhook", async (c) => {
   }
 
   const event = c.req.header("x-github-event");
-  const payload = JSON.parse(body);
+  let payload: unknown;
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return c.json({ error: "Malformed JSON payload" }, 400);
+  }
 
   if (event === "push") {
     return handlePush(c, payload as PushEvent);
@@ -185,7 +191,7 @@ github.get("/status/:slug", async (c) => {
 
 // ── Event handlers ──────────────────────────────────────
 
-async function handlePush(c: any, payload: PushEvent) {
+async function handlePush(c: Context<{ Bindings: Env }>, payload: PushEvent) {
   const repoFullName = payload.repository.full_name;
   const ref = payload.ref; // e.g., "refs/heads/main"
   const branch = ref.replace("refs/heads/", "");
@@ -232,11 +238,12 @@ async function handlePush(c: any, payload: PushEvent) {
     // Workflow file might not exist yet — that's OK
     return c.json({ ok: true, message: "Workflow not found. Create .github/workflows/tome-deploy.yml in your repo." });
   } catch (err) {
-    return c.json({ error: `Failed to dispatch: ${(err as Error).message}` }, 500);
+    console.error("Failed to dispatch build:", err);
+    return c.json({ error: "Failed to dispatch build" }, 500);
   }
 }
 
-async function handlePullRequest(c: any, payload: PullRequestEvent) {
+async function handlePullRequest(c: Context<{ Bindings: Env }>, payload: PullRequestEvent) {
   if (payload.action !== "opened" && payload.action !== "synchronize") {
     return c.json({ ok: true, message: `Ignored PR action: ${payload.action}` });
   }
@@ -299,7 +306,8 @@ async function handlePullRequest(c: any, payload: PullRequestEvent) {
 
     return c.json({ ok: true, message: "Preview build dispatched" });
   } catch (err) {
-    return c.json({ error: `Failed to dispatch preview: ${(err as Error).message}` }, 500);
+    console.error("Failed to dispatch preview build:", err);
+    return c.json({ error: "Failed to dispatch preview build" }, 500);
   }
 }
 

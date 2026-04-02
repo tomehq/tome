@@ -7,6 +7,8 @@
  * user's own repository.
  */
 
+import { base64url } from "./utils.js";
+
 /**
  * Generate a JWT for GitHub App authentication.
  * JWTs are used to get installation access tokens.
@@ -182,13 +184,7 @@ export function parseRepoUrl(url: string): { owner: string; repo: string } | nul
 
 // ── Crypto helpers ──────────────────────────────────────
 
-function base64url(input: string | ArrayBuffer): string {
-  const bytes = typeof input === "string"
-    ? new TextEncoder().encode(input)
-    : new Uint8Array(input);
-  const base64 = btoa(String.fromCharCode(...bytes));
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
+// base64url imported from ./utils.js
 
 async function importPrivateKey(pem: string): Promise<CryptoKey> {
   // Strip PEM headers and whitespace
