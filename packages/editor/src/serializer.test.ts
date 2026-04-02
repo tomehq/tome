@@ -90,6 +90,22 @@ describe("buildFrontmatter", () => {
     });
     expect(result).toContain('\\"quotes\\"');
   });
+
+  it("escapes backslashes before double quotes", () => {
+    const result = buildFrontmatter({
+      title: 'Path: C:\\Users\\docs',
+    });
+    // Backslashes must be escaped first, then quotes
+    expect(result).toContain('C:\\\\Users\\\\docs');
+  });
+
+  it("handles strings with both backslashes and quotes", () => {
+    const result = buildFrontmatter({
+      title: 'Say \\"hello\\": world',
+    });
+    expect(result).toContain('\\\\');
+    expect(result).toContain('\\"');
+  });
 });
 
 describe("buildDocument", () => {
@@ -136,6 +152,22 @@ describe("parseFrontmatter", () => {
     expect(fields.title).toBe("Round Trip");
     expect(fields.description).toBe("Testing");
     expect(body).toBe("Body text.");
+  });
+
+  it("round-trips backslashes in quoted values", () => {
+    const original = buildDocument(
+      { title: 'Path: C:\\Users\\docs' },
+      "Content.",
+    );
+    const { fields } = parseFrontmatter(original);
+    expect(fields.title).toBe('Path: C:\\Users\\docs');
+  });
+
+  it("unescapes backslashes and quotes in parsed values", () => {
+    const doc = '---\ntitle: "He said \\\\\\"hi\\\\\\""\n---\n\nBody';
+    const { fields } = parseFrontmatter(doc);
+    expect(fields.title).toContain('"');
+    expect(fields.title).toContain('\\');
   });
 });
 

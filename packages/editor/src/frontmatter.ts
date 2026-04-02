@@ -30,7 +30,7 @@ export function buildFrontmatter(fields: FrontmatterFields): string {
     if (typeof value === "string") {
       // Quote strings that contain colons, hash signs, or leading/trailing spaces
       if (/[:#\[\]{}>|]/.test(value) || value !== value.trim()) {
-        lines.push(`${key}: "${value.replace(/"/g, '\\"')}"`);
+        lines.push(`${key}: "${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`);
       } else {
         lines.push(`${key}: ${value}`);
       }
@@ -72,7 +72,7 @@ export function parseFrontmatter(doc: string): { fields: Record<string, string>;
     let value = line.slice(colonIdx + 1).trim();
     // Remove surrounding quotes
     if (value.startsWith('"') && value.endsWith('"')) {
-      value = value.slice(1, -1).replace(/\\"/g, '"');
+      value = value.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
     }
     fields[key] = value;
   }
