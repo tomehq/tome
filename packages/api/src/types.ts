@@ -12,6 +12,7 @@ export interface Env {
   GITHUB_APP_ID: string;
   GITHUB_APP_PRIVATE_KEY: string;
   GITHUB_APP_WEBHOOK_SECRET: string;
+  SSO_SESSION_SECRET: string;
   ENVIRONMENT: string;
 }
 
