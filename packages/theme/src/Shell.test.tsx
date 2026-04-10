@@ -1329,3 +1329,106 @@ describe("Content link interception", () => {
     expect(onNavigate).toHaveBeenCalledWith("index");
   });
 });
+
+// ── Nested navigation groups ─────────────────────────────
+
+describe("Shell nested navigation groups", () => {
+  const nestedNav = [
+    {
+      section: "SDK",
+      pages: [
+        { id: "sdk/overview", title: "Overview", urlPath: "/sdk/overview" },
+        {
+          section: "Languages",
+          pages: [
+            { id: "sdk/javascript", title: "JavaScript", urlPath: "/sdk/javascript" },
+            { id: "sdk/python", title: "Python", urlPath: "/sdk/python" },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const nestedAllPages = [
+    { id: "sdk/overview", title: "Overview" },
+    { id: "sdk/javascript", title: "JavaScript" },
+    { id: "sdk/python", title: "Python" },
+  ];
+
+  it("renders nested group section label in sidebar", () => {
+    renderShell({
+      navigation: nestedNav,
+      allPages: nestedAllPages,
+      currentPageId: "sdk/overview",
+      pageTitle: "Overview",
+    });
+    // Top-level section
+    expect(screen.getAllByText("SDK").length).toBeGreaterThan(0);
+    // Nested section
+    expect(screen.getAllByText("Languages").length).toBeGreaterThan(0);
+  });
+
+  it("renders pages inside nested groups", () => {
+    renderShell({
+      navigation: nestedNav,
+      allPages: nestedAllPages,
+      currentPageId: "sdk/overview",
+      pageTitle: "Overview",
+    });
+    // "JavaScript" and "Python" may appear in sidebar + prev/next cards
+    expect(screen.getAllByText("JavaScript").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Python").length).toBeGreaterThan(0);
+  });
+
+  it("navigates to a page inside a nested group", () => {
+    const onNavigate = vi.fn();
+    renderShell({
+      navigation: nestedNav,
+      allPages: nestedAllPages,
+      currentPageId: "sdk/overview",
+      pageTitle: "Overview",
+      onNavigate,
+    });
+    // Click the sidebar nav button for JavaScript (inside the sidebar nav element)
+    const sidebarNav = screen.getByRole("navigation", { name: "" });
+    const jsButton = within(sidebarNav).getAllByText("JavaScript")[0].closest("button");
+    fireEvent.click(jsButton!);
+    expect(onNavigate).toHaveBeenCalledWith("sdk/javascript");
+  });
+
+  it("renders breadcrumbs with nested group trail", () => {
+    renderShell({
+      navigation: nestedNav,
+      allPages: nestedAllPages,
+      currentPageId: "sdk/python",
+      pageTitle: "Python",
+    });
+    // Breadcrumb should include SDK > Languages > Python
+    const breadcrumbs = screen.getByTestId("breadcrumbs");
+    expect(within(breadcrumbs).getByText("SDK")).toBeInTheDocument();
+    expect(within(breadcrumbs).getByText("Languages")).toBeInTheDocument();
+    expect(within(breadcrumbs).getByText("Python")).toBeInTheDocument();
+  });
+
+  it("collapses nested group when its header is clicked", () => {
+    renderShell({
+      navigation: nestedNav,
+      allPages: nestedAllPages,
+      currentPageId: "sdk/overview",
+      pageTitle: "Overview",
+    });
+    // Pages should be visible initially (expanded by default)
+    expect(screen.getAllByText("JavaScript").length).toBeGreaterThan(0);
+    // Click the "Languages" section toggle to collapse
+    const langButtons = screen.getAllByText("Languages");
+    const toggleButton = langButtons.find(el => el.closest("button"))?.closest("button");
+    expect(toggleButton).toBeTruthy();
+    fireEvent.click(toggleButton!);
+    // After collapsing, nested pages should not appear in sidebar
+    // (they may still appear in prev/next cards, so check the sidebar specifically)
+    const sidebarButtons = screen.queryAllByText("JavaScript").filter(
+      el => el.closest("nav") !== null
+    );
+    expect(sidebarButtons).toHaveLength(0);
+  });
+});

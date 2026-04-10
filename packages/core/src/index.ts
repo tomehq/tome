@@ -8,7 +8,7 @@ export function definePlugin(plugin: import("./config.js").TomePlugin): import("
 export { processMarkdown, processMarkdownFile, parseCodeMeta, enhanceCodeBlock, extractCodeFenceMetas } from "./markdown.js";
 export type { PageFrontmatter, ProcessedPage, CodeMeta } from "./markdown.js";
 
-export { discoverPages, buildNavigation, getPrevNext, normalizeBadge } from "./routes.js";
+export { discoverPages, buildNavigation, getPrevNext, flattenNavItems, normalizeBadge } from "./routes.js";
 export type { PageRoute, NavigationItem, NavigationGroup, I18nConfig, VersioningConfig, Badge, BadgeVariant } from "./routes.js";
 
 export { default as tomePlugin } from "./vite-plugin.js";

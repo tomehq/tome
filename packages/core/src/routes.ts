@@ -51,7 +51,7 @@ export interface NavigationItem {
 
 export interface NavigationGroup {
   section: string;
-  pages: NavigationItem[];
+  pages: (NavigationItem | NavigationGroup)[];
 }
 
 // ── VERSIONING CONFIG TYPE ────────────────────────────────
@@ -307,28 +307,52 @@ export function buildNavigation(
 ): NavigationGroup[] {
   // If config has explicit navigation, use it to order pages
   if (config.navigation && config.navigation.length > 0) {
-    // Collect IDs referenced in explicit navigation
+    // Collect all page IDs referenced in navigation (recursively)
+    function collectIds(entries: Array<string | { group: string; pages: Array<unknown> }>): string[] {
+      const ids: string[] = [];
+      for (const entry of entries) {
+        if (typeof entry === "string") {
+          ids.push(entry);
+        } else {
+          ids.push(...collectIds(entry.pages as Array<string | { group: string; pages: Array<unknown> }>));
+        }
+      }
+      return ids;
+    }
+
     const explicitIds = new Set(
-      config.navigation.flatMap((g) => g.pages as string[])
+      config.navigation.flatMap((g) => collectIds(g.pages as Array<string | { group: string; pages: Array<unknown> }>))
     );
 
-    const groups = config.navigation.map((group) => ({
-      section: group.group,
-      pages: (group.pages as string[])
-        .map((pageId) => {
+    // Recursively resolve config nav entries to NavigationItem | NavigationGroup
+    function resolvePages(entries: Array<string | { group: string; pages: Array<unknown> }>): (NavigationItem | NavigationGroup)[] {
+      const result: (NavigationItem | NavigationGroup)[] = [];
+      for (const entry of entries) {
+        if (typeof entry === "string") {
           const route = routes.find(
-            (r) => r.id === pageId || r.filePath.replace(/\.(md|mdx)$/, "") === pageId
+            (r) => r.id === entry || r.filePath.replace(/\.(md|mdx)$/, "") === entry
           );
-          if (!route || route.frontmatter.hidden) return null;
-          return {
+          if (!route || route.frontmatter.hidden) continue;
+          result.push({
             title: route.frontmatter.sidebarTitle || route.frontmatter.title,
             id: route.id,
             urlPath: route.urlPath,
             icon: route.frontmatter.icon,
             badge: normalizeBadge(route.frontmatter.badge),
-          };
-        })
-        .filter(Boolean) as NavigationItem[],
+          });
+        } else {
+          const nested = resolvePages(entry.pages as Array<string | { group: string; pages: Array<unknown> }>);
+          if (nested.length > 0) {
+            result.push({ section: entry.group, pages: nested });
+          }
+        }
+      }
+      return result;
+    }
+
+    const groups: NavigationGroup[] = config.navigation.map((group) => ({
+      section: group.group,
+      pages: resolvePages(group.pages as Array<string | { group: string; pages: Array<unknown> }>),
     }));
 
     // Append remote/content-source pages not listed in explicit navigation.
@@ -388,11 +412,28 @@ export function buildNavigation(
 }
 
 // ── PREV/NEXT HELPERS ────────────────────────────────────
+
+/** Flatten nested NavigationGroups into a flat list of NavigationItems (depth-first). */
+export function flattenNavItems(groups: NavigationGroup[]): NavigationItem[] {
+  const items: NavigationItem[] = [];
+  function walk(entries: (NavigationItem | NavigationGroup)[]) {
+    for (const entry of entries) {
+      if ("section" in entry) {
+        walk(entry.pages);
+      } else {
+        items.push(entry);
+      }
+    }
+  }
+  for (const g of groups) walk(g.pages);
+  return items;
+}
+
 export function getPrevNext(
   navigation: NavigationGroup[],
   currentId: string
 ): { prev: NavigationItem | null; next: NavigationItem | null } {
-  const allPages = navigation.flatMap((g) => g.pages);
+  const allPages = flattenNavItems(navigation);
   const idx = allPages.findIndex((p) => p.id === currentId);
 
   if (idx === -1) return { prev: null, next: null };

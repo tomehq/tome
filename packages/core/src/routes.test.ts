@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { buildNavigation, getPrevNext, discoverPages, normalizeBadge } from "./routes.js";
+import { buildNavigation, getPrevNext, flattenNavItems, discoverPages, normalizeBadge } from "./routes.js";
 import type { PageRoute, NavigationGroup } from "./routes.js";
 import type { TomeConfig } from "./config.js";
 
@@ -65,9 +65,9 @@ describe("buildNavigation", () => {
       makeRoute({ id: "hidden", frontmatter: { title: "hidden", hidden: true } }),
     ];
     const nav = buildNavigation(routes, emptyConfig);
-    const titles = nav.flatMap((g) => g.pages.map((p) => p.id));
-    expect(titles).toContain("visible");
-    expect(titles).not.toContain("hidden");
+    const ids = flattenNavItems(nav).map((p) => p.id);
+    expect(ids).toContain("visible");
+    expect(ids).not.toContain("hidden");
   });
 
   it("uses config navigation when provided", () => {
@@ -717,8 +717,130 @@ describe("buildNavigation with remote pages", () => {
     // No explicit navigation — auto-generate
     const nav = buildNavigation(routes, emptyConfig);
     // Both should be in the same auto-generated group
-    const allIds = nav.flatMap((g) => g.pages.map((p) => p.id));
+    const allIds = flattenNavItems(nav).map((p) => p.id);
     expect(allIds).toContain("index");
     expect(allIds).toContain("remote-page");
+  });
+});
+
+// ── buildNavigation with nested groups ───────────────────
+
+describe("buildNavigation with nested groups", () => {
+  const routes = [
+    makeRoute({ id: "sdk/overview", filePath: "sdk/overview.md", urlPath: "/sdk/overview", frontmatter: { title: "SDK Overview" } }),
+    makeRoute({ id: "sdk/javascript", filePath: "sdk/javascript.md", urlPath: "/sdk/javascript", frontmatter: { title: "JavaScript" } }),
+    makeRoute({ id: "sdk/python", filePath: "sdk/python.md", urlPath: "/sdk/python", frontmatter: { title: "Python" } }),
+  ];
+
+  it("resolves nested groups into NavigationGroup entries", () => {
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [
+        {
+          group: "SDK",
+          pages: [
+            "sdk/overview",
+            { group: "Languages", pages: ["sdk/javascript", "sdk/python"] },
+          ],
+        },
+      ],
+    };
+    const nav = buildNavigation(routes, config);
+    expect(nav).toHaveLength(1);
+    expect(nav[0].section).toBe("SDK");
+    expect(nav[0].pages).toHaveLength(2);
+    // First entry is a plain item
+    expect(nav[0].pages[0]).toMatchObject({ id: "sdk/overview", title: "SDK Overview" });
+    // Second entry is a nested group
+    const nested = nav[0].pages[1];
+    expect("section" in nested).toBe(true);
+    expect((nested as NavigationGroup).section).toBe("Languages");
+    expect((nested as NavigationGroup).pages).toHaveLength(2);
+  });
+
+  it("flattenNavItems returns all leaf pages depth-first", () => {
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [
+        {
+          group: "SDK",
+          pages: [
+            "sdk/overview",
+            { group: "Languages", pages: ["sdk/javascript", "sdk/python"] },
+          ],
+        },
+      ],
+    };
+    const nav = buildNavigation(routes, config);
+    const flat = flattenNavItems(nav);
+    expect(flat.map((p) => p.id)).toEqual(["sdk/overview", "sdk/javascript", "sdk/python"]);
+  });
+
+  it("getPrevNext works across nested group boundaries", () => {
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [
+        {
+          group: "SDK",
+          pages: [
+            "sdk/overview",
+            { group: "Languages", pages: ["sdk/javascript", "sdk/python"] },
+          ],
+        },
+      ],
+    };
+    const nav = buildNavigation(routes, config);
+    // overview -> javascript (crosses into nested group)
+    const { next } = getPrevNext(nav, "sdk/overview");
+    expect(next?.id).toBe("sdk/javascript");
+    // javascript -> python (within nested group)
+    const { prev, next: next2 } = getPrevNext(nav, "sdk/javascript");
+    expect(prev?.id).toBe("sdk/overview");
+    expect(next2?.id).toBe("sdk/python");
+    // python is last
+    const { next: next3 } = getPrevNext(nav, "sdk/python");
+    expect(next3).toBeNull();
+  });
+
+  it("omits empty nested groups when all pages are missing", () => {
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [
+        {
+          group: "SDK",
+          pages: [
+            "sdk/overview",
+            { group: "Empty", pages: ["nonexistent-a", "nonexistent-b"] },
+          ],
+        },
+      ],
+    };
+    const nav = buildNavigation(routes, config);
+    // The "Empty" nested group should be omitted since no routes matched
+    expect(nav[0].pages).toHaveLength(1);
+    expect(nav[0].pages[0]).toMatchObject({ id: "sdk/overview" });
+  });
+
+  it("collects nested IDs for explicitIds (no spurious External group)", () => {
+    const routesWithRemote = [
+      ...routes,
+      makeRoute({ id: "remote-doc", filePath: "__remote__/remote-doc.md", urlPath: "/remote-doc", frontmatter: { title: "Remote" } }),
+    ];
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [
+        {
+          group: "SDK",
+          pages: [
+            "sdk/overview",
+            { group: "Languages", pages: ["sdk/javascript", "sdk/python"] },
+          ],
+        },
+      ],
+    };
+    const nav = buildNavigation(routesWithRemote, config);
+    // Remote page should appear in External group since it's not in explicit nav
+    expect(nav).toHaveLength(2);
+    expect(nav[1].section).toBe("External");
   });
 });

@@ -310,30 +310,57 @@ function ChangelogView({ entries }: { entries: ChangelogViewEntry[] }) {
   );
 }
 
+// ── NAVIGATION TYPES ────────────────────────────────────
+type NavItem = { title: string; id: string; urlPath: string; icon?: string; badge?: { text: string; variant: string } };
+type NavGroup = { section: string; pages: (NavItem | NavGroup)[] };
+
+function isNavGroup(entry: NavItem | NavGroup): entry is NavGroup {
+  return "section" in entry;
+}
+
+/** Flatten nested nav groups into a flat list of NavItems (depth-first). */
+function flattenNav(groups: NavGroup[]): NavItem[] {
+  const items: NavItem[] = [];
+  function walk(entries: (NavItem | NavGroup)[]) {
+    for (const entry of entries) {
+      if (isNavGroup(entry)) walk(entry.pages);
+      else items.push(entry);
+    }
+  }
+  for (const g of groups) walk(g.pages);
+  return items;
+}
+
 // ── BREADCRUMBS ─────────────────────────────────────────
 type BreadcrumbItem = { label: string; href: string | null };
 
 function getBreadcrumbs(
-  navigation: Array<{ section: string; pages: Array<{ title: string; id: string; urlPath: string }> }>,
+  navigation: NavGroup[],
   currentPageId: string,
   pageTitle: string,
 ): BreadcrumbItem[] {
   if (currentPageId === "index") return [];
 
-  for (const section of navigation) {
-    const found = section.pages.find(p => p.id === currentPageId);
-    if (found) {
-      const crumbs: BreadcrumbItem[] = [];
-      // Section label — link to first page in section
-      const firstPage = section.pages[0];
-      crumbs.push({
-        label: section.section,
-        href: firstPage ? firstPage.urlPath : null,
-      });
-      // Current page (last crumb, not a link)
-      crumbs.push({ label: pageTitle, href: null });
-      return crumbs;
+  // Search nested groups depth-first, building a breadcrumb trail
+  function search(entries: (NavItem | NavGroup)[], trail: BreadcrumbItem[]): BreadcrumbItem[] | null {
+    for (const entry of entries) {
+      if (isNavGroup(entry)) {
+        const firstItem = flattenNav([entry])[0];
+        const crumb: BreadcrumbItem = { label: entry.section, href: firstItem?.urlPath ?? null };
+        const found = search(entry.pages, [...trail, crumb]);
+        if (found) return found;
+      } else if (entry.id === currentPageId) {
+        return [...trail, { label: pageTitle, href: null }];
+      }
     }
+    return null;
+  }
+
+  for (const section of navigation) {
+    const firstItem = flattenNav([section])[0];
+    const trail: BreadcrumbItem[] = [{ label: section.section, href: firstItem?.urlPath ?? null }];
+    const found = search(section.pages, trail);
+    if (found) return found;
   }
   return [];
 }
@@ -352,10 +379,7 @@ interface ShellProps {
     socialLinks?: Array<{ platform: string; url: string; label?: string; icon?: string }>;
     [key: string]: unknown;
   };
-  navigation: Array<{
-    section: string;
-    pages: Array<{ title: string; id: string; urlPath: string; icon?: string; badge?: { text: string; variant: string } }>;
-  }>;
+  navigation: Array<NavGroup>;
   currentPageId: string;
   pageHtml?: string;
   pageComponent?: React.ComponentType<{ components?: Record<string, React.ComponentType> }>;
@@ -438,7 +462,19 @@ export function Shell({
 
   // TOM-30: Determine if viewing an old version
   const isOldVersion = versioning && currentVersion && currentVersion !== versioning.current;
-  const [expanded, setExpanded] = useState<string[]>(navigation.map(n => n.section));
+  const [expanded, setExpanded] = useState<string[]>(() => {
+    const sections: string[] = [];
+    function collect(groups: NavGroup[]) {
+      for (const g of groups) {
+        sections.push(g.section);
+        for (const entry of g.pages) {
+          if (isNavGroup(entry)) collect([entry]);
+        }
+      }
+    }
+    collect(navigation);
+    return sections;
+  });
   const contentRef = useRef<HTMLDivElement>(null);
   const htmlContentRef = useRef<HTMLDivElement>(null);
   const lastHtmlRef = useRef<string>("");
@@ -646,7 +682,7 @@ export function Shell({
   }, []);
 
   // Prev / Next
-  const allNavPages = navigation.flatMap(g => g.pages);
+  const allNavPages = flattenNav(navigation);
   const idx = allNavPages.findIndex(p => p.id === currentPageId);
   const prev = idx > 0 ? allNavPages[idx - 1] : allNavPages[allNavPages.length - 1] ?? null;
   const next = idx < allNavPages.length - 1 ? allNavPages[idx + 1] : allNavPages[0] ?? null;
@@ -655,6 +691,64 @@ export function Shell({
   const breadcrumbs = getBreadcrumbs(navigation, currentPageId, pageTitle);
 
   const togSec = (s: string) => setExpanded(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+
+  const badgeColors: Record<string, { bg: string; text: string }> = {
+    default: { bg: "var(--sf)", text: "var(--tx2)" },
+    info: { bg: "rgba(59,130,246,0.15)", text: "rgb(59,130,246)" },
+    success: { bg: "rgba(34,197,94,0.15)", text: "rgb(34,197,94)" },
+    warning: { bg: "rgba(234,179,8,0.15)", text: "rgb(202,138,4)" },
+    danger: { bg: "rgba(239,68,68,0.15)", text: "rgb(239,68,68)" },
+  };
+
+  function renderNavEntries(entries: (NavItem | NavGroup)[], depth: number) {
+    return (
+      <div style={{ [isRtl ? "marginRight" : "marginLeft"]: 8, [isRtl ? "borderRight" : "borderLeft"]: "1px solid var(--bd)", [isRtl ? "paddingRight" : "paddingLeft"]: 0 }}>
+        {entries.map(entry => {
+          if (isNavGroup(entry)) {
+            return (
+              <div key={entry.section} style={{ marginTop: 4 }}>
+                <button onClick={() => togSec(entry.section)} style={{
+                  display: "flex", alignItems: "center", gap: 6, width: "100%",
+                  background: "none", border: "none", padding: "6px 14px", cursor: "pointer",
+                  borderRadius: 0, color: "var(--txM)", fontSize: 12, fontWeight: 600,
+                  fontFamily: "var(--font-body)",
+                }}>
+                  {expanded.includes(entry.section) ? <ChevDown /> : <ChevRight />}{entry.section}
+                </button>
+                {expanded.includes(entry.section) && renderNavEntries(entry.pages, depth + 1)}
+              </div>
+            );
+          }
+          const p = entry;
+          const active = currentPageId === p.id;
+          return (
+            <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
+              display: "flex", alignItems: "center", gap: 10, width: "100%",
+              textAlign: isRtl ? "right" : "left", background: "none",
+              border: "none", borderRadius: 0,
+              [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
+              padding: "7px 14px", cursor: "pointer",
+              color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
+              fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
+              transition: "all .12s",
+            }}>
+              {p.title}
+              {p.badge && (() => {
+                const bc = badgeColors[p.badge!.variant || "default"] || badgeColors.default;
+                return (
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: "2px 6px",
+                    borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
+                    background: bc.bg, color: bc.text,
+                  }}>{p.badge!.text}</span>
+                );
+              })()}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   const cssVars: Record<string, string> = {
     "--bg": t.bg, "--sf": t.sf, "--sfH": t.sfH, "--bd": t.bd,
@@ -801,42 +895,7 @@ export function Shell({
                 }}>
                   {expanded.includes(sec.section) ? <ChevDown /> : <ChevRight />}{sec.section}
                 </button>
-                {expanded.includes(sec.section) && <div style={{ [isRtl ? "marginRight" : "marginLeft"]: 8, [isRtl ? "borderRight" : "borderLeft"]: "1px solid var(--bd)", [isRtl ? "paddingRight" : "paddingLeft"]: 0 }}>
-                  {sec.pages.map(p => {
-                    const active = currentPageId === p.id;
-                    return (
-                      <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
-                        display: "flex", alignItems: "center", gap: 10, width: "100%",
-                        textAlign: isRtl ? "right" : "left", background: "none",
-                        border: "none", borderRadius: 0,
-                        [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
-                        padding: "7px 14px", cursor: "pointer",
-                        color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
-                        fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
-                        transition: "all .12s",
-                      }}>
-                        {p.title}
-                        {p.badge && (() => {
-                          const badgeColors: Record<string, { bg: string; text: string }> = {
-                            default: { bg: "var(--sf)", text: "var(--tx2)" },
-                            info: { bg: "rgba(59,130,246,0.15)", text: "rgb(59,130,246)" },
-                            success: { bg: "rgba(34,197,94,0.15)", text: "rgb(34,197,94)" },
-                            warning: { bg: "rgba(234,179,8,0.15)", text: "rgb(202,138,4)" },
-                            danger: { bg: "rgba(239,68,68,0.15)", text: "rgb(239,68,68)" },
-                          };
-                          const bc = badgeColors[p.badge!.variant || "default"] || badgeColors.default;
-                          return (
-                            <span style={{
-                              fontSize: 10, fontWeight: 600, padding: "2px 6px",
-                              borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
-                              background: bc.bg, color: bc.text,
-                            }}>{p.badge!.text}</span>
-                          );
-                        })()}
-                      </button>
-                    );
-                  })}
-                </div>}
+                {expanded.includes(sec.section) && renderNavEntries(sec.pages, 1)}
               </div>
             ))}
           </nav>
@@ -911,17 +970,16 @@ export function Shell({
             </button>
             {mobile ? (
               <span style={{ fontSize: 13, color: "var(--ac)", fontFamily: "var(--font-code)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {navigation.flatMap(s => s.pages).find(p => p.id === currentPageId)?.title || ""}
+                {flattenNav(navigation).find(p => p.id === currentPageId)?.title || ""}
               </span>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-code)", fontSize: 11, color: "var(--txM)", letterSpacing: ".03em", flex: 1 }}>
-                {navigation.map(s => {
-                  const f = s.pages.find(p => p.id === currentPageId);
-                  if (!f) return null;
-                  return <span key={s.section} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span>{s.section}</span><ChevRight /><span style={{ color: "var(--ac)" }}>{f.title}</span>
-                  </span>;
-                })}
+                {breadcrumbs.length > 0 && breadcrumbs.map((crumb, i) => (
+                  <span key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {i > 0 && <ChevRight />}
+                    <span style={i === breadcrumbs.length - 1 ? { color: "var(--ac)" } : undefined}>{crumb.label}</span>
+                  </span>
+                ))}
               </div>
             )}
 
@@ -1153,7 +1211,7 @@ export function Shell({
                           onClick={(e: React.MouseEvent) => {
                             e.preventDefault();
                             // Find the page id for this href
-                            const page = navigation.flatMap(s => s.pages).find(p => p.urlPath === crumb.href);
+                            const page = flattenNav(navigation).find(p => p.urlPath === crumb.href);
                             if (page) onNavigate(page.id);
                           }}
                           style={{ color: "var(--tx2)", textDecoration: "none", cursor: "pointer" }}
