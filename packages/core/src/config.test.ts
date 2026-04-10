@@ -68,6 +68,11 @@ describe("TomeConfigSchema", () => {
       ],
     });
     expect(result.navigation[0].pages).toHaveLength(2);
+    expect(result.navigation[0].pages[0]).toBe("api/overview");
+    const nested = result.navigation[0].pages[1];
+    expect(typeof nested).toBe("object");
+    expect((nested as any).group).toBe("Endpoints");
+    expect((nested as any).pages).toEqual(["api/users", "api/posts"]);
   });
 
   it("validates search config", () => {
