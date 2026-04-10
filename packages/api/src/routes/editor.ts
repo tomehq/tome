@@ -19,15 +19,6 @@ import { syncToGitHub } from "./editor-github.js";
 
 const editor = new Hono<{ Bindings: Env; Variables: { user: User } }>();
 
-// ── Helper: verify project ownership ────────────────────
-
-async function verifyProject(db: D1Database, projectId: string, userId: string): Promise<boolean> {
-  const row = await db.prepare(
-    "SELECT id FROM projects WHERE id = ? AND user_id = ?",
-  ).bind(projectId, userId).first();
-  return !!row;
-}
-
 async function getProjectBySlug(db: D1Database, slug: string, userId: string): Promise<{ id: string } | null> {
   return db.prepare(
     "SELECT id FROM projects WHERE slug = ? AND user_id = ?",
