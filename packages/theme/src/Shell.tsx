@@ -706,47 +706,77 @@ export function Shell({
         {entries.map(entry => {
           if (isNavGroup(entry)) {
             return (
-              <div key={entry.section} style={{ marginTop: 4 }}>
+              <div key={entry.section} style={{ marginTop: 8, marginBottom: 4 }}>
                 <button onClick={() => togSec(entry.section)} style={{
                   display: "flex", alignItems: "center", gap: 6, width: "100%",
                   background: "none", border: "none", padding: "6px 14px", cursor: "pointer",
-                  borderRadius: 0, color: "var(--txM)", fontSize: 12, fontWeight: 600,
-                  fontFamily: "var(--font-body)",
+                  borderRadius: 0, color: "var(--txM)", fontSize: 11, fontWeight: 600,
+                  letterSpacing: ".04em", textTransform: "uppercase",
+                  fontFamily: "var(--font-code)",
                 }}>
                   {expanded.includes(entry.section) ? <ChevDown /> : <ChevRight />}{entry.section}
                 </button>
-                {expanded.includes(entry.section) && renderNavEntries(entry.pages, depth + 1)}
+                {expanded.includes(entry.section) && renderNavChildren(entry.pages)}
               </div>
             );
           }
-          const p = entry;
-          const active = currentPageId === p.id;
-          return (
-            <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
-              display: "flex", alignItems: "center", gap: 10, width: "100%",
-              textAlign: isRtl ? "right" : "left", background: "none",
-              border: "none", borderRadius: 0,
-              [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
-              padding: "7px 14px", cursor: "pointer",
-              color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
-              fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
-              transition: "all .12s",
-            }}>
-              {p.title}
-              {p.badge && (() => {
-                const bc = badgeColors[p.badge!.variant || "default"] || badgeColors.default;
-                return (
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, padding: "2px 6px",
-                    borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
-                    background: bc.bg, color: bc.text,
-                  }}>{p.badge!.text}</span>
-                );
-              })()}
-            </button>
-          );
+          return renderNavItem(entry);
         })}
       </div>
+    );
+  }
+
+  function renderNavChildren(entries: (NavItem | NavGroup)[]) {
+    return (
+      <div style={{ [isRtl ? "paddingRight" : "paddingLeft"]: 4 }}>
+        {entries.map(entry => {
+          if (isNavGroup(entry)) {
+            return (
+              <div key={entry.section} style={{ marginTop: 8, marginBottom: 4 }}>
+                <button onClick={() => togSec(entry.section)} style={{
+                  display: "flex", alignItems: "center", gap: 6, width: "100%",
+                  background: "none", border: "none", padding: "6px 14px", cursor: "pointer",
+                  borderRadius: 0, color: "var(--txM)", fontSize: 11, fontWeight: 600,
+                  letterSpacing: ".04em", textTransform: "uppercase",
+                  fontFamily: "var(--font-code)",
+                }}>
+                  {expanded.includes(entry.section) ? <ChevDown /> : <ChevRight />}{entry.section}
+                </button>
+                {expanded.includes(entry.section) && renderNavChildren(entry.pages)}
+              </div>
+            );
+          }
+          return renderNavItem(entry);
+        })}
+      </div>
+    );
+  }
+
+  function renderNavItem(p: NavItem) {
+    const active = currentPageId === p.id;
+    return (
+      <button key={p.id} onClick={() => { onNavigate(p.id); if (mobile) setSb(false); }} style={{
+        display: "flex", alignItems: "center", gap: 10, width: "100%",
+        textAlign: isRtl ? "right" : "left", background: "none",
+        border: "none", borderRadius: 0,
+        [isRtl ? "borderRight" : "borderLeft"]: active ? "2px solid var(--ac)" : "2px solid transparent",
+        padding: "7px 14px", cursor: "pointer",
+        color: active ? "var(--ac)" : "var(--tx2)", fontSize: 13,
+        fontWeight: active ? 500 : 400, fontFamily: "var(--font-body)",
+        transition: "all .12s",
+      }}>
+        {p.title}
+        {p.badge && (() => {
+          const bc = badgeColors[p.badge!.variant || "default"] || badgeColors.default;
+          return (
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: "2px 6px",
+              borderRadius: 4, marginLeft: 6, whiteSpace: "nowrap",
+              background: bc.bg, color: bc.text,
+            }}>{p.badge!.text}</span>
+          );
+        })()}
+      </button>
     );
   }
 

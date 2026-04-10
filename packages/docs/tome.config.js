@@ -43,14 +43,24 @@ export default {
         "guides/versioning",
         "guides/migration",
         "guides/redirects",
-        "guides/configuration",
-        "guides/custom-theme",
-        "guides/api-reference",
+        {
+          group: "Customization",
+          pages: [
+            "guides/configuration",
+            "guides/custom-theme",
+            "guides/code-blocks",
+          ],
+        },
+        {
+          group: "Integrations",
+          pages: [
+            "guides/api-reference",
+            "guides/plugins",
+            "guides/content-sources",
+            "guides/typedoc",
+          ],
+        },
         "guides/draft-pages",
-        "guides/plugins",
-        "guides/content-sources",
-        "guides/typedoc",
-        "guides/code-blocks",
       ],
     },
     {

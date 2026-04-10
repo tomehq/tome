@@ -843,4 +843,39 @@ describe("buildNavigation with nested groups", () => {
     expect(nav).toHaveLength(2);
     expect(nav[1].section).toBe("External");
   });
+
+  it("resolves nested groups with versioned routes (filePath differs from id)", () => {
+    const versionedRoutes = [
+      makeRoute({ id: "guides/search", filePath: "v3/guides/search.md", urlPath: "/guides/search", frontmatter: { title: "Search" } }),
+      makeRoute({ id: "guides/config", filePath: "v3/guides/config.mdx", urlPath: "/guides/config", frontmatter: { title: "Configuration" } }),
+      makeRoute({ id: "guides/theme", filePath: "v3/guides/theme.md", urlPath: "/guides/theme", frontmatter: { title: "Custom Theme" } }),
+      makeRoute({ id: "guides/plugins", filePath: "v3/guides/plugins.md", urlPath: "/guides/plugins", frontmatter: { title: "Plugins" } }),
+    ];
+    const config: TomeConfig = {
+      name: "Test",
+      navigation: [
+        {
+          group: "Guides",
+          pages: [
+            "guides/search",
+            { group: "Customization", pages: ["guides/config", "guides/theme"] },
+            { group: "Integrations", pages: ["guides/plugins"] },
+          ],
+        },
+      ],
+    };
+    const nav = buildNavigation(versionedRoutes, config);
+    expect(nav[0].section).toBe("Guides");
+    expect(nav[0].pages).toHaveLength(3);
+    // First item is flat
+    expect(nav[0].pages[0]).toMatchObject({ id: "guides/search" });
+    // Second is nested Customization group
+    const customization = nav[0].pages[1] as NavigationGroup;
+    expect(customization.section).toBe("Customization");
+    expect(customization.pages).toHaveLength(2);
+    // Third is nested Integrations group
+    const integrations = nav[0].pages[2] as NavigationGroup;
+    expect(integrations.section).toBe("Integrations");
+    expect(integrations.pages).toHaveLength(1);
+  });
 });
