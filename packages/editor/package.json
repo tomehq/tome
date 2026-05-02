@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/editor",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "description": "WYSIWYG markdown editor for Tome documentation",
   "type": "module",
