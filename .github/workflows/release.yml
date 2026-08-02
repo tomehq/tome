@@ -41,11 +41,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Make npm available to Changesets
+      - name: Use npm 11 for Changesets
         run: |
-          # pnpm scripts otherwise resolve Node's bundled npm 10.
-          ln -sf "$RUNNER_TEMP/npm/bin/npm" node_modules/.bin/npm
-          pnpm exec npm --version | grep -Fx "$NPM_VERSION"
+          # Changesets resolves npm from Node's toolchain path.
+          ln -sf "$RUNNER_TEMP/npm/bin/npm" "$(dirname "$(command -v node)")/npm"
+          "$(dirname "$(command -v node)")/npm" --version | grep -Fx "$NPM_VERSION"
 
       - name: Build
         run: pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build
