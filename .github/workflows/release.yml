@@ -40,6 +40,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Use npm 11 for Changesets
+        run: |
+          ln -sf "$RUNNER_TEMP/npm/bin/npm" "$(dirname "$(command -v node)")/npm"
+          "$(dirname "$(command -v node)")/npm" --version | grep -Fx "$NPM_VERSION"
+
       - name: Build
         run: pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build
 
