@@ -3,6 +3,9 @@
   "version": "0.8.1",
   "description": "Tome build engine — Vite plugin, Markdown pipeline, config loader",
   "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
