@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NPM_VERSION: "11.19.0"
-      NPM_CONFIG_LOGLEVEL: "verbose"
     permissions:
       contents: write
       pull-requests: write
@@ -44,7 +43,12 @@ jobs:
       - name: Build
         run: pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build
 
+      - name: Check npm trusted publishing
+        if: github.ref != 'refs/heads/main'
+        run: pnpm exec npm publish packages/core --dry-run --access public --loglevel verbose
+
       - name: Create Release PR or Publish to npm
+        if: github.ref == 'refs/heads/main'
         id: changesets
         uses: changesets/action@v1
         with:
