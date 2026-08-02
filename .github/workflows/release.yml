@@ -10,6 +10,8 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      NPM_VERSION: "11.19.0"
     permissions:
       contents: write
       pull-requests: write
@@ -28,7 +30,12 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install npm with trusted publishing support
-        run: npm install --global npm@11.19.0
+        run: |
+          npm install --global --prefix "$RUNNER_TEMP/npm" "npm@$NPM_VERSION"
+          echo "$RUNNER_TEMP/npm/bin" >> "$GITHUB_PATH"
+
+      - name: Verify npm version
+        run: npm --version | grep -Fx "$NPM_VERSION"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
