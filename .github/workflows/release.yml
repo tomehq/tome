@@ -43,15 +43,7 @@ jobs:
       - name: Build
         run: pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build
 
-      - name: Check npm trusted publishing
-        if: github.ref != 'refs/heads/main'
-        run: pnpm release
-        env:
-          NPM_CONFIG_DRY_RUN: "true"
-          NPM_CONFIG_LOGLEVEL: "verbose"
-
       - name: Create Release PR or Publish to npm
-        if: github.ref == 'refs/heads/main'
         id: changesets
         uses: changesets/action@v1
         with:
@@ -62,10 +54,12 @@ jobs:
           createGithubReleases: "false"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_DRY_RUN: "true"
+          NPM_CONFIG_LOGLEVEL: "verbose"
 
       # ── Also publish to GitHub Packages ──────────────────
       - name: Publish to GitHub Packages
-        if: steps.changesets.outputs.published == 'true'
+        if: github.ref == 'refs/heads/main' && steps.changesets.outputs.published == 'true'
         run: |
           echo "//npm.pkg.github.com/:_authToken=\${GITHUB_TOKEN}" > .npmrc
           echo "@tomehq:registry=https://npm.pkg.github.com" >> .npmrc
@@ -75,7 +69,7 @@ jobs:
 
       # ── Rebuild and deploy docs + dashboard to Vercel ──
       - name: Rebuild and deploy to Vercel
-        if: steps.changesets.outputs.published == 'true'
+        if: github.ref == 'refs/heads/main' && steps.changesets.outputs.published == 'true'
         run: |
           # Build docs (run CLI directly since .npmrc override may break bin resolution)
           cd packages/docs && node ../cli/dist/cli.js build && cd ../..
