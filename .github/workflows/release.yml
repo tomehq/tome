@@ -28,7 +28,12 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install npm with trusted publishing support
-        run: npm install --global npm@11.19.0
+        run: |
+          npm install --global --prefix "$RUNNER_TEMP/npm" npm@11.19.0
+          echo "$RUNNER_TEMP/npm/bin" >> "$GITHUB_PATH"
+
+      - name: Verify npm version
+        run: npm --version | grep -Fx "11.19.0"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
