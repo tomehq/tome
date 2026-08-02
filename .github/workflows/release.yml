@@ -40,6 +40,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Make npm available to Changesets
+        run: |
+          # pnpm scripts otherwise resolve Node's bundled npm 10.
+          ln -sf "$RUNNER_TEMP/npm/bin/npm" node_modules/.bin/npm
+          pnpm exec npm --version | grep -Fx "$NPM_VERSION"
+
       - name: Build
         run: pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs build
 
