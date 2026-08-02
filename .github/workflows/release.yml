@@ -45,7 +45,7 @@ jobs:
 
       - name: Check npm trusted publishing
         if: github.ref != 'refs/heads/main'
-        run: pnpm exec npm publish packages/core --dry-run --access public --loglevel verbose
+        run: pnpm exec npm publish ./packages/core --dry-run --access public --loglevel verbose
 
       - name: Create Release PR or Publish to npm
         if: github.ref == 'refs/heads/main'
