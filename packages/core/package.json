@@ -4,7 +4,7 @@
   "description": "Tome build engine — Vite plugin, Markdown pipeline, config loader",
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.22.2"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

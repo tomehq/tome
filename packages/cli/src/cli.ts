@@ -188,7 +188,7 @@ This tutorial walks you through creating and customizing your first documentatio
 
 ## Prerequisites
 
-- Node.js 22.13 or later ([download](https://nodejs.org))
+- Node.js 22.22.2 or later ([download](https://nodejs.org))
 - A code editor (VS Code, Cursor, etc.)
 - A terminal
 

@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Tome! This guide will help you ge
 
 ### Prerequisites
 
-- Node.js 22.13+
+- Node.js 22.22.2+
 - [pnpm](https://pnpm.io/) 9+
 
 ### Getting Started

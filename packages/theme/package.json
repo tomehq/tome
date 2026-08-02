@@ -4,7 +4,7 @@
   "description": "Tome default theme and React app shell",
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.22.2"
   },
   "main": "./src/index.tsx",
   "exports": {
