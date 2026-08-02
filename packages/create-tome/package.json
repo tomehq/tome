@@ -3,6 +3,9 @@
   "version": "0.2.9",
   "description": "Create a new Tome documentation project",
   "type": "module",
+  "engines": {
+    "node": ">=22.22.2"
+  },
   "bin": {
     "create-tome": "./src/index.js"
   },

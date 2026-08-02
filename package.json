@@ -20,29 +20,30 @@
     "build:deploy": "pnpm build && pnpm --filter @tomehq/docs build && rm -rf packages/landing/public/docs && cp -r packages/docs/out packages/landing/public/docs && pnpm --filter @tomehq/dashboard build && rm -rf packages/landing/public/dashboard && cp -r packages/dashboard/dist packages/landing/public/dashboard && cd packages/landing && npx vite build"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.0",
-    "@vitest/coverage-v8": "^4.0.0",
-    "eslint": "^9.39.4",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.0",
-    "vitest": "^4.0.0"
+    "@changesets/cli": "^2.31.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.39.5",
+    "tsx": "^4.23.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.22.2"
   },
   "pnpm": {
     "overrides": {
-      "brace-expansion@<1.1.13": "1.1.13",
-      "brace-expansion@>=2.0.0 <2.0.3": "2.0.3",
-      "brace-expansion@>=5.0.0 <5.0.5": "5.0.5",
+      "brace-expansion@<1.1.17": "1.1.17",
+      "brace-expansion@>=2.0.0 <2.1.3": "2.1.3",
+      "brace-expansion@>=5.0.0 <5.0.9": "5.0.9",
+      "esbuild@<0.28.1": "0.28.1",
       "path-to-regexp@>=8.0.0 <8.4.0": "8.4.1",
       "picomatch@<2.3.2": "2.3.2",
       "picomatch@>=4.0.0 <4.0.4": "4.0.4",
       "yaml@>=2.0.0 <2.8.3": "2.8.3",
-      "vite@>=6.0.0 <6.4.2": "6.4.2",
-      "@hono/node-server@<1.19.13": "1.19.13",
-      "postcss@<8.5.10": "8.5.10"
+      "vite@>=6.0.0 <6.4.3": "6.4.3",
+      "@hono/node-server@<2.0.10": "2.0.12",
+      "postcss@<8.5.18": "8.5.25"
     }
   }
 }

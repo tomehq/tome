@@ -3,6 +3,9 @@
   "version": "0.8.1",
   "description": "Built-in MDX components for Tome documentation sites",
   "type": "module",
+  "engines": {
+    "node": ">=22.22.2"
+  },
   "main": "./src/index.tsx",
   "scripts": {
     "build": "tsup src/index.tsx --format esm --dts --external react",
@@ -13,13 +16,14 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^19.0.0",
-    "jsdom": "^29.0.0",
-    "react": "^19.0.0",
-    "tsup": "^8.0.0",
-    "typescript": "^6.0.0"
+    "@types/react": "^19.2.18",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.8",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
   },
   "license": "MIT",
   "repository": {

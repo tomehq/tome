@@ -9,7 +9,7 @@ Tome Cloud hosts your documentation site on a global CDN with automatic SSL, cus
 ## Prerequisites
 
 - A Tome documentation project (see [Create your first site](/docs/tutorials/first-site))
-- Node.js 20+
+- Node.js 22.22.2+
 
 ## 1. Authenticate
 
