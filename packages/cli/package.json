@@ -1,6 +1,6 @@
 {
   "name": "@tomehq/cli",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Tome documentation platform CLI",
   "type": "module",
   "engines": {
