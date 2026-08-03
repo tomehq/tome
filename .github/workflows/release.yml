@@ -66,9 +66,12 @@ jobs:
       - name: Publish to GitHub Packages
         if: steps.changesets.outputs.published == 'true'
         run: |
-          echo "//npm.pkg.github.com/:_authToken=\${GITHUB_TOKEN}" > .npmrc
-          echo "@tomehq:registry=https://npm.pkg.github.com" >> .npmrc
-          pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs --filter=!create-tome publish --no-git-checks --registry https://npm.pkg.github.com || true
+          printf '%s\n' \
+            '//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}' \
+            '@tomehq:registry=https://npm.pkg.github.com' \
+            > "$RUNNER_TEMP/github-packages.npmrc"
+          NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/github-packages.npmrc" \
+            pnpm -r --filter=!@tomehq/landing --filter=!@tomehq/dashboard --filter=!@tomehq/docs --filter=!create-tome publish --no-git-checks --registry https://npm.pkg.github.com || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -76,7 +79,7 @@ jobs:
       - name: Rebuild and deploy to Vercel
         if: steps.changesets.outputs.published == 'true'
         run: |
-          # Build docs (run CLI directly since .npmrc override may break bin resolution)
+          # Build docs with the package CLI.
           cd packages/docs && node ../cli/dist/cli.js build && cd ../..
 
           # Copy docs to landing
