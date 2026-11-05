@@ -71,7 +71,7 @@ export async function callAnthropic(
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1024,
+      max_tokens: 4096,
       system: systemPrompt,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     }),
@@ -81,7 +81,7 @@ export async function callAnthropic(
     throw new Error(`Anthropic API error (${res.status}): ${err}`);
   }
   const data = await res.json();
-  return data.content?.[0]?.text || "No response.";
+  return data.content?.find((b: { text?: string }) => b.text)?.text || "No response.";
 }
 
 /**
@@ -89,7 +89,7 @@ export async function callAnthropic(
  */
 export function getDefaultModel(provider: AiProvider): string {
   if (provider === "openai") return "gpt-4o-mini";
-  return "claude-sonnet-4-20250514";
+  return "claude-sonnet-5-5";
 }
 
 /**
